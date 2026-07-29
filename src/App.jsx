@@ -3,6 +3,7 @@ import Nav from './components/Nav.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Scan from './pages/Scan.jsx'
 import Fiches from './pages/Fiches.jsx'
+import ColleIA from './pages/ColleIA.jsx'
 import AuthPage from './pages/Auth.jsx'
 import { AuthProvider, useAuth } from './lib/AuthContext.jsx'
 import { seedDemoDataIfNeeded } from './lib/seedDemoData.js'
@@ -10,7 +11,8 @@ import { seedDemoDataIfNeeded } from './lib/seedDemoData.js'
 const pageMeta = {
   dashboard: { title: 'Tableau de bord', subtitle: null },
   scan: { title: 'Copies', subtitle: 'Scanne une copie annotée, suis tes erreurs récurrentes' },
-  fiches: { title: 'Fiches', subtitle: 'Tes fiches de révision, générées ou personnelles' }
+  fiches: { title: 'Fiches', subtitle: 'Tes fiches de révision, générées ou personnelles' },
+  colle: { title: 'Colle IA', subtitle: "Entraîne-toi à l'oral face à un colleur virtuel" }
 }
 
 function todayLabel() {
@@ -76,6 +78,7 @@ function AppShell() {
           )}
           {page === 'scan' && <Scan navParams={navParams} userId={session.user.id} />}
           {page === 'fiches' && <Fiches navParams={navParams} userId={session.user.id} />}
+          {page === 'colle' && <ColleIA userId={session.user.id} />}
         </main>
       </div>
     </div>
