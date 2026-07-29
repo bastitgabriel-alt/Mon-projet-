@@ -4,12 +4,12 @@ import { competencySubjects } from '../data/competencies.js'
 // venir, les compétences les plus faibles (module C) et l'énergie du jour
 // (module E) en 2-3 priorités concrètes pour la semaine.
 
-function weakestCompetencies(levels, count = 2) {
+export function getWeakestCompetencies(levels, count = 2) {
   const all = []
   competencySubjects.forEach((s) => {
     s.competencies.forEach((c) => {
       const level = levels[`${s.id}__${c.key}`] || 1
-      all.push({ subject: s.name, label: c.label, level })
+      all.push({ subjectId: s.id, subject: s.name, competencyKey: c.key, label: c.label, level })
     })
   })
   return all.sort((a, b) => a.level - b.level).slice(0, count)
@@ -38,7 +38,7 @@ export function buildWeeklyPlan({ events, levels, energyToday }) {
     .filter((e) => (e.type === 'ds' || e.type === 'colle') && e.date >= todayIso && e.date <= in7DaysIso)
     .sort((a, b) => a.date.localeCompare(b.date))
 
-  const weak = weakestCompetencies(levels)
+  const weak = getWeakestCompetencies(levels)
   const priorities = []
 
   if (weekEvents.length > 0) {

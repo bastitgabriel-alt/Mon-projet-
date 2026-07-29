@@ -1,9 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { subjects } from '../data/mockData.js'
+import { competencySubjects } from '../data/competencies.js'
+import { subjectBank, tierMeta } from '../data/subjectBank.js'
 import { supabase } from '../lib/supabaseClient.js'
 import { Card, Badge, Button } from '../components/ui.jsx'
 import { ChevronLeftIcon, MicIcon, SparkleIcon } from '../components/icons.jsx'
 import { askExaminerTurn, getColleFeedback } from '../lib/colleAi.js'
+import { getWeakestCompetencies } from '../utils/weeklyPlan.js'
 
 const SpeechRecognitionCtor =
   typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null
@@ -46,6 +49,9 @@ export default function ColleIA({ userId }) {
   const [topic, setTopic] = useState('')
   const [ficheSuggestions, setFicheSuggestions] = useState([])
   const [pastSessions, setPastSessions] = useState([])
+  const [chapterKey, setChapterKey] = useState(null)
+  const [competencyLevels, setCompetencyLevels] = useState({})
+  const [customSubjects, setCustomSubjects] = useState([])
 
   const [prepMinutes, setPrepMinutes] = useState(PREP_OPTIONS[1])
   const [passageMinutes, setPassageMinutes] = useState(PASSAGE_OPTIONS[1])
@@ -77,6 +83,24 @@ export default function ColleIA({ userId }) {
       .order('created_at', { ascending: false })
       .limit(5)
       .then(({ data }) => setPastSessions(data || []))
+
+    supabase
+      .from('competency_levels')
+      .select('subject_id, competency_key, level')
+      .eq('user_id', userId)
+      .then(({ data }) => {
+        const map = {}
+        ;(data || []).forEach((row) => {
+          map[`${row.subject_id}__${row.competency_key}`] = row.level
+        })
+        setCompetencyLevels(map)
+      })
+
+    supabase
+      .from('custom_subjects')
+      .select('id, subject_id, competency_key, text')
+      .eq('user_id', userId)
+      .then(({ data }) => setCustomSubjects(data || []))
   }, [userId])
 
   useEffect(() => () => window.speechSynthesis?.cancel(), [])
@@ -102,6 +126,47 @@ export default function ColleIA({ userId }) {
   }, [step, secondsLeft])
 
   const subjectTopics = ficheSuggestions.filter((f) => f.subject_id === subjectId).map((f) => f.title)
+  const chapterOptions = competencySubjects.find((s) => s.id === subjectId)?.competencies || []
+  const bankSujets = chapterKey ? subjectBank[subjectId]?.[chapterKey] || [] : []
+  const customSujets = chapterKey
+    ? customSubjects.filter((c) => c.subject_id === subjectId && c.competency_key === chapterKey).map((c) => ({ id: c.id, text: c.text, tier: 'custom' }))
+    : []
+  const allSujets = [...bankSujets, ...customSujets]
+  const topicIsCustom = chapterKey && topic.trim() && !allSujets.some((s) => s.text === topic.trim())
+
+  const weakestSujetTarget = useMemo(() => {
+    const weakest = getWeakestCompetencies(competencyLevels, competencySubjects.flatMap((s) => s.competencies).length)
+    return weakest.find((w) => (subjectBank[w.subjectId]?.[w.competencyKey] || []).length > 0) || null
+  }, [competencyLevels])
+
+  function selectSubject(id) {
+    setSubjectId(id)
+    setChapterKey(null)
+    setTopic('')
+  }
+
+  function selectChapter(key) {
+    setChapterKey(key)
+    setTopic('')
+  }
+
+  function focusOnWeakest() {
+    if (!weakestSujetTarget) return
+    setSubjectId(weakestSujetTarget.subjectId)
+    setChapterKey(weakestSujetTarget.competencyKey)
+    const firstSujet = subjectBank[weakestSujetTarget.subjectId]?.[weakestSujetTarget.competencyKey]?.[0]
+    setTopic(firstSujet ? firstSujet.text : '')
+  }
+
+  async function saveCustomSujet() {
+    if (!chapterKey || !topic.trim()) return
+    const { data } = await supabase
+      .from('custom_subjects')
+      .insert({ user_id: userId, subject_id: subjectId, competency_key: chapterKey, text: topic.trim() })
+      .select()
+      .single()
+    if (data) setCustomSubjects((prev) => [...prev, data])
+  }
 
   async function beginPractice() {
     if (!topic.trim()) return
@@ -295,16 +360,27 @@ export default function ColleIA({ userId }) {
           </button>
         </div>
 
+        {weakestSujetTarget && (
+          <Card className="flex items-center justify-between gap-3 bg-amber-soft p-4">
+            <div>
+              <p className="text-sm font-semibold text-amber">Révision ciblée</p>
+              <p className="text-xs text-ink-600">
+                Point le plus faible : {weakestSujetTarget.label} ({weakestSujetTarget.subject})
+              </p>
+            </div>
+            <Button variant="secondary" onClick={focusOnWeakest} className="shrink-0 px-3 py-1.5 text-xs">
+              Réviser ça
+            </Button>
+          </Card>
+        )}
+
         <Card className="p-5">
           <p className="mb-2 text-sm font-medium text-ink-700">Matière</p>
           <div className="flex flex-wrap gap-2">
             {subjects.map((s) => (
               <button
                 key={s.id}
-                onClick={() => {
-                  setSubjectId(s.id)
-                  setTopic('')
-                }}
+                onClick={() => selectSubject(s.id)}
                 className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
                   subjectId === s.id ? 'bg-indigo text-white' : 'bg-white border border-ink-200 text-ink-600'
                 }`}
@@ -316,8 +392,45 @@ export default function ColleIA({ userId }) {
         </Card>
 
         <Card className="p-5">
+          <p className="mb-2 text-sm font-medium text-ink-700">Chapitre</p>
+          <div className="flex flex-wrap gap-2">
+            {chapterOptions.map((c) => (
+              <button
+                key={c.key}
+                onClick={() => selectChapter(c.key)}
+                className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                  chapterKey === c.key ? 'bg-indigo text-white' : 'bg-white border border-ink-200 text-ink-600'
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+
+          {chapterKey && (
+            <div className="mt-4 flex flex-col gap-2">
+              {allSujets.map((s) => {
+                const tone = tierMeta[s.tier] || tierMeta.classique
+                const selected = topic === s.text
+                return (
+                  <button key={s.id} onClick={() => setTopic(s.text)} className="text-left">
+                    <Card className={`p-3.5 transition-colors ${selected ? 'ring-2 ring-indigo' : 'hover:bg-ink-50'}`}>
+                      <Badge className={`mb-1.5 ${tone.tone}`}>{tone.label}</Badge>
+                      <p className="text-sm text-ink-700">{s.text}</p>
+                    </Card>
+                  </button>
+                )
+              })}
+              {allSujets.length === 0 && (
+                <p className="text-xs text-ink-400">Aucun sujet dans ce chapitre pour l'instant — écris le tien ci-dessous.</p>
+              )}
+            </div>
+          )}
+        </Card>
+
+        <Card className="p-5">
           <p className="mb-2 text-sm font-medium text-ink-700">
-            {practiceMode === 'kholle' ? 'Sujet à préparer' : 'Chapitre à interroger'}
+            {chapterKey ? 'Sujet sélectionné, ou écris le tien' : practiceMode === 'kholle' ? 'Sujet à préparer' : 'Chapitre à interroger'}
           </p>
           <input
             value={topic}
@@ -337,6 +450,11 @@ export default function ColleIA({ userId }) {
                 </button>
               ))}
             </div>
+          )}
+          {topicIsCustom && (
+            <button onClick={saveCustomSujet} className="mt-2 text-xs font-medium text-indigo hover:underline">
+              + Enregistrer ce sujet pour plus tard
+            </button>
           )}
         </Card>
 
@@ -570,40 +688,43 @@ export default function ColleIA({ userId }) {
             {feedback.score}
             <span className="text-lg text-ink-400">/20</span>
           </p>
-          <p className="text-sm text-ink-500">
+          {feedback.score_justification && <p className="max-w-sm text-sm text-ink-600">{feedback.score_justification}</p>}
+          <p className="text-xs text-ink-400">
             {subject?.name} · {topic}
           </p>
         </div>
 
         <Card className="p-5">
-          <p className="mb-2 text-sm font-semibold text-teal">Points forts</p>
-          <ul className="flex flex-col gap-1.5">
-            {(feedback.points_forts || []).map((p, i) => (
-              <li key={i} className="flex gap-2 text-sm text-ink-700">
-                <span className="text-teal">＋</span>
-                {p}
-              </li>
-            ))}
-          </ul>
-        </Card>
-
-        <Card className="p-5">
-          <p className="mb-2 text-sm font-semibold text-coral">Points à travailler</p>
-          <ul className="flex flex-col gap-1.5">
-            {(feedback.points_a_travailler || []).map((p, i) => (
-              <li key={i} className="flex gap-2 text-sm text-ink-700">
-                <span className="text-coral">－</span>
-                {p}
-              </li>
-            ))}
-          </ul>
+          <div>
+            <p className="mb-1 text-sm font-semibold text-ink-800">Clarté</p>
+            <p className="text-sm text-ink-600">{feedback.clarte}</p>
+          </div>
+          <div className="mt-3 border-t border-ink-100 pt-3">
+            <p className="mb-1 text-sm font-semibold text-ink-800">Structure</p>
+            <p className="text-sm text-ink-600">{feedback.structure}</p>
+          </div>
+          <div className="mt-3 border-t border-ink-100 pt-3">
+            <p className="mb-1 text-sm font-semibold text-ink-800">Gestion du temps</p>
+            <p className="text-sm text-ink-600">{feedback.gestion_temps}</p>
+          </div>
+          <div className="mt-3 border-t border-ink-100 pt-3">
+            <p className="mb-1 text-sm font-semibold text-ink-800">Maîtrise technique</p>
+            <p className="text-sm text-ink-600">{feedback.maitrise_technique}</p>
+          </div>
         </Card>
 
         <Card className="bg-teal-soft p-5">
-          <p className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-teal">
-            <SparkleIcon className="w-4 h-4" /> Conseil
+          <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-teal">
+            <SparkleIcon className="w-4 h-4" /> Plan d'action
           </p>
-          <p className="text-sm text-ink-700">{feedback.conseil}</p>
+          <ul className="flex flex-col gap-1.5">
+            {(feedback.plan_action || []).map((p, i) => (
+              <li key={i} className="flex gap-2 text-sm text-ink-700">
+                <span className="shrink-0 text-teal">{i + 1}.</span>
+                {p}
+              </li>
+            ))}
+          </ul>
         </Card>
 
         <Button onClick={reset} className="w-full">
