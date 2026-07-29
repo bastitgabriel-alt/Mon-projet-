@@ -103,6 +103,16 @@ export function CalendarIcon({ className = 'w-6 h-6' }) {
   )
 }
 
+export function TargetIcon({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="4.8" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+    </svg>
+  )
+}
+
 export function MicIcon({ className = 'w-6 h-6' }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>
