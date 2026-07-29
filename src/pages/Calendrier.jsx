@@ -5,6 +5,7 @@ import { Card, Badge, Button } from '../components/ui.jsx'
 import { generateAcademicCalendar, eventTypeMeta } from '../utils/academicCalendar.js'
 import { getLifeMode } from '../utils/lifeMode.js'
 import { getSmartAlerts } from '../utils/smartAlerts.js'
+import { buildWeeklyPlan } from '../utils/weeklyPlan.js'
 
 const ALERT_TONE = {
   coral: 'bg-coral-soft text-coral',
@@ -47,6 +48,11 @@ export default function Calendrier({ userId }) {
   const [annee, setAnnee] = useState(1)
   const [dateRentree, setDateRentree] = useState('')
   const [weeksToShow, setWeeksToShow] = useState(WEEKS_PAGE)
+  const [competencyLevels, setCompetencyLevels] = useState({})
+  const [energyToday, setEnergyToday] = useState(null)
+  const [planDismissed, setPlanDismissed] = useState(false)
+
+  const todayIso = new Date().toISOString().slice(0, 10)
 
   useEffect(() => {
     supabase
@@ -58,6 +64,27 @@ export default function Calendrier({ userId }) {
         setProfile(data)
         setLoading(false)
       })
+
+    supabase
+      .from('competency_levels')
+      .select('subject_id, competency_key, level')
+      .eq('user_id', userId)
+      .then(({ data }) => {
+        const map = {}
+        ;(data || []).forEach((row) => {
+          map[`${row.subject_id}__${row.competency_key}`] = row.level
+        })
+        setCompetencyLevels(map)
+      })
+
+    supabase
+      .from('energy_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('log_date', todayIso)
+      .maybeSingle()
+      .then(({ data }) => setEnergyToday(data || null))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
   const events = useMemo(() => {
@@ -67,8 +94,14 @@ export default function Calendrier({ userId }) {
 
   const lifeMode = useMemo(() => (events.length > 0 ? getLifeMode(events) : null), [events])
   const smartAlerts = useMemo(() => (events.length > 0 ? getSmartAlerts(events) : []), [events])
+  const weeklyPlan = useMemo(
+    () =>
+      events.length > 0
+        ? buildWeeklyPlan({ events: events.map((e) => ({ ...e, title: eventTitle(e) })), levels: competencyLevels, energyToday })
+        : null,
+    [events, competencyLevels, energyToday]
+  )
 
-  const todayIso = new Date().toISOString().slice(0, 10)
   const upcoming = useMemo(() => events.filter((e) => (e.endDate || e.date) >= todayIso), [events, todayIso])
 
   const weekGroups = useMemo(() => {
@@ -184,6 +217,23 @@ export default function Calendrier({ userId }) {
             </Card>
           ))}
         </div>
+      )}
+
+      {weeklyPlan && !planDismissed && (
+        <Card className="p-5">
+          <p className="mb-3 font-display text-[15.5px] font-semibold text-ink-900">Plan de la semaine</p>
+          <ul className="mb-4 flex flex-col gap-2.5">
+            {weeklyPlan.priorities.map((p, i) => (
+              <li key={i} className="flex gap-2 text-sm text-ink-700">
+                <span className="shrink-0 text-indigo">→</span>
+                {p}
+              </li>
+            ))}
+          </ul>
+          <Button variant="secondary" onClick={() => setPlanDismissed(true)} className="w-full">
+            Compris, je m'y mets
+          </Button>
+        </Card>
       )}
 
       <div className="flex flex-col gap-4">

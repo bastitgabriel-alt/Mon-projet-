@@ -23,10 +23,10 @@ async function callColleAi(payload) {
   return res.json()
 }
 
-export function askExaminerTurn({ subject, topic, history }) {
-  return callColleAi({ mode: 'turn', subject, topic, history })
+export function askExaminerTurn({ subject, topic, history, practiceMode }) {
+  return callColleAi({ mode: 'turn', subject, topic, history, practiceMode })
 }
 
-export function getColleFeedback({ subject, topic, history }) {
-  return callColleAi({ mode: 'feedback', subject, topic, history })
+export function getColleFeedback({ subject, topic, history, practiceMode, timeUsage }) {
+  return callColleAi({ mode: 'feedback', subject, topic, history, practiceMode, timeUsage })
 }
