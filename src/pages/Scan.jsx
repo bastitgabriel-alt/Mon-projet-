@@ -9,8 +9,9 @@ import {
 import { supabase } from '../lib/supabaseClient.js'
 import { Card, SectionTitle, Badge, Button } from '../components/ui.jsx'
 import AnnotatedCopy from '../components/AnnotatedCopy.jsx'
-import { CameraIcon, UploadIcon, ChevronLeftIcon, SparkleIcon, CheckIcon } from '../components/icons.jsx'
+import { CameraIcon, UploadIcon, ChevronLeftIcon, SparkleIcon, CheckIcon, BookIcon } from '../components/icons.jsx'
 import { styleFor } from '../utils/categoryStyles.js'
+import { analyzeCourseImage } from '../lib/courseAi.js'
 
 const ANALYZE_STEPS = [
   "Lecture de la copie…",
@@ -43,7 +44,8 @@ function mapScanRow(row) {
 }
 
 export default function Scan({ userId }) {
-  const [step, setStep] = useState('idle') // idle | preview | analyzing | result | history
+  const [mode, setMode] = useState('copie') // copie | cours
+  const [step, setStep] = useState('idle') // idle | preview | analyzing | result | history | course-preview | course-analyzing | course-result | course-quiz | course-quiz-done
   const [subjectId, setSubjectId] = useState('maths')
   const [imageUrl, setImageUrl] = useState(null)
   const [analyzeStep, setAnalyzeStep] = useState(0)
@@ -57,14 +59,31 @@ export default function Scan({ userId }) {
   const [allScans, setAllScans] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // --- Scan de cours + quiz ---
+  const [courseScans, setCourseScans] = useState([])
+  const [courseImageFile, setCourseImageFile] = useState(null)
+  const [courseImageUrl, setCourseImageUrl] = useState(null)
+  const [courseResult, setCourseResult] = useState(null) // { title, summary, questions }
+  const [courseError, setCourseError] = useState(null)
+  const [quizIndex, setQuizIndex] = useState(0)
+  const [quizSelected, setQuizSelected] = useState(null)
+  const [quizScore, setQuizScore] = useState(0)
+  const courseCameraInputRef = useRef(null)
+  const courseFileInputRef = useRef(null)
+
   async function loadData() {
-    const [{ data: scanRows }, { data: ficheRows }] = await Promise.all([
+    const [{ data: scanRows }, { data: ficheRows }, { data: courseRows }] = await Promise.all([
       supabase
         .from('scans')
         .select('*, annotations(*)')
         .eq('user_id', userId)
         .order('scan_date', { ascending: false }),
-      supabase.from('fiches').select('subject_id, linked_category').eq('user_id', userId)
+      supabase.from('fiches').select('subject_id, linked_category').eq('user_id', userId),
+      supabase
+        .from('course_scans')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
     ])
     setAllScans((scanRows || []).map(mapScanRow))
     setCreatedFicheKeys(
@@ -72,6 +91,7 @@ export default function Scan({ userId }) {
         .filter((f) => f.linked_category)
         .map((f) => `${f.subject_id}__${f.linked_category}`)
     )
+    setCourseScans(courseRows || [])
     setLoading(false)
   }
 
@@ -147,6 +167,77 @@ export default function Scan({ userId }) {
     setAnalyzeStep(0)
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (cameraInputRef.current) cameraInputRef.current.value = ''
+  }
+
+  // --- Scan de cours + quiz ---
+
+  function handleCourseFile(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCourseImageFile(file)
+    setCourseImageUrl(URL.createObjectURL(file))
+    setCourseError(null)
+    setStep('course-preview')
+  }
+
+  async function analyzeCourse() {
+    setStep('course-analyzing')
+    setCourseError(null)
+    try {
+      const result = await analyzeCourseImage({ subject: subjectId, file: courseImageFile })
+      const { data: inserted } = await supabase
+        .from('course_scans')
+        .insert({
+          user_id: userId,
+          subject_id: subjectId,
+          title: result.title,
+          summary: result.summary,
+          quiz: result.questions
+        })
+        .select()
+        .single()
+      setCourseScans((prev) => [inserted, ...prev])
+      setCourseResult(inserted)
+      setStep('course-result')
+    } catch (e) {
+      setCourseError(e.message)
+      setStep('course-preview')
+    }
+  }
+
+  function startQuiz(scan) {
+    setCourseResult(scan)
+    setQuizIndex(0)
+    setQuizSelected(null)
+    setQuizScore(0)
+    setStep('course-quiz')
+  }
+
+  function selectQuizAnswer(optionIndex) {
+    if (quizSelected !== null) return
+    setQuizSelected(optionIndex)
+    const question = courseResult.quiz[quizIndex]
+    if (optionIndex === question.correct_index) setQuizScore((s) => s + 1)
+  }
+
+  function nextQuizQuestion() {
+    const isLast = quizIndex + 1 >= courseResult.quiz.length
+    if (isLast) {
+      setStep('course-quiz-done')
+      return
+    }
+    setQuizIndex((i) => i + 1)
+    setQuizSelected(null)
+  }
+
+  function resetCourseFlow() {
+    setStep('idle')
+    setCourseImageFile(null)
+    setCourseImageUrl(null)
+    setCourseResult(null)
+    setCourseError(null)
+    if (courseFileInputRef.current) courseFileInputRef.current.value = ''
+    if (courseCameraInputRef.current) courseCameraInputRef.current.value = ''
   }
 
   async function createFiche(group) {
@@ -324,43 +415,274 @@ export default function Scan({ userId }) {
     )
   }
 
+  // --- Scan de cours : aperçu avant analyse ---
+  if (step === 'course-preview') {
+    return (
+      <div className="flex flex-col gap-4">
+        <BackButton onClick={resetCourseFlow} label="Annuler" />
+        <h1 className="text-xl font-bold text-ink-900">Vérifie ta page de cours</h1>
+        <img src={courseImageUrl} alt="Page de cours" className="w-full rounded-2xl border border-ink-100 shadow-card" />
+        <Card className="p-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-ink-700">Matière</p>
+            <p className="text-xs text-ink-500">Choisis la matière pour affiner la lecture</p>
+          </div>
+          <select
+            value={subjectId}
+            onChange={(e) => setSubjectId(e.target.value)}
+            className="rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm font-medium text-ink-700"
+          >
+            {subjects.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </Card>
+        {courseError && <Card className="bg-coral-soft p-3 text-sm text-coral">{courseError}</Card>}
+        <Button onClick={analyzeCourse} className="w-full">
+          <SparkleIcon /> Lire le cours et générer le quiz
+        </Button>
+      </div>
+    )
+  }
+
+  // --- Scan de cours : analyse en cours ---
+  if (step === 'course-analyzing') {
+    return (
+      <div className="flex flex-col gap-4">
+        <h1 className="text-xl font-bold text-ink-900">Lecture du cours…</h1>
+        <img src={courseImageUrl} alt="Page de cours" className="w-full rounded-2xl border border-ink-100 shadow-card opacity-70" />
+        <Card className="flex items-center gap-3 p-5">
+          <span className="h-6 w-6 shrink-0 animate-pulse rounded-full bg-indigo-soft" />
+          <p className="text-sm text-ink-600">Le professeur virtuel lit ta page et prépare ton quiz…</p>
+        </Card>
+      </div>
+    )
+  }
+
+  // --- Scan de cours : résultat de la lecture ---
+  if (step === 'course-result' && courseResult) {
+    const subject = subjects.find((s) => s.id === subjectId)
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 text-indigo">
+          <CheckIcon className="w-5 h-5" />
+          <span className="text-sm font-semibold">Cours ajouté</span>
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-ink-900">{courseResult.title}</h1>
+          <p className="text-sm text-ink-500">{subject?.name} · {courseResult.quiz.length} questions générées</p>
+        </div>
+        <Card className="p-5">
+          <p className="text-sm text-ink-700">{courseResult.summary}</p>
+        </Card>
+        <Button onClick={() => startQuiz(courseResult)} className="w-full">
+          Faire le quiz maintenant
+        </Button>
+        <Button variant="ghost" onClick={resetCourseFlow} className="w-full border border-ink-200">
+          Plus tard
+        </Button>
+      </div>
+    )
+  }
+
+  // --- Scan de cours : session de quiz ---
+  if (step === 'course-quiz' && courseResult) {
+    const question = courseResult.quiz[quizIndex]
+    return (
+      <div className="flex flex-col gap-4">
+        <button onClick={resetCourseFlow} className="flex items-center gap-1 text-sm font-medium text-ink-500 hover:text-ink-700">
+          <ChevronLeftIcon className="w-4 h-4" /> Quitter le quiz
+        </button>
+        <p className="text-xs font-medium uppercase tracking-wide text-ink-400">
+          {courseResult.title} · Question {quizIndex + 1} / {courseResult.quiz.length}
+        </p>
+        <Card className="p-5">
+          <p className="font-display text-lg font-semibold text-ink-900">{question.question}</p>
+        </Card>
+        <div className="flex flex-col gap-2">
+          {question.options.map((option, i) => {
+            const isCorrect = i === question.correct_index
+            const isPicked = i === quizSelected
+            let tone = 'border-ink-200 bg-white text-ink-700 hover:border-indigo'
+            if (quizSelected !== null) {
+              if (isCorrect) tone = 'border-teal bg-teal-soft text-teal'
+              else if (isPicked) tone = 'border-coral bg-coral-soft text-coral'
+              else tone = 'border-ink-200 bg-white text-ink-400'
+            }
+            return (
+              <button
+                key={i}
+                onClick={() => selectQuizAnswer(i)}
+                disabled={quizSelected !== null}
+                className={`rounded-xl border-[1.5px] px-4 py-3 text-left text-sm font-medium transition-colors ${tone}`}
+              >
+                {option}
+              </button>
+            )
+          })}
+        </div>
+        {quizSelected !== null && (
+          <Card className="bg-indigo-soft p-4">
+            <p className="text-sm text-ink-700">{question.explanation}</p>
+          </Card>
+        )}
+        {quizSelected !== null && (
+          <Button onClick={nextQuizQuestion} className="w-full">
+            {quizIndex + 1 >= courseResult.quiz.length ? 'Voir mon score' : 'Question suivante'}
+          </Button>
+        )}
+      </div>
+    )
+  }
+
+  // --- Scan de cours : score final du quiz ---
+  if (step === 'course-quiz-done' && courseResult) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-10 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-teal-soft">
+          <CheckIcon className="w-7 h-7 text-teal" />
+        </div>
+        <h1 className="font-display text-xl font-semibold text-ink-900">Quiz terminé</h1>
+        <p className="font-mono text-3xl font-bold text-indigo">
+          {quizScore}
+          <span className="text-lg text-ink-400">/{courseResult.quiz.length}</span>
+        </p>
+        <p className="text-sm text-ink-500">{courseResult.title}</p>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => startQuiz(courseResult)}>Refaire le quiz</Button>
+          <Button onClick={resetCourseFlow}>Terminer</Button>
+        </div>
+      </div>
+    )
+  }
+
   // step === 'idle'
   return (
     <div className="flex flex-col gap-6">
-      <Card className="p-4 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-ink-700">Matière de la copie</p>
-        </div>
-        <select
-          value={subjectId}
-          onChange={(e) => setSubjectId(e.target.value)}
-          className="rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm font-medium text-ink-700"
-        >
-          {subjects.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
-      </Card>
-
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex rounded-xl bg-ink-100 p-1">
         <button
-          onClick={() => cameraInputRef.current?.click()}
-          className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-indigo to-[#5b3fae] p-6 text-white shadow-soft hover:brightness-110 transition-all"
+          onClick={() => setMode('copie')}
+          className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
+            mode === 'copie' ? 'bg-white text-indigo shadow-card' : 'text-ink-500'
+          }`}
         >
-          <CameraIcon className="w-8 h-8" />
-          <span className="text-sm font-semibold">Prendre en photo</span>
+          Copie corrigée
         </button>
         <button
-          onClick={() => fileInputRef.current?.click()}
-          className="flex flex-col items-center gap-2 rounded-2xl bg-white border border-ink-100 p-6 text-ink-800 shadow-card hover:bg-ink-50 transition-colors"
+          onClick={() => setMode('cours')}
+          className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
+            mode === 'cours' ? 'bg-white text-indigo shadow-card' : 'text-ink-500'
+          }`}
         >
-          <UploadIcon className="w-8 h-8 text-indigo" />
-          <span className="text-sm font-semibold">Importer un fichier</span>
+          Page de cours
         </button>
-        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
-        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
       </div>
 
+      {mode === 'copie' && (
+        <>
+          <Card className="p-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-ink-700">Matière de la copie</p>
+            </div>
+            <select
+              value={subjectId}
+              onChange={(e) => setSubjectId(e.target.value)}
+              className="rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm font-medium text-ink-700"
+            >
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </Card>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => cameraInputRef.current?.click()}
+              className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-indigo to-[#5b3fae] p-6 text-white shadow-soft hover:brightness-110 transition-all"
+            >
+              <CameraIcon className="w-8 h-8" />
+              <span className="text-sm font-semibold">Prendre en photo</span>
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex flex-col items-center gap-2 rounded-2xl bg-white border border-ink-100 p-6 text-ink-800 shadow-card hover:bg-ink-50 transition-colors"
+            >
+              <UploadIcon className="w-8 h-8 text-indigo" />
+              <span className="text-sm font-semibold">Importer un fichier</span>
+            </button>
+            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          </div>
+        </>
+      )}
+
+      {mode === 'cours' && (
+        <>
+          <Card className="p-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-ink-700">Matière du cours</p>
+            </div>
+            <select
+              value={subjectId}
+              onChange={(e) => setSubjectId(e.target.value)}
+              className="rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm font-medium text-ink-700"
+            >
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </Card>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => courseCameraInputRef.current?.click()}
+              className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-teal to-[#0c7a70] p-6 text-white shadow-soft hover:brightness-110 transition-all"
+            >
+              <CameraIcon className="w-8 h-8" />
+              <span className="text-sm font-semibold">Prendre en photo</span>
+            </button>
+            <button
+              onClick={() => courseFileInputRef.current?.click()}
+              className="flex flex-col items-center gap-2 rounded-2xl bg-white border border-ink-100 p-6 text-ink-800 shadow-card hover:bg-ink-50 transition-colors"
+            >
+              <UploadIcon className="w-8 h-8 text-teal" />
+              <span className="text-sm font-semibold">Importer un fichier</span>
+            </button>
+            <input ref={courseCameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleCourseFile} />
+            <input ref={courseFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleCourseFile} />
+          </div>
+
+          <div>
+            <SectionTitle title="Tes cours scannés" />
+            <div className="flex flex-col gap-2">
+              {courseScans.map((s) => {
+                const subject = subjects.find((sub) => sub.id === s.subject_id)
+                return (
+                  <Card key={s.id} className="flex items-center gap-3 p-3.5">
+                    <span className={`h-9 w-1.5 rounded-full ${subject?.accent || 'bg-ink-300'}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm font-medium text-ink-800">{s.title}</p>
+                      <p className="text-xs text-ink-500">{subject?.name} · {(s.quiz || []).length} questions</p>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      onClick={() => startQuiz({ ...s, quiz: s.quiz })}
+                      className="shrink-0 text-xs px-3 py-1.5"
+                    >
+                      <BookIcon className="w-3.5 h-3.5" /> Faire le quiz
+                    </Button>
+                  </Card>
+                )
+              })}
+              {courseScans.length === 0 && (
+                <Card className="p-4 text-center text-sm text-ink-500">Aucun cours scanné pour l'instant.</Card>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {mode === 'copie' && (
       <div>
         <SectionTitle title="Historique de tes scans" />
         <div className="flex flex-col gap-2">
@@ -388,6 +710,7 @@ export default function Scan({ userId }) {
           )}
         </div>
       </div>
+      )}
     </div>
   )
 }
