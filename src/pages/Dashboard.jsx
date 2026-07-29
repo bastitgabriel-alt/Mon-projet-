@@ -13,6 +13,7 @@ import {
 import { supabase } from '../lib/supabaseClient.js'
 import { Card, Button } from '../components/ui.jsx'
 import { ScanIcon } from '../components/icons.jsx'
+import { isDue } from '../utils/spacedRepetition.js'
 
 const todayIso = new Date().toISOString().slice(0, 10)
 const CHART_SUBJECTS = ['maths', 'physique', 'anglais', 'francais']
@@ -84,7 +85,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
         supabase.from('moods').select('mood_id').eq('user_id', userId).eq('mood_date', todayIso).maybeSingle(),
         supabase.from('moods').select('mood_date').eq('user_id', userId),
         supabase.from('scans').select('subject_id, title, grade, scan_date, annotations(category)').eq('user_id', userId).order('scan_date', { ascending: false }),
-        supabase.from('fiches').select('id, last_reviewed').eq('user_id', userId)
+        supabase.from('fiches').select('id, next_review').eq('user_id', userId)
       ])
 
       setMoodState(todayMood?.mood_id ?? null)
@@ -98,8 +99,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
           annotations: s.annotations || []
         }))
       )
-      const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)
-      setFichesToReview((ficheRows || []).filter((f) => !f.last_reviewed || f.last_reviewed < weekAgo).length)
+      setFichesToReview((ficheRows || []).filter((f) => isDue({ nextReview: f.next_review }, todayIso)).length)
       setLoading(false)
     }
     load()
