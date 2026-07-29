@@ -227,7 +227,7 @@ export default function Scan({ userId }) {
               <li key={label} className="flex items-center gap-3 text-sm">
                 <span
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                    i < analyzeStep ? 'bg-brand-600 text-white' : i === analyzeStep ? 'bg-brand-100 text-brand-700 animate-pulse' : 'bg-ink-100 text-ink-400'
+                    i < analyzeStep ? 'bg-indigo text-white' : i === analyzeStep ? 'bg-indigo-soft text-indigo animate-pulse' : 'bg-ink-100 text-ink-400'
                   }`}
                 >
                   {i < analyzeStep ? <CheckIcon className="w-3.5 h-3.5" /> : i + 1}
@@ -249,7 +249,7 @@ export default function Scan({ userId }) {
 
     return (
       <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-2 text-brand-700">
+        <div className="flex items-center gap-2 text-indigo">
           <CheckIcon className="w-5 h-5" />
           <span className="text-sm font-semibold">Analyse terminée</span>
         </div>
@@ -297,14 +297,14 @@ export default function Scan({ userId }) {
                 <Card key={g.key} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-brand-600">Priorité {i + 1} · {subj?.short}</p>
+                      <p className="text-xs font-medium uppercase tracking-wide text-indigo">Priorité {i + 1} · {subj?.short}</p>
                       <p className="text-sm font-semibold text-ink-800">{errorCategories[g.category].label}</p>
                       <p className="mt-1 text-xs text-ink-500">{errorCategories[g.category].tip}</p>
                     </div>
                   </div>
                   <div className="mt-3">
                     {created ? (
-                      <Badge className="bg-brand-50 text-brand-700"><CheckIcon className="w-3.5 h-3.5 mr-1" /> Fiche créée</Badge>
+                      <Badge className="bg-indigo-soft text-indigo"><CheckIcon className="w-3.5 h-3.5 mr-1" /> Fiche créée</Badge>
                     ) : (
                       <Button variant="secondary" onClick={() => createFiche(g)} className="text-xs px-3 py-1.5">
                         Créer une fiche de révision
@@ -327,11 +327,6 @@ export default function Scan({ userId }) {
   // step === 'idle'
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="text-2xl font-bold text-ink-900">Scan de copie</h1>
-        <p className="text-sm text-ink-500">Photographie ta copie annotée pour repérer ce qu'il faut travailler.</p>
-      </header>
-
       <Card className="p-4 flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-ink-700">Matière de la copie</p>
@@ -350,7 +345,7 @@ export default function Scan({ userId }) {
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => cameraInputRef.current?.click()}
-          className="flex flex-col items-center gap-2 rounded-2xl bg-brand-600 p-6 text-white shadow-soft hover:bg-brand-700 transition-colors"
+          className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-indigo to-[#5b3fae] p-6 text-white shadow-soft hover:brightness-110 transition-all"
         >
           <CameraIcon className="w-8 h-8" />
           <span className="text-sm font-semibold">Prendre en photo</span>
@@ -359,7 +354,7 @@ export default function Scan({ userId }) {
           onClick={() => fileInputRef.current?.click()}
           className="flex flex-col items-center gap-2 rounded-2xl bg-white border border-ink-100 p-6 text-ink-800 shadow-card hover:bg-ink-50 transition-colors"
         >
-          <UploadIcon className="w-8 h-8 text-brand-600" />
+          <UploadIcon className="w-8 h-8 text-indigo" />
           <span className="text-sm font-semibold">Importer un fichier</span>
         </button>
         <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />

@@ -72,7 +72,7 @@ export default function Fiches({ userId }) {
         <h1 className="text-xl font-bold text-ink-900">{openFiche.title}</h1>
 
         {openFiche.generated && (
-          <Badge className="w-fit bg-brand-50 text-brand-700">
+          <Badge className="w-fit bg-indigo-soft text-indigo">
             <SparkleIcon className="w-3.5 h-3.5 mr-1" /> Générée depuis un scan de copie
           </Badge>
         )}
@@ -102,11 +102,6 @@ export default function Fiches({ userId }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <header>
-        <h1 className="text-2xl font-bold text-ink-900">Fiches de révision</h1>
-        <p className="text-sm text-ink-500">Générées automatiquement à partir de tes copies, ou créées par toi.</p>
-      </header>
-
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
         <FilterChip active={filter === 'all'} onClick={() => setFilter('all')} label="Toutes" />
         {subjects.map((s) => (
@@ -127,7 +122,7 @@ export default function Fiches({ userId }) {
                     {subject?.name} · {f.lastReviewed ? `Révisée le ${f.lastReviewed}` : 'Jamais révisée'}
                   </p>
                 </div>
-                {f.generated && <Badge className="bg-brand-50 text-brand-700 shrink-0">Auto</Badge>}
+                {f.generated && <Badge className="bg-indigo-soft text-indigo shrink-0">Auto</Badge>}
               </Card>
             </button>
           )
@@ -145,7 +140,7 @@ function FilterChip({ active, onClick, label }) {
     <button
       onClick={onClick}
       className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
-        active ? 'bg-brand-600 text-white' : 'bg-white border border-ink-200 text-ink-600'
+        active ? 'bg-indigo text-white' : 'bg-white border border-ink-200 text-ink-600'
       }`}
     >
       {label}

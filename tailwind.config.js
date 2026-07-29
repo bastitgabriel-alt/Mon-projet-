@@ -33,10 +33,21 @@ export default {
           700: '#334155',
           800: '#1e293b',
           900: '#0f172a'
-        }
+        },
+        // Palette du tableau de bord (sidebar + KPIs), distincte de brand/coach
+        // utilisés par le scan et les fiches — voir .claude/agents/design.md
+        indigo: { DEFAULT: '#3b2f80', soft: '#ece9fa' },
+        coral: { DEFAULT: '#e63950', soft: '#fdeaed' },
+        amber: { DEFAULT: '#f5a524', soft: '#fef3e2' },
+        teal: { DEFAULT: '#0f9488', soft: '#e4f6f3' },
+        sidebar: { 1: '#1c1440', 2: '#2c1f5e', soft: '#a79fd1', line: 'rgba(255,255,255,0.09)' },
+        canvas: '#f6f5fb'
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif']
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Fraunces', 'serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        hand: ['Caveat', 'cursive']
       },
       boxShadow: {
         soft: '0 2px 12px -2px rgba(15, 23, 42, 0.08)',

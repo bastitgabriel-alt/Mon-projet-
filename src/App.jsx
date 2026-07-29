@@ -7,6 +7,17 @@ import AuthPage from './pages/Auth.jsx'
 import { AuthProvider, useAuth } from './lib/AuthContext.jsx'
 import { seedDemoDataIfNeeded } from './lib/seedDemoData.js'
 
+const pageMeta = {
+  dashboard: { title: 'Tableau de bord', subtitle: null },
+  scan: { title: 'Copies', subtitle: 'Scanne une copie annotée, suis tes erreurs récurrentes' },
+  fiches: { title: 'Fiches', subtitle: 'Tes fiches de révision, générées ou personnelles' }
+}
+
+function todayLabel() {
+  const label = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
 function AppShell() {
   const { session, signOut } = useAuth()
   const [page, setPage] = useState('dashboard')
@@ -33,14 +44,40 @@ function AppShell() {
 
   if (!session) return <AuthPage />
 
+  const meta = pageMeta[page]
+
   return (
-    <div className="min-h-screen bg-ink-50 md:pl-56">
-      <Nav current={page} onNavigate={navigate} />
-      <main className="mx-auto max-w-4xl px-4 pb-24 pt-6 md:pb-10 md:pt-8">
-        {page === 'dashboard' && <Dashboard onNavigate={navigate} userId={session.user.id} onSignOut={signOut} />}
-        {page === 'scan' && <Scan navParams={navParams} userId={session.user.id} />}
-        {page === 'fiches' && <Fiches navParams={navParams} userId={session.user.id} />}
-      </main>
+    <div className="flex min-h-screen flex-col bg-canvas md:flex-row">
+      <Nav current={page} onNavigate={navigate} userEmail={session.user.email} onSignOut={signOut} />
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-4 px-5 py-4 md:px-9 md:py-[22px]">
+          <div>
+            <h1 className="font-display text-[18px] md:text-[20px] font-semibold text-ink-900">{meta.title}</h1>
+            <p className="text-xs md:text-[12.5px] text-ink-500 mt-0.5">{meta.subtitle || todayLabel()}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 rounded-[10px] border border-ink-200 bg-white px-3 py-2 text-[12.5px] text-ink-400 min-w-[180px]">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.3-4.3" />
+              </svg>
+              Rechercher…
+            </div>
+            <button onClick={signOut} className="shrink-0 text-xs font-medium text-ink-400 hover:text-ink-600 md:hidden">
+              Déconnexion
+            </button>
+          </div>
+        </div>
+
+        <main className="px-5 pb-10 md:px-9 md:pb-[60px]">
+          {page === 'dashboard' && (
+            <Dashboard onNavigate={navigate} userId={session.user.id} userEmail={session.user.email} />
+          )}
+          {page === 'scan' && <Scan navParams={navParams} userId={session.user.id} />}
+          {page === 'fiches' && <Fiches navParams={navParams} userId={session.user.id} />}
+        </main>
+      </div>
     </div>
   )
 }

@@ -16,8 +16,8 @@ export default defineConfig(({ command }) => ({
         name: 'Marge - Organise tes révisions de prépa',
         short_name: 'Marge',
         description: "L'appli tout-en-un pour les élèves de CPGE : organisation, scan de copies annotées, fiches de révision.",
-        theme_color: '#0f766e',
-        background_color: '#f8fafc',
+        theme_color: '#1c1440',
+        background_color: '#f6f5fb',
         display: 'standalone',
         icons: [
           {

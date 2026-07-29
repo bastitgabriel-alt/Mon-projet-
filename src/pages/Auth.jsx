@@ -35,8 +35,8 @@ export default function Auth() {
     <div className="flex min-h-screen items-center justify-center bg-ink-50 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-2">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-600 text-lg font-bold text-white">M</div>
-          <h1 className="text-xl font-bold text-ink-900">Marge</h1>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sidebar-2 to-sidebar-1 font-display text-lg font-semibold text-white">M</div>
+          <h1 className="font-display text-xl font-semibold text-ink-900">Marge</h1>
           <p className="text-center text-sm text-ink-500">Organise tes révisions de prépa</p>
         </div>
 
@@ -45,14 +45,14 @@ export default function Auth() {
             <button
               type="button"
               onClick={() => { setMode('signin'); setError(null); setInfo(null) }}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${mode === 'signin' ? 'bg-white text-brand-700 shadow-card' : 'text-ink-500'}`}
+              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${mode === 'signin' ? 'bg-white text-indigo shadow-card' : 'text-ink-500'}`}
             >
               Se connecter
             </button>
             <button
               type="button"
               onClick={() => { setMode('signup'); setError(null); setInfo(null) }}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${mode === 'signup' ? 'bg-white text-brand-700 shadow-card' : 'text-ink-500'}`}
+              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${mode === 'signup' ? 'bg-white text-indigo shadow-card' : 'text-ink-500'}`}
             >
               Créer un compte
             </button>
@@ -66,7 +66,7 @@ export default function Auth() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400"
+                className="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm outline-none focus:border-indigo"
                 placeholder="toi@exemple.com"
               />
             </div>
@@ -78,13 +78,13 @@ export default function Auth() {
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400"
+                className="w-full rounded-xl border border-ink-200 px-3 py-2.5 text-sm outline-none focus:border-indigo"
                 placeholder="6 caractères minimum"
               />
             </div>
 
             {error && <p className="text-sm text-coach-600">{error}</p>}
-            {info && <p className="text-sm text-brand-700">{info}</p>}
+            {info && <p className="text-sm text-indigo">{info}</p>}
 
             <Button type="submit" disabled={loading} className="mt-1 w-full">
               {loading ? 'Un instant…' : mode === 'signup' ? 'Créer mon compte' : 'Se connecter'}

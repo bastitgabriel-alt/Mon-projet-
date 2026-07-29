@@ -17,6 +17,36 @@ export const subjectProgress = {
   info: 45
 }
 
+// Moyenne actuelle par matière (sur 20) — distinct de subjectProgress, qui
+// mesure l'avancement dans le programme, pas le niveau.
+export const subjectAverages = {
+  maths: 14.2,
+  physique: 12.5,
+  francais: 13.8,
+  anglais: 15.4,
+  info: 11.6
+}
+
+// Historique de note sur les 5 derniers DS, par matière — alimente le
+// graphique d'évolution du dashboard.
+export const gradeHistory = {
+  maths: [13.5, 13.8, 13.2, 14.6, 14.2],
+  physique: [11.8, 12.2, 11.5, 12.8, 12.5],
+  anglais: [15.0, 15.2, 15.6, 15.8, 15.4],
+  francais: [13.2, 13.4, 12.9, 13.6, 13.8]
+}
+
+// Objectif concours affiché sur le dashboard
+export const competitionGoal = {
+  school: 'Centrale-Supélec',
+  targetRank: 400,
+  estimatedRank: 650,
+  progress: 61
+}
+
+// Date cible pour le compte à rebours ("J-XXX avant les premiers écrits")
+export const examTargetDate = '2027-04-15'
+
 // Emploi du temps / échéances de la semaine en cours
 export const weekEvents = [
   { id: 'ev1', day: 'Lundi', date: '28/07', time: '08:00', type: 'devoir', subjectId: 'maths', title: 'DM n°12 à rendre — Algèbre linéaire', done: true },
@@ -261,8 +291,7 @@ export function generateScanResult(subjectId, title) {
 }
 
 export const moodOptions = [
-  { id: 'top', label: 'En forme', hint: 'Profite de ton énergie pour attaquer un point difficile.' },
-  { id: 'ok', label: 'Ça va', hint: 'Un rythme régulier, continue comme ça.' },
-  { id: 'fatigue', label: 'Un peu fatigué·e', hint: 'Privilégie la révision légère plutôt que du nouveau contenu.' },
-  { id: 'charge', label: 'Sous pression', hint: 'Découpe ta liste en petites étapes, une chose à la fois.' }
+  { id: 'serein', emoji: '🙂', label: 'Serein', hint: 'Profite de ton énergie pour attaquer un point difficile.' },
+  { id: 'pression', emoji: '😬', label: 'Sous pression', hint: 'Découpe ta liste en petites étapes, une chose à la fois.' },
+  { id: 'epuise', emoji: '😴', label: 'Épuisé', hint: 'Privilégie la révision légère plutôt que du nouveau contenu.' }
 ]

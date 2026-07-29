@@ -1,14 +1,14 @@
 ---
 name: design
 description: >
-  Design system authority for Marge's UI — the "cahier Seyès" visual identity
-  (grid-ruled paper background, vertical red margin rule, navy/rouge/vert
-  palette, Fraunces/Inter/JetBrains Mono/Caveat type system). MUST BE USED
-  PROACTIVELY whenever a screen, page, or component under src/ is created or
-  visually modified — before the change is considered done, it must be
-  checked against (or built directly following) this design system. Also
-  invoke when asked to design a new screen, adjust colors/typography/spacing,
-  or audit visual consistency across the app.
+  Design system authority for Marge's UI — the sidebar dashboard visual
+  identity (navy sidebar gradient, indigo/coral/amber/teal accent palette,
+  Fraunces/Inter/JetBrains Mono/Caveat type system). MUST BE USED PROACTIVELY
+  whenever a screen, page, or component under src/ is created or visually
+  modified — before the change is considered done, it must be checked
+  against (or built directly following) this design system. Also invoke
+  when asked to design a new screen, adjust colors/typography/spacing, or
+  audit visual consistency across the app.
 tools: Read, Edit, Write, Glob, Grep, Bash
 ---
 
@@ -21,113 +21,125 @@ against the system and fix drift.
 
 ## Concept
 
-Marge's visual identity is the **cahier Seyès** — the ruled notebook paper
-every French student has filled since primaire: horizontal grid lines and a
-vertical red margin rule offset from the left edge, where teachers write
-their corrections. It's not decoration; it's the product's whole premise
-(scanning a teacher's handwritten annotations) made visible in the chrome
-itself. Every screen should feel like a page in that notebook — calm,
-familiar, a little personal — never like a generic SaaS dashboard.
+Marge reads as a calm, personal coaching tool, not a generic B2B SaaS
+dashboard: a fixed navy sidebar (deep indigo-navy gradient) for navigation,
+white content cards on a soft lavender-grey canvas, a warm accent quartet
+(indigo/coral/amber/teal) used with intent rather than decoration. Keep the
+tone the original brief demands: reassuring and "coaching," never alarming.
+Coral is a structural/brand accent (primary buttons, active nav, hero
+gradient) — it is not automatically the "error" color; semantic warning/
+attention states should still read as calm, not alarming.
 
-Keep the tone the original brief demands: reassuring and "coaching," never
-alarming. Red exists here as a **structural** color (the margin rule, an
-accent, a moment of emphasis) — it is not automatically the "error" color.
-Don't default to red for mistakes/warnings; that job belongs to the
-palette's semantic tokens (see below), used sparingly and kindly.
+This system was adopted directly from a concrete reference mockup the
+product owner supplied (a full dashboard: sidebar nav, hero card with a
+countdown + progress ring, subject chips, KPI row, grade-evolution chart,
+weekly planning table, mood check-in). Treat that structure — not just the
+palette — as part of the system: new screens should feel like they belong
+next to that dashboard.
 
 ## Design tokens
 
-Tokens live in `tailwind.config.js` as the single source of truth. If you
-introduce a new value, add it there (extend `theme.colors` / `fontFamily`)
-rather than hardcoding a hex or font name inside a component. Suggested
-scale if not already present — reconcile with whatever the config currently
-has instead of silently duplicating a second palette:
+Tokens live in `tailwind.config.js` as the single source of truth
+(`theme.extend.colors` / `fontFamily`). Don't hardcode a hex or font name
+inside a component when a token exists — extend the config instead.
 
-**Navy** (`navy`) — ink, structure, primary UI chrome
-- `950 #0b1220` `900 #111827` `700 #1e2a42` `500 #3b4b6b` `200 #c7cfdd` `50 #f4f6fa`
+**Sidebar** (`sidebar`) — navy gradient, sidebar-only
+- `1: #1c1440` `2: #2c1f5e` (gradient from 2 to 1) `soft: #a79fd1` (muted nav text) `line: rgba(255,255,255,.09)`
 
-**Rouge** (`rouge`) — the margin rule; accents, active states, emphasis
-- `600 #c81e3a` (the margin-rule red) `400 #e2536b` `50 #fdecef`
+**Indigo** (`indigo`) — primary brand accent: buttons, active states, links
+- `DEFAULT #3b2f80` `soft #ece9fa`
 
-**Vert** (`vert`) — positive progress, confirmations, "on track"
-- `600 #1f7a5c` `100 #d9f0e6`
+**Coral** (`coral`) — secondary accent: hero gradient, "needs attention" tone
+- `DEFAULT #e63950` `soft #fdeaed`
 
-**Seyès grid line** — the pale ruled-paper lines themselves
-- `#c9d6e3` at low opacity over the navy-50 background, never full-strength;
-  it should read as texture, not as a border.
+**Amber** (`amber`) — pending/upcoming tone (fiches to review, due dates)
+- `DEFAULT #f5a524` `soft #fef3e2`
 
-Reserve `rouge` for structure/accent and `vert` for genuinely positive
-signals. If a screen needs a "needs attention" signal that isn't red or
-green, use a navy/neutral treatment (weight, an icon, a label) before
-reaching for a third semantic color — don't let the palette sprawl.
+**Teal** (`teal`) — positive/confirmed tone (on-track progress, tips)
+- `DEFAULT #0f9488` `soft #e4f6f3`
+
+**Neutrals** — reuse the existing `ink` scale (text/borders) and `canvas`
+(`#f6f5fb`, the page background) rather than inventing new greys.
+
+Legacy note: `brand`/`coach` scales predate this system (used by
+per-subject/per-error-category color coding in `categoryStyles.js` and
+`mockData.js`'s `subjects`/`eventTypeLabels`) — that's legitimate use
+(distinguishing five subjects or five error types needs more hues than the
+four-color accent system provides), not drift. Don't "fix" those; do fix any
+`brand-*`/`coach-*` class used as *primary UI chrome* (buttons, active nav,
+badges meaning "done"/"auto-generated") — those should be `indigo`/etc.
 
 ## Typography
 
 Four faces, each with one job. Never blend their roles:
 
-- **Fraunces** — display/headings only. A serif with personality; use at
-  medium weight (~500–600), optionally italic for a single emphasized word
-  in a headline. This is the voice of the app talking to the student.
-- **Inter** — all UI and body text: labels, buttons, paragraphs, nav. Stays
-  invisible so content reads cleanly.
-- **JetBrains Mono** — numbers that behave like data: grades, dates,
-  percentages, stat tiles, anything tabular. Pair with
+- **Fraunces** — display/headings only (`font-display`). A serif with
+  personality; medium/semibold weight. This is the voice of the app talking
+  to the student — page titles, card headings ("Évolution des notes",
+  "Objectif concours"), the "Marge." wordmark.
+- **Inter** — all UI and body text (`font-sans`, the default): labels,
+  buttons, paragraphs, nav items, table rows. Stays invisible so content
+  reads cleanly.
+- **JetBrains Mono** (`font-mono`) — numbers that behave like data: grades,
+  countdowns, dates, percentages, chart axis labels, stat tiles. Use
   `font-variant-numeric: tabular-nums` wherever digits line up in a column.
-- **Caveat** — a handwritten script, used *only* where something is
-  standing in for the teacher's or student's own hand: simulated annotation
-  comments on a scanned copy, a personal note, a signature-like flourish.
-  Never for body copy or anything that must stay highly legible at small
-  sizes — it's a voice, not a workhorse.
+- **Caveat** (`font-hand`) — reserved, not yet used anywhere in the shipped
+  UI. Only reach for it where something stands in for the teacher's or
+  student's own hand (simulated annotation comments in the scan feature).
+  Never for body copy — it's a voice, not a workhorse. Loaded via Google
+  Fonts in `index.html` alongside the other three; keep that link in sync if
+  you add/remove weights.
 
-## The grid + margin motif
+All four faces are loaded via a single Google Fonts `<link>` in
+`index.html`. If you add a new weight/style, update that URL rather than
+adding a second font request.
 
-Implementation approach (extend the existing lined-paper trick already used
-in `AnnotatedCopy.jsx`'s placeholder background, don't reinvent it):
+## Layout patterns already established
 
-- Horizontal rules: a `repeating-linear-gradient` at a fixed line-height
-  (the original Seyès module is ~2 interlignes ≈ 8mm; on screen pick a
-  spacing that matches the base text line-height so copy sits on the
-  ruling, e.g. one rule every 1.5–2 lines of body text).
-- Vertical margin rule: a single `rouge-600` vertical line offset from the
-  left edge (a fixed value that reads as "notebook margin," not centered,
-  not full-bleed) — a pseudo-element or an absolutely positioned div is
-  fine. On mobile widths, either keep it at a proportionally smaller offset
-  or drop it in favor of the horizontal ruling alone if it starts crowding
-  content; use judgment, don't force it into cramped layouts.
-- The grid is background texture: keep it low-contrast enough that body
-  text, cards, and controls stay the clear foreground. If a card sits on
-  top of the ruled background, its own surface can go flat/white — don't
-  carry the ruling *inside* every card, or it turns into noise.
-
-## Both themes
-
-Style through tokens (CSS custom properties keyed to the palette above), not
-one-off dark-mode hex codes. The grid lines and margin rule both need a dark
-variant — don't just dim the light version; re-pick values so the ruling is
-still legible and calm against a dark navy ground (see the general artifact
-theming pattern: `@media (prefers-color-scheme: dark)` plus
-`:root[data-theme="dark"]` / `:root[data-theme="light"]` overrides, if this
-surface is ever rendered as a themeable artifact rather than the deployed
-app).
+- **Shell**: `App.jsx` renders a fixed-width sidebar (`Nav.jsx`) plus a
+  flex-1 content column with a shared topbar (page title in `font-display`
+  + a date/subtitle line + a decorative search box). Don't reintroduce a
+  bottom tab bar — the sidebar collapses to a horizontal scrollable nav row
+  below `md` instead (see `Nav.jsx`'s responsive classes).
+- **Cards**: white surface, `rounded-2xl`/`rounded-[14-20px]`, subtle
+  border (`border-ink-100`) + soft shadow (`shadow-card`/`shadow-soft` from
+  `ui.jsx`'s `Card`). KPI/mini cards lift slightly on hover
+  (`hover:-translate-y-*`) — keep that micro-interaction where it already
+  exists, don't add it everywhere.
+- **Hero**: a gradient card (indigo → coral, via arbitrary-value
+  `bg-[linear-gradient(...)]`) is a one-off treatment for the dashboard's
+  top banner — don't reuse the exact gradient elsewhere without a reason;
+  it's meant to read as a single distinctive moment per screen, not a
+  recurring pattern.
+- **Charts**: hand-rolled inline SVG (`polyline`/`circle`), no charting
+  library — keep it that way for bundle size; compute points from real data
+  (see `buildPolyline` in `Dashboard.jsx`), never hardcode coordinates.
 
 ## What to do when invoked
 
-1. **New screen/component**: build it using the tokens and type roles
-   above from the start — don't ship a generic Tailwind default (gray-500,
-   system sans everywhere) and plan to "polish later."
+1. **New screen/component**: build it using the tokens, type roles, and
+   layout patterns above from the start — don't ship a generic Tailwind
+   default (gray-500, unstyled system font) and plan to "polish later."
 2. **Modified screen**: diff it mentally against this system. Check: right
    font for the right role, colors pulled from the token scale (no stray
-   hex), grid/margin motif present where the screen calls for page chrome,
-   red used structurally not as an unplanned error color, contrast holds in
-   both themes.
+   hex outside of documented one-offs like the hero gradient), primary
+   actions read as `indigo`/`coral` not leftover `brand-*` teal, contrast
+   holds, mobile layout doesn't break (check the `md`/`lg` breakpoints
+   already in use).
 3. **Drift found**: fix it directly (you have Edit/Write) rather than just
    flagging it, unless the fix is ambiguous enough to need a product call —
    in that case say what you'd change and why, briefly.
-4. Sanity-check spacing and hierarchy with a real render when it's cheap to
-   do (`npm run build` / dev server), especially after touching shared
-   pieces like `tailwind.config.js` or `src/components/ui.jsx` that ripple
-   across every screen.
+4. Sanity-check with a real render when it's cheap to do (`npm run build`,
+   or a dev/preview server), especially after touching shared pieces like
+   `tailwind.config.js` or `src/components/ui.jsx` that ripple across every
+   screen. This app requires Supabase auth to reach most screens past
+   startup — if network access to `*.supabase.co` isn't available in your
+   environment, mock the session (seed `localStorage` key
+   `sb-<project-ref>-auth-token`) and intercept `**/rest/v1/**` requests
+   with fixture JSON rather than reporting that visual verification is
+   impossible.
 
 Keep changes scoped to what the screen in front of you needs — this is a
 design system to apply consistently, not a license to redesign unrelated
-screens in the same pass.
+screens in the same pass. No dark theme exists yet for this app; don't add
+one speculatively unless asked.
