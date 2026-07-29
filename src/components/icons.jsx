@@ -94,6 +94,15 @@ export function PulseIcon({ className = 'w-6 h-6' }) {
   )
 }
 
+export function CalendarIcon({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <rect x="4" y="5.5" width="16" height="14.5" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M4 9.5h16M8 3.5v3M16 3.5v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 export function MicIcon({ className = 'w-6 h-6' }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>

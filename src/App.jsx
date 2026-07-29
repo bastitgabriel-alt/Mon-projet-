@@ -5,12 +5,14 @@ import Scan from './pages/Scan.jsx'
 import Fiches from './pages/Fiches.jsx'
 import ColleIA from './pages/ColleIA.jsx'
 import Mental from './pages/Mental.jsx'
+import Calendrier from './pages/Calendrier.jsx'
 import AuthPage from './pages/Auth.jsx'
 import { AuthProvider, useAuth } from './lib/AuthContext.jsx'
 import { seedDemoDataIfNeeded } from './lib/seedDemoData.js'
 
 const pageMeta = {
   dashboard: { title: 'Tableau de bord', subtitle: null },
+  calendrier: { title: 'Calendrier', subtitle: 'Ton parcours de prépa sur 2 ans' },
   scan: { title: 'Copies', subtitle: 'Scanne une copie annotée, suis tes erreurs récurrentes' },
   fiches: { title: 'Fiches', subtitle: 'Tes fiches de révision, générées ou personnelles' },
   colle: { title: 'Colle IA', subtitle: "Entraîne-toi à l'oral face à un colleur virtuel" },
@@ -82,6 +84,7 @@ function AppShell() {
           {page === 'fiches' && <Fiches navParams={navParams} userId={session.user.id} />}
           {page === 'colle' && <ColleIA userId={session.user.id} />}
           {page === 'mental' && <Mental userId={session.user.id} />}
+          {page === 'calendrier' && <Calendrier userId={session.user.id} />}
         </main>
       </div>
     </div>

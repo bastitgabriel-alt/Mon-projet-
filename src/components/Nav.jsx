@@ -1,7 +1,8 @@
-import { HomeIcon, ScanIcon, CardsIcon, MicIcon, PulseIcon } from './icons.jsx'
+import { HomeIcon, ScanIcon, CardsIcon, MicIcon, PulseIcon, CalendarIcon } from './icons.jsx'
 
 const tabs = [
   { id: 'dashboard', label: 'Tableau de bord', Icon: HomeIcon },
+  { id: 'calendrier', label: 'Calendrier', Icon: CalendarIcon },
   { id: 'scan', label: 'Copies', Icon: ScanIcon },
   { id: 'fiches', label: 'Fiches', Icon: CardsIcon },
   { id: 'colle', label: 'Colle IA', Icon: MicIcon },
