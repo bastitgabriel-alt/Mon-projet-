@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   subjects,
-  scans,
   errorCategories,
   generateScanResult,
   computeErrorGroups,
   computeWeeklySynthesis
 } from '../data/mockData.js'
-import { useLocalStorage } from '../hooks/useLocalStorage.js'
+import { supabase } from '../lib/supabaseClient.js'
 import { Card, SectionTitle, Badge, Button } from '../components/ui.jsx'
 import AnnotatedCopy from '../components/AnnotatedCopy.jsx'
 import { CameraIcon, UploadIcon, ChevronLeftIcon, SparkleIcon, CheckIcon } from '../components/icons.jsx'
@@ -20,7 +19,30 @@ const ANALYZE_STEPS = [
   "Génération de ta synthèse…"
 ]
 
-export default function Scan() {
+// "2026-07-18" -> "18/07/2026"
+function toFrDate(isoDate) {
+  const [y, m, d] = isoDate.split('-')
+  return `${d}/${m}/${y}`
+}
+
+function mapScanRow(row) {
+  return {
+    id: row.id,
+    subjectId: row.subject_id,
+    title: row.title,
+    date: toFrDate(row.scan_date),
+    grade: row.grade,
+    annotations: (row.annotations || []).map((a) => ({
+      id: a.id,
+      x: Number(a.pos_x),
+      y: Number(a.pos_y),
+      category: a.category,
+      comment: a.comment
+    }))
+  }
+}
+
+export default function Scan({ userId }) {
   const [step, setStep] = useState('idle') // idle | preview | analyzing | result | history
   const [subjectId, setSubjectId] = useState('maths')
   const [imageUrl, setImageUrl] = useState(null)
@@ -32,24 +54,78 @@ export default function Scan() {
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
 
-  const [customScans, setCustomScans] = useLocalStorage('marge_custom_scans', [])
-  const [, setCustomFiches] = useLocalStorage('marge_custom_fiches', [])
+  const [allScans, setAllScans] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const allScans = [...customScans, ...scans]
+  async function loadData() {
+    const [{ data: scanRows }, { data: ficheRows }] = await Promise.all([
+      supabase
+        .from('scans')
+        .select('*, annotations(*)')
+        .eq('user_id', userId)
+        .order('scan_date', { ascending: false }),
+      supabase.from('fiches').select('subject_id, linked_category').eq('user_id', userId)
+    ])
+    setAllScans((scanRows || []).map(mapScanRow))
+    setCreatedFicheKeys(
+      (ficheRows || [])
+        .filter((f) => f.linked_category)
+        .map((f) => `${f.subject_id}__${f.linked_category}`)
+    )
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId])
 
   useEffect(() => {
     if (step !== 'analyzing') return
     if (analyzeStep >= ANALYZE_STEPS.length) {
-      const subject = subjects.find((s) => s.id === subjectId)
-      const result = generateScanResult(subjectId, `Copie du ${new Date().toLocaleDateString('fr-FR')} — ${subject?.name}`)
-      setNewScan(result)
-      setCustomScans((prev) => [result, ...prev])
-      setStep('result')
+      finishAnalysis()
       return
     }
     const t = setTimeout(() => setAnalyzeStep((s) => s + 1), 650)
     return () => clearTimeout(t)
-  }, [step, analyzeStep, subjectId, setCustomScans])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, analyzeStep])
+
+  async function finishAnalysis() {
+    const subject = subjects.find((s) => s.id === subjectId)
+    const generated = generateScanResult(subjectId, `Copie du ${new Date().toLocaleDateString('fr-FR')} — ${subject?.name}`)
+
+    const { data: insertedScan, error } = await supabase
+      .from('scans')
+      .insert({
+        user_id: userId,
+        subject_id: generated.subjectId,
+        title: generated.title,
+        scan_date: new Date().toISOString().slice(0, 10)
+      })
+      .select()
+      .single()
+
+    if (error || !insertedScan) {
+      setStep('idle')
+      return
+    }
+
+    const annotationRows = generated.annotations.map((a) => ({
+      scan_id: insertedScan.id,
+      user_id: userId,
+      pos_x: a.x,
+      pos_y: a.y,
+      category: a.category,
+      comment: a.comment
+    }))
+    const { data: insertedAnnotations } = await supabase.from('annotations').insert(annotationRows).select()
+
+    const result = mapScanRow({ ...insertedScan, annotations: insertedAnnotations })
+    setNewScan(result)
+    setAllScans((prev) => [result, ...prev])
+    setStep('result')
+  }
 
   function handleFile(e) {
     const file = e.target.files?.[0]
@@ -73,22 +149,23 @@ export default function Scan() {
     if (cameraInputRef.current) cameraInputRef.current.value = ''
   }
 
-  function createFiche(group) {
+  async function createFiche(group) {
     const subject = subjects.find((s) => s.id === group.subjectId)
     const category = errorCategories[group.category]
-    setCustomFiches((prev) => [
-      {
-        id: `fiche-${Date.now()}`,
-        subjectId: group.subjectId,
-        title: `${category.label} en ${subject?.short}`,
-        lastReviewed: null,
-        linkedCategory: group.category,
-        generated: true,
-        summary: category.tip
-      },
-      ...prev
-    ])
     setCreatedFicheKeys((prev) => [...prev, group.key])
+    await supabase.from('fiches').insert({
+      user_id: userId,
+      subject_id: group.subjectId,
+      title: `${category.label} en ${subject?.short}`,
+      summary: category.tip,
+      linked_category: group.category,
+      generated: true,
+      last_reviewed: null
+    })
+  }
+
+  if (loading) {
+    return <p className="text-sm text-ink-400">Chargement…</p>
   }
 
   if (step === 'history' && historyScan) {
@@ -311,6 +388,9 @@ export default function Scan() {
               </button>
             )
           })}
+          {allScans.length === 0 && (
+            <Card className="p-4 text-center text-sm text-ink-500">Aucun scan pour l'instant.</Card>
+          )}
         </div>
       </div>
     </div>

@@ -1,27 +1,61 @@
-import { useMemo, useState } from 'react'
-import { subjects, fiches, errorCategories } from '../data/mockData.js'
-import { useLocalStorage } from '../hooks/useLocalStorage.js'
+import { useEffect, useMemo, useState } from 'react'
+import { subjects, errorCategories } from '../data/mockData.js'
+import { supabase } from '../lib/supabaseClient.js'
 import { Card, SectionTitle, Badge, Button } from '../components/ui.jsx'
 import { ChevronLeftIcon, SparkleIcon } from '../components/icons.jsx'
 import { styleFor } from '../utils/categoryStyles.js'
 
-export default function Fiches() {
-  const [customFiches] = useLocalStorage('marge_custom_fiches', [])
-  const [reviewedOverrides, setReviewedOverrides] = useLocalStorage('marge_fiches_reviewed', {})
+function mapFicheRow(row) {
+  return {
+    id: row.id,
+    subjectId: row.subject_id,
+    title: row.title,
+    summary: row.summary,
+    linkedCategory: row.linked_category,
+    generated: row.generated,
+    lastReviewed: row.last_reviewed ? toFrDate(row.last_reviewed) : null
+  }
+}
+
+// "2026-07-18" -> "18/07/2026"
+function toFrDate(isoDate) {
+  const [y, m, d] = isoDate.split('-')
+  return `${d}/${m}/${y}`
+}
+
+export default function Fiches({ userId }) {
+  const [allFiches, setAllFiches] = useState([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [openFicheId, setOpenFicheId] = useState(null)
 
-  const allFiches = useMemo(() => [...customFiches, ...fiches], [customFiches])
+  useEffect(() => {
+    supabase
+      .from('fiches')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setAllFiches((data || []).map(mapFicheRow))
+        setLoading(false)
+      })
+  }, [userId])
+
   const filtered = filter === 'all' ? allFiches : allFiches.filter((f) => f.subjectId === filter)
   const openFiche = allFiches.find((f) => f.id === openFicheId)
 
-  function markReviewed(id) {
-    setReviewedOverrides((prev) => ({ ...prev, [id]: new Date().toLocaleDateString('fr-FR') }))
+  async function markReviewed(id) {
+    const todayIso = new Date().toISOString().slice(0, 10)
+    setAllFiches((prev) => prev.map((f) => (f.id === id ? { ...f, lastReviewed: toFrDate(todayIso) } : f)))
+    await supabase.from('fiches').update({ last_reviewed: todayIso }).eq('id', id)
+  }
+
+  if (loading) {
+    return <p className="text-sm text-ink-400">Chargement…</p>
   }
 
   if (openFiche) {
     const subject = subjects.find((s) => s.id === openFiche.subjectId)
-    const lastReviewed = reviewedOverrides[openFiche.id] || openFiche.lastReviewed
     const category = openFiche.linkedCategory ? errorCategories[openFiche.linkedCategory] : null
     const style = openFiche.linkedCategory ? styleFor(openFiche.linkedCategory) : null
 
@@ -56,7 +90,7 @@ export default function Fiches() {
         <Card className="p-4 flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-ink-700">Dernière révision</p>
-            <p className="text-xs text-ink-500">{lastReviewed || 'Pas encore révisée'}</p>
+            <p className="text-xs text-ink-500">{openFiche.lastReviewed || 'Pas encore révisée'}</p>
           </div>
           <Button variant="secondary" onClick={() => markReviewed(openFiche.id)} className="text-xs px-3 py-1.5">
             Marquer comme révisée
@@ -83,7 +117,6 @@ export default function Fiches() {
       <div className="flex flex-col gap-2">
         {filtered.map((f) => {
           const subject = subjects.find((s) => s.id === f.subjectId)
-          const lastReviewed = reviewedOverrides[f.id] || f.lastReviewed
           return (
             <button key={f.id} onClick={() => setOpenFicheId(f.id)} className="text-left">
               <Card className="flex items-center gap-3 p-3.5 hover:bg-ink-50 transition-colors">
@@ -91,7 +124,7 @@ export default function Fiches() {
                 <div className="flex-1 min-w-0">
                   <p className="truncate text-sm font-medium text-ink-800">{f.title}</p>
                   <p className="text-xs text-ink-500">
-                    {subject?.name} · {lastReviewed ? `Révisée le ${lastReviewed}` : 'Jamais révisée'}
+                    {subject?.name} · {f.lastReviewed ? `Révisée le ${f.lastReviewed}` : 'Jamais révisée'}
                   </p>
                 </div>
                 {f.generated && <Badge className="bg-brand-50 text-brand-700 shrink-0">Auto</Badge>}

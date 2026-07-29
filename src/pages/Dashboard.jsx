@@ -1,13 +1,30 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { subjects, subjectProgress, weekEvents, eventTypeLabels, moodOptions } from '../data/mockData.js'
-import { useLocalStorage } from '../hooks/useLocalStorage.js'
+import { supabase } from '../lib/supabaseClient.js'
 import { Card, SectionTitle, ProgressBar, Badge, Button } from '../components/ui.jsx'
 import { ScanIcon, CardsIcon, CheckIcon } from '../components/icons.jsx'
 
-const todayKey = new Date().toISOString().slice(0, 10)
+const todayIso = new Date().toISOString().slice(0, 10)
 
-export default function Dashboard({ onNavigate }) {
-  const [mood, setMood] = useLocalStorage(`marge_mood_${todayKey}`, null)
+export default function Dashboard({ onNavigate, userId, onSignOut }) {
+  const [mood, setMoodState] = useState(null)
+
+  useEffect(() => {
+    supabase
+      .from('moods')
+      .select('mood_id')
+      .eq('user_id', userId)
+      .eq('mood_date', todayIso)
+      .maybeSingle()
+      .then(({ data }) => setMoodState(data?.mood_id ?? null))
+  }, [userId])
+
+  async function setMood(id) {
+    setMoodState(id)
+    await supabase
+      .from('moods')
+      .upsert({ user_id: userId, mood_date: todayIso, mood_id: id }, { onConflict: 'user_id,mood_date' })
+  }
 
   const upcoming = useMemo(
     () => weekEvents.filter((e) => !e.done).slice(0, 4),
@@ -19,9 +36,14 @@ export default function Dashboard({ onNavigate }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <p className="text-sm text-ink-500">Semaine du 28 juillet au 3 août</p>
-        <h1 className="text-2xl font-bold text-ink-900">Salut ! Voici ton point de la semaine.</h1>
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm text-ink-500">Semaine du 28 juillet au 3 août</p>
+          <h1 className="text-2xl font-bold text-ink-900">Salut ! Voici ton point de la semaine.</h1>
+        </div>
+        <button onClick={onSignOut} className="shrink-0 pt-1 text-xs font-medium text-ink-400 hover:text-ink-600">
+          Se déconnecter
+        </button>
       </header>
 
       {/* Charge mentale */}
