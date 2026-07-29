@@ -20,8 +20,10 @@ import BadgesCard from '../components/BadgesCard.jsx'
 import { relativeDayLabel, nextUpcoming } from '../utils/schedule.js'
 
 const todayIso = new Date().toISOString().slice(0, 10)
+const tomorrowIso = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
 const CHART_SUBJECTS = ['maths', 'physique', 'anglais', 'francais']
 const CHART_COLORS = { maths: '#3b2f80', physique: '#e63950', anglais: '#0f9488', francais: '#f5a524' }
+const GOAL_OPTIONS = [5, 10, 15, 20]
 
 function frGrade(n) {
   return n.toFixed(1).replace('.', ',')
@@ -52,14 +54,18 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
   const [fichesToReview, setFichesToReview] = useState(0)
   const [loading, setLoading] = useState(true)
   const [badges, setBadges] = useState({ earned: [], nextBadge: null })
+  const [dailyGoal, setDailyGoalState] = useState(10)
+  const [todayReviews, setTodayReviews] = useState(0)
 
   useEffect(() => {
     async function load() {
-      const [{ data: todayMood }, { data: moodHistory }, { data: scanRows }, { data: ficheRows }] = await Promise.all([
+      const [{ data: todayMood }, { data: moodHistory }, { data: scanRows }, { data: ficheRows }, { data: settings }, { count: reviewsCount }] = await Promise.all([
         supabase.from('moods').select('mood_id').eq('user_id', userId).eq('mood_date', todayIso).maybeSingle(),
         supabase.from('moods').select('mood_date').eq('user_id', userId),
         supabase.from('scans').select('subject_id, title, grade, scan_date, annotations(category)').eq('user_id', userId).order('scan_date', { ascending: false }),
-        supabase.from('fiches').select('id, next_review').eq('user_id', userId)
+        supabase.from('fiches').select('id, next_review').eq('user_id', userId),
+        supabase.from('user_settings').select('daily_goal_reviews').eq('user_id', userId).maybeSingle(),
+        supabase.from('review_log').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('reviewed_at', todayIso).lt('reviewed_at', tomorrowIso)
       ])
 
       setMoodState(todayMood?.mood_id ?? null)
@@ -74,11 +80,20 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
         }))
       )
       setFichesToReview((ficheRows || []).filter((f) => isDue({ nextReview: f.next_review }, todayIso)).length)
+      setDailyGoalState(settings?.daily_goal_reviews ?? 10)
+      setTodayReviews(reviewsCount || 0)
       setLoading(false)
     }
     load()
     checkAndAwardBadges(userId).then(setBadges)
   }, [userId])
+
+  async function setDailyGoal(value) {
+    setDailyGoalState(value)
+    await supabase
+      .from('user_settings')
+      .upsert({ user_id: userId, daily_goal_reviews: value }, { onConflict: 'user_id' })
+  }
 
   async function setMood(id) {
     const alreadyLoggedToday = mood !== null
@@ -157,6 +172,9 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
           </div>
         </div>
       </div>
+
+      {/* Objectif du jour */}
+      <DailyGoalCard goal={dailyGoal} done={todayReviews} onSetGoal={setDailyGoal} onReview={() => onNavigate('fiches')} />
 
       {/* Chips matières */}
       <div className="flex flex-wrap gap-2.5">
@@ -321,6 +339,54 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
 
       <BadgesCard earned={badges.earned} nextBadge={badges.nextBadge} />
     </div>
+  )
+}
+
+function DailyGoalCard({ goal, done, onSetGoal, onReview }) {
+  const percent = Math.min(100, Math.round((done / goal) * 100))
+  const reached = done >= goal
+
+  return (
+    <Card className={`p-[22px] transition-colors ${reached ? 'bg-teal-soft' : ''}`}>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-[15.5px] font-semibold text-ink-900">Objectif du jour</h2>
+        <div className="flex gap-1.5">
+          {GOAL_OPTIONS.map((g) => (
+            <button
+              key={g}
+              onClick={() => onSetGoal(g)}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                goal === g ? 'bg-indigo text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'
+              }`}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-2 flex items-end justify-between">
+        <span className="font-mono text-2xl font-bold text-ink-900">
+          {done}<span className="text-ink-400"> / {goal}</span>
+        </span>
+        <span className="text-[12.5px] text-ink-500">fiches révisées aujourd'hui</span>
+      </div>
+
+      <div className="mb-3 h-2.5 overflow-hidden rounded-full bg-ink-100">
+        <div
+          className={`h-full rounded-full transition-all duration-700 ${reached ? 'bg-teal' : 'bg-gradient-to-r from-indigo to-coral'}`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+
+      {reached ? (
+        <p className="text-[12.5px] font-medium text-teal">🎉 Objectif atteint — journée productive !</p>
+      ) : (
+        <button onClick={onReview} className="text-[12.5px] font-medium text-indigo hover:underline">
+          Réviser quelques fiches →
+        </button>
+      )}
+    </Card>
   )
 }
 
