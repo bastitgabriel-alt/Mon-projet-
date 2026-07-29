@@ -1,13 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
-import { subjects, errorCategories } from '../data/mockData.js'
+import { subjects, errorCategories, weekEvents } from '../data/mockData.js'
 import { supabase } from '../lib/supabaseClient.js'
 import { Card, Badge, Button } from '../components/ui.jsx'
 import { ChevronLeftIcon, SparkleIcon, CheckIcon } from '../components/icons.jsx'
 import { styleFor } from '../utils/categoryStyles.js'
 import { recallLevels, nextReviewState, isDue } from '../utils/spacedRepetition.js'
 import { checkAndAwardBadges } from '../lib/badges.js'
+import { nextUpcoming, relativeDayLabel } from '../utils/schedule.js'
+import { buildUrgentPlan } from '../utils/urgentPlan.js'
 
 const todayIso = new Date().toISOString().slice(0, 10)
+const TIME_OPTIONS = [15, 30, 45, 60]
+const REASON_TONE = {
+  'Erreur fréquente': 'bg-coral-soft text-coral',
+  'Jamais révisée': 'bg-indigo-soft text-indigo',
+  'À réviser': 'bg-amber-soft text-amber',
+  Renforcement: 'bg-teal-soft text-teal'
+}
 
 function mapFicheRow(row) {
   return {
@@ -50,21 +59,39 @@ export default function Fiches({ userId }) {
   const [reviewedCount, setReviewedCount] = useState(0)
   const [newBadges, setNewBadges] = useState([])
 
+  // Mode urgent
+  const [scans, setScans] = useState([])
+  const [urgentStep, setUrgentStep] = useState(null) // null | 'setup' | 'plan'
+  const [urgentSubjectId, setUrgentSubjectId] = useState(subjects[0].id)
+  const [urgentMinutes, setUrgentMinutes] = useState(30)
+  const [urgentPlanItems, setUrgentPlanItems] = useState([])
+
+  const nextExam = useMemo(() => nextUpcoming(weekEvents, ['ds', 'colle']), [])
+
   useEffect(() => {
-    supabase
-      .from('fiches')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        setAllFiches((data || []).map(mapFicheRow))
-        setLoading(false)
-      })
+    Promise.all([
+      supabase.from('fiches').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+      supabase.from('scans').select('subject_id, annotations(category)').eq('user_id', userId)
+    ]).then(([{ data: ficheRows }, { data: scanRows }]) => {
+      setAllFiches((ficheRows || []).map(mapFicheRow))
+      setScans((scanRows || []).map((s) => ({ subjectId: s.subject_id, annotations: s.annotations || [] })))
+      setLoading(false)
+    })
   }, [userId])
+
+  useEffect(() => {
+    if (nextExam) setUrgentSubjectId(nextExam.subjectId)
+  }, [nextExam])
 
   const filtered = filter === 'all' ? allFiches : allFiches.filter((f) => f.subjectId === filter)
   const openFiche = allFiches.find((f) => f.id === openFicheId)
   const dueFiches = useMemo(() => allFiches.filter((f) => isDue(f, todayIso)), [allFiches])
+
+  function openUrgentPlan() {
+    const items = buildUrgentPlan({ subjectId: urgentSubjectId, minutes: urgentMinutes, fiches: allFiches, scans })
+    setUrgentPlanItems(items)
+    setUrgentStep('plan')
+  }
 
   function startSession(fiches) {
     setSessionQueue(fiches)
@@ -73,6 +100,7 @@ export default function Fiches({ userId }) {
     setReviewedCount(0)
     setNewBadges([])
     setOpenFicheId(null)
+    setUrgentStep(null)
   }
 
   async function rate(quality) {
@@ -197,6 +225,100 @@ export default function Fiches({ userId }) {
     )
   }
 
+  // --- Mode urgent : configuration ---
+  if (urgentStep === 'setup') {
+    return (
+      <div className="flex flex-col gap-4">
+        <button onClick={() => setUrgentStep(null)} className="flex items-center gap-1 text-sm font-medium text-ink-500 hover:text-ink-700">
+          <ChevronLeftIcon className="w-4 h-4" /> Annuler
+        </button>
+        <div>
+          <h1 className="font-display text-xl font-semibold text-ink-900">Mode urgent</h1>
+          <p className="text-sm text-ink-500">Dis-nous ta matière et le temps que tu as — on te fait un plan.</p>
+        </div>
+
+        <Card className="p-5">
+          <p className="mb-2 text-sm font-medium text-ink-700">Matière</p>
+          <select
+            value={urgentSubjectId}
+            onChange={(e) => setUrgentSubjectId(e.target.value)}
+            className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm font-medium text-ink-700"
+          >
+            {subjects.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </Card>
+
+        <Card className="p-5">
+          <p className="mb-2 text-sm font-medium text-ink-700">Temps disponible</p>
+          <div className="grid grid-cols-4 gap-2">
+            {TIME_OPTIONS.map((m) => (
+              <button
+                key={m}
+                onClick={() => setUrgentMinutes(m)}
+                className={`rounded-xl border-[1.5px] py-2.5 text-sm font-semibold transition-colors ${
+                  urgentMinutes === m ? 'border-coral bg-coral-soft text-coral' : 'border-ink-200 text-ink-600 hover:border-ink-400'
+                }`}
+              >
+                {m} min
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        <Button onClick={openUrgentPlan} className="w-full">Voir mon plan</Button>
+      </div>
+    )
+  }
+
+  // --- Mode urgent : plan ---
+  if (urgentStep === 'plan') {
+    const subject = subjects.find((s) => s.id === urgentSubjectId)
+    const totalMinutes = urgentPlanItems.reduce((sum, i) => sum + i.minutes, 0)
+
+    return (
+      <div className="flex flex-col gap-4">
+        <button onClick={() => setUrgentStep('setup')} className="flex items-center gap-1 text-sm font-medium text-ink-500 hover:text-ink-700">
+          <ChevronLeftIcon className="w-4 h-4" /> Modifier
+        </button>
+        <div>
+          <h1 className="font-display text-xl font-semibold text-ink-900">Ton plan rapide · {subject?.short}</h1>
+          <p className="text-sm text-ink-500">
+            {urgentPlanItems.length} fiche{urgentPlanItems.length > 1 ? 's' : ''} priorisée{urgentPlanItems.length > 1 ? 's' : ''} · ~{totalMinutes} min
+          </p>
+        </div>
+
+        {urgentPlanItems.length === 0 ? (
+          <Card className="p-4 text-center text-sm text-ink-500">
+            Pas encore de fiche en {subject?.name}. Scanne une copie ou crée une fiche pour cette matière d'abord.
+          </Card>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {urgentPlanItems.map((item, i) => (
+              <Card key={item.fiche.id} className="flex items-center gap-3 p-3.5">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ink-100 text-xs font-bold text-ink-600">
+                  {i + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-sm font-medium text-ink-800">{item.fiche.title}</p>
+                  <Badge className={`mt-1 ${REASON_TONE[item.reason]}`}>{item.reason}</Badge>
+                </div>
+                <span className="shrink-0 font-mono text-xs text-ink-400">{item.minutes} min</span>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {urgentPlanItems.length > 0 && (
+          <Button onClick={() => startSession(urgentPlanItems.map((i) => i.fiche))} className="w-full">
+            Commencer la session
+          </Button>
+        )}
+      </div>
+    )
+  }
+
   // --- Détail d'une fiche ---
   if (openFiche) {
     const subject = subjects.find((s) => s.id === openFiche.subjectId)
@@ -246,8 +368,31 @@ export default function Fiches({ userId }) {
   }
 
   // --- Liste ---
+  const examSoonLabel = nextExam ? relativeDayLabel(nextExam.parsedDate) : null
+  const examIsImminent = examSoonLabel === "aujourd'hui" || examSoonLabel === 'demain'
+  const examSubject = nextExam ? subjects.find((s) => s.id === nextExam.subjectId) : null
+
   return (
     <div className="flex flex-col gap-5">
+      {examIsImminent ? (
+        <Card className="flex items-center justify-between gap-3 bg-gradient-to-br from-coral to-[#ff7a5c] p-5 text-white">
+          <div>
+            <p className="font-display text-lg font-semibold">⚡ {examSubject?.name} {examSoonLabel}</p>
+            <p className="text-sm text-white/80">Prépare un plan de révision rapide et ciblé.</p>
+          </div>
+          <Button variant="secondary" onClick={() => setUrgentStep('setup')} className="shrink-0 bg-white text-coral hover:bg-white/90">
+            Mode urgent
+          </Button>
+        </Card>
+      ) : (
+        <button
+          onClick={() => setUrgentStep('setup')}
+          className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-ink-300 py-2.5 text-sm font-medium text-ink-500 hover:border-coral hover:text-coral transition-colors"
+        >
+          ⚡ Mode urgent — contrôle bientôt ?
+        </button>
+      )}
+
       {dueFiches.length > 0 && (
         <Card className="flex items-center justify-between gap-3 bg-gradient-to-br from-indigo to-[#5b3fae] p-5 text-white">
           <div>

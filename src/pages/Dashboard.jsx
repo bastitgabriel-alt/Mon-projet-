@@ -17,6 +17,7 @@ import { isDue } from '../utils/spacedRepetition.js'
 import { computeStreak } from '../utils/streak.js'
 import { checkAndAwardBadges } from '../lib/badges.js'
 import BadgesCard from '../components/BadgesCard.jsx'
+import { relativeDayLabel, nextUpcoming } from '../utils/schedule.js'
 
 const todayIso = new Date().toISOString().slice(0, 10)
 const CHART_SUBJECTS = ['maths', 'physique', 'anglais', 'francais']
@@ -29,23 +30,6 @@ function frGrade(n) {
 function deriveName(email) {
   const local = (email || '').split('@')[0].split(/[.\-_0-9]/)[0]
   return local ? local.charAt(0).toUpperCase() + local.slice(1) : 'toi'
-}
-
-// "28/07" -> Date de cette année (les données de démo sont calées sur la
-// semaine en cours, donc on suppose l'année courante).
-function parseEventDate(ddmm) {
-  const [d, m] = ddmm.split('/').map(Number)
-  return new Date(new Date().getFullYear(), m - 1, d)
-}
-
-function relativeDayLabel(date) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const diffDays = Math.round((date - today) / 86400000)
-  if (diffDays === 0) return "aujourd'hui"
-  if (diffDays === 1) return 'demain'
-  if (diffDays > 1) return `dans ${diffDays} j`
-  return null
 }
 
 function buildPolyline(values, min, max) {
@@ -127,15 +111,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
   }, [])
   const averageDelta = overallAverage - previousAverage
 
-  const nextColle = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return weekEvents
-      .filter((e) => e.type === 'colle')
-      .map((e) => ({ ...e, parsedDate: parseEventDate(e.date) }))
-      .filter((e) => e.parsedDate >= today)
-      .sort((a, b) => a.parsedDate - b.parsedDate)[0]
-  }, [])
+  const nextColle = useMemo(() => nextUpcoming(weekEvents, ['colle']), [])
 
   const recurringCount = useMemo(() => computeErrorGroups(scans).filter((g) => g.count > 1).length, [scans])
   const latestScan = scans[0]
