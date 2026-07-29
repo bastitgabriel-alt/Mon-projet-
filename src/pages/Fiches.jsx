@@ -5,6 +5,7 @@ import { Card, Badge, Button } from '../components/ui.jsx'
 import { ChevronLeftIcon, SparkleIcon, CheckIcon } from '../components/icons.jsx'
 import { styleFor } from '../utils/categoryStyles.js'
 import { recallLevels, nextReviewState, isDue } from '../utils/spacedRepetition.js'
+import { checkAndAwardBadges } from '../lib/badges.js'
 
 const todayIso = new Date().toISOString().slice(0, 10)
 
@@ -47,6 +48,7 @@ export default function Fiches({ userId }) {
   const [sessionIndex, setSessionIndex] = useState(0)
   const [revealed, setRevealed] = useState(false)
   const [reviewedCount, setReviewedCount] = useState(0)
+  const [newBadges, setNewBadges] = useState([])
 
   useEffect(() => {
     supabase
@@ -69,6 +71,7 @@ export default function Fiches({ userId }) {
     setSessionIndex(0)
     setRevealed(false)
     setReviewedCount(0)
+    setNewBadges([])
     setOpenFicheId(null)
   }
 
@@ -76,19 +79,26 @@ export default function Fiches({ userId }) {
     const fiche = sessionQueue[sessionIndex]
     const next = nextReviewState(fiche, quality)
     setAllFiches((prev) => prev.map((f) => (f.id === fiche.id ? { ...f, ...next, lastReviewed: todayIso } : f)))
-    await supabase
-      .from('fiches')
-      .update({
-        next_review: next.nextReview,
-        interval_days: next.intervalDays,
-        ease_factor: next.easeFactor,
-        repetitions: next.repetitions,
-        last_reviewed: todayIso
-      })
-      .eq('id', fiche.id)
+    await Promise.all([
+      supabase
+        .from('fiches')
+        .update({
+          next_review: next.nextReview,
+          interval_days: next.intervalDays,
+          ease_factor: next.easeFactor,
+          repetitions: next.repetitions,
+          last_reviewed: todayIso
+        })
+        .eq('id', fiche.id),
+      supabase.from('review_log').insert({ user_id: userId, fiche_id: fiche.id, quality })
+    ])
     setReviewedCount((c) => c + 1)
     setRevealed(false)
+    const isLastCard = sessionIndex + 1 >= sessionQueue.length
     setSessionIndex((i) => i + 1)
+    if (isLastCard) {
+      checkAndAwardBadges(userId).then((res) => setNewBadges(res.newlyEarned))
+    }
   }
 
   if (loading) {
@@ -107,6 +117,21 @@ export default function Fiches({ userId }) {
           <p className="text-sm text-ink-500">
             {reviewedCount} fiche{reviewedCount > 1 ? 's' : ''} révisée{reviewedCount > 1 ? 's' : ''}. Bien joué.
           </p>
+
+          {newBadges.length > 0 && (
+            <div className="flex flex-col items-center gap-2 rounded-2xl bg-amber-soft px-6 py-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber">Nouveau succès débloqué</p>
+              <div className="flex gap-4">
+                {newBadges.map((b) => (
+                  <div key={b.id} className="flex flex-col items-center gap-1">
+                    <span className="text-2xl">{b.icon}</span>
+                    <span className="text-xs font-medium text-ink-700">{b.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <Button onClick={() => setSessionQueue(null)}>Retour aux fiches</Button>
         </div>
       )

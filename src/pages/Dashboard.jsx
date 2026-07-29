@@ -14,6 +14,9 @@ import { supabase } from '../lib/supabaseClient.js'
 import { Card, Button } from '../components/ui.jsx'
 import { ScanIcon } from '../components/icons.jsx'
 import { isDue } from '../utils/spacedRepetition.js'
+import { computeStreak } from '../utils/streak.js'
+import { checkAndAwardBadges } from '../lib/badges.js'
+import BadgesCard from '../components/BadgesCard.jsx'
 
 const todayIso = new Date().toISOString().slice(0, 10)
 const CHART_SUBJECTS = ['maths', 'physique', 'anglais', 'francais']
@@ -58,26 +61,13 @@ function buildPolyline(values, min, max) {
     .join(' ')
 }
 
-function computeStreak(moodDates) {
-  const set = new Set(moodDates)
-  let streak = 0
-  const cursor = new Date()
-  // Si l'humeur du jour n'est pas encore renseignée, on part d'hier pour ne
-  // pas casser une série en cours avant la fin de la journée.
-  if (!set.has(cursor.toISOString().slice(0, 10))) cursor.setDate(cursor.getDate() - 1)
-  while (set.has(cursor.toISOString().slice(0, 10))) {
-    streak += 1
-    cursor.setDate(cursor.getDate() - 1)
-  }
-  return streak
-}
-
 export default function Dashboard({ onNavigate, userId, userEmail }) {
   const [mood, setMoodState] = useState(null)
   const [streak, setStreak] = useState(0)
   const [scans, setScans] = useState([])
   const [fichesToReview, setFichesToReview] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [badges, setBadges] = useState({ earned: [], nextBadge: null })
 
   useEffect(() => {
     async function load() {
@@ -103,6 +93,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
       setLoading(false)
     }
     load()
+    checkAndAwardBadges(userId).then(setBadges)
   }, [userId])
 
   async function setMood(id) {
@@ -114,7 +105,10 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
     // computeStreak (au chargement) exclut aujourd'hui tant qu'il n'est pas
     // encore renseigné : le premier enregistrement du jour allonge donc la
     // série d'un jour ; un changement d'humeur le même jour ne la change pas.
-    if (!alreadyLoggedToday) setStreak((s) => s + 1)
+    if (!alreadyLoggedToday) {
+      setStreak((s) => s + 1)
+      checkAndAwardBadges(userId).then(setBadges)
+    }
   }
 
   const selectedMood = moodOptions.find((m) => m.id === mood)
@@ -348,6 +342,8 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
           </div>
         </Card>
       </div>
+
+      <BadgesCard earned={badges.earned} nextBadge={badges.nextBadge} />
     </div>
   )
 }
