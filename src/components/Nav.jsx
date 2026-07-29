@@ -1,10 +1,11 @@
-import { HomeIcon, ScanIcon, CardsIcon, MicIcon } from './icons.jsx'
+import { HomeIcon, ScanIcon, CardsIcon, MicIcon, PulseIcon } from './icons.jsx'
 
 const tabs = [
   { id: 'dashboard', label: 'Tableau de bord', Icon: HomeIcon },
   { id: 'scan', label: 'Copies', Icon: ScanIcon },
   { id: 'fiches', label: 'Fiches', Icon: CardsIcon },
-  { id: 'colle', label: 'Colle IA', Icon: MicIcon }
+  { id: 'colle', label: 'Colle IA', Icon: MicIcon },
+  { id: 'mental', label: 'Mental', Icon: PulseIcon }
 ]
 
 export default function Nav({ current, onNavigate, userEmail, onSignOut }) {

@@ -79,6 +79,21 @@ export function BookIcon({ className = 'w-5 h-5' }) {
   )
 }
 
+export function PulseIcon({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path
+        d="M12 20.5s-7.2-4.4-9.6-9C.9 8.2 2 4.8 5.2 4c2.2-.5 4.2.6 5.3 2.4a.5.5 0 0 0 .9 0C12.6 4.6 14.6 3.5 16.8 4c3.2.8 4.3 4.2 2.8 7.5-1.1 2.4-3.9 5-6.1 6.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M3.5 12h3l1.5-3 2 5 1.5-3h9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export function MicIcon({ className = 'w-6 h-6' }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>
