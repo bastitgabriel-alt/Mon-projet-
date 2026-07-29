@@ -636,7 +636,7 @@ export default function Scan({ userId }) {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => courseCameraInputRef.current?.click()}
-              className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-teal to-[#0c7a70] p-6 text-white shadow-soft hover:brightness-110 transition-all"
+              className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-amber to-[#d98c12] p-6 text-white shadow-soft hover:brightness-110 transition-all"
             >
               <CameraIcon className="w-8 h-8" />
               <span className="text-sm font-semibold">Prendre en photo</span>
@@ -645,7 +645,7 @@ export default function Scan({ userId }) {
               onClick={() => courseFileInputRef.current?.click()}
               className="flex flex-col items-center gap-2 rounded-2xl bg-white border border-ink-100 p-6 text-ink-800 shadow-card hover:bg-ink-50 transition-colors"
             >
-              <UploadIcon className="w-8 h-8 text-teal" />
+              <UploadIcon className="w-8 h-8 text-amber" />
               <span className="text-sm font-semibold">Importer un fichier</span>
             </button>
             <input ref={courseCameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleCourseFile} />
