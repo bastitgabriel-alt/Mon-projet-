@@ -4,6 +4,13 @@ import { supabase } from '../lib/supabaseClient.js'
 import { Card, Badge, Button } from '../components/ui.jsx'
 import { generateAcademicCalendar, eventTypeMeta } from '../utils/academicCalendar.js'
 import { getLifeMode } from '../utils/lifeMode.js'
+import { getSmartAlerts } from '../utils/smartAlerts.js'
+
+const ALERT_TONE = {
+  coral: 'bg-coral-soft text-coral',
+  amber: 'bg-amber-soft text-amber',
+  teal: 'bg-teal-soft text-teal'
+}
 
 const FILIERE_OPTIONS = ['MPSI', 'PCSI', 'MP', 'PSI', 'PC', 'PT', 'BCPST']
 const MODE_TONE = {
@@ -59,6 +66,7 @@ export default function Calendrier({ userId }) {
   }, [profile])
 
   const lifeMode = useMemo(() => (events.length > 0 ? getLifeMode(events) : null), [events])
+  const smartAlerts = useMemo(() => (events.length > 0 ? getSmartAlerts(events) : []), [events])
 
   const todayIso = new Date().toISOString().slice(0, 10)
   const upcoming = useMemo(() => events.filter((e) => (e.endDate || e.date) >= todayIso), [events, todayIso])
@@ -166,6 +174,17 @@ export default function Calendrier({ userId }) {
         <p className="mt-1 font-display text-lg font-semibold">{lifeMode.title}</p>
         <p className="mt-1 text-sm text-white/85">{lifeMode.description}</p>
       </Card>
+
+      {smartAlerts.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {smartAlerts.map((a) => (
+            <Card key={a.id} className={`flex items-start gap-2.5 p-3.5 ${ALERT_TONE[a.tone]}`}>
+              <span className="shrink-0">🔔</span>
+              <p className="text-sm font-medium">{a.text}</p>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-col gap-4">
         {weekGroups.map(([weekStart, weekEvents]) => (
