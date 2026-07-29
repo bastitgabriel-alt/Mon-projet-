@@ -113,6 +113,35 @@ export function TargetIcon({ className = 'w-6 h-6' }) {
   )
 }
 
+export function CalculatorIcon({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <rect x="7.5" y="5.5" width="9" height="4" rx="0.8" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M8 13.2h.01M12 13.2h.01M16 13.2h.01M8 16.8h.01M12 16.8h.01M16 16.8h.01"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+export function PuzzleIcon({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path
+        d="M9 4h3.2a1.4 1.4 0 0 1 1.3 1.9 1.4 1.4 0 0 0 1.3 1.9H17a2 2 0 0 1 2 2v2.2a1.4 1.4 0 0 0-1.9 1.3 1.4 1.4 0 0 0 1.9 1.3V17a2 2 0 0 1-2 2h-2.2a1.4 1.4 0 0 1-1.3-1.9 1.4 1.4 0 0 0-1.9-1.3 1.4 1.4 0 0 0-1.3 1.9H7a2 2 0 0 1-2-2v-3.2a1.4 1.4 0 0 1 1.9-1.3A1.4 1.4 0 0 0 8.2 9.2 1.4 1.4 0 0 0 6.9 7.9 1.4 1.4 0 0 1 5 6.6V6a2 2 0 0 1 2-2h2Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 export function MicIcon({ className = 'w-6 h-6' }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>

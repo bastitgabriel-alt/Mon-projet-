@@ -2,13 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { subjects, errorCategories, weekEvents } from '../data/mockData.js'
 import { supabase } from '../lib/supabaseClient.js'
 import { Card, Badge, Button } from '../components/ui.jsx'
-import { ChevronLeftIcon, SparkleIcon, CheckIcon } from '../components/icons.jsx'
+import { ChevronLeftIcon, SparkleIcon, CheckIcon, CalculatorIcon, PuzzleIcon } from '../components/icons.jsx'
 import { styleFor } from '../utils/categoryStyles.js'
 import { recallLevels, nextReviewState, isDue } from '../utils/spacedRepetition.js'
 import { checkAndAwardBadges } from '../lib/badges.js'
 import { nextUpcoming, relativeDayLabel } from '../utils/schedule.js'
 import { buildUrgentPlan } from '../utils/urgentPlan.js'
 import { useAcademicCalendar } from '../lib/academicSchedule.js'
+import MentalCalcGame from '../components/MentalCalcGame.jsx'
+import DemonstrationGame from '../components/DemonstrationGame.jsx'
 
 const todayIso = new Date().toISOString().slice(0, 10)
 const TIME_OPTIONS = [15, 30, 45, 60]
@@ -66,6 +68,9 @@ export default function Fiches({ userId }) {
   const [urgentSubjectId, setUrgentSubjectId] = useState(subjects[0].id)
   const [urgentMinutes, setUrgentMinutes] = useState(30)
   const [urgentPlanItems, setUrgentPlanItems] = useState([])
+
+  // Révision active (D.3 / D.4)
+  const [activeGame, setActiveGame] = useState(null) // null | 'calcul-mental' | 'demonstration'
 
   const { events: realEvents, hasProfile } = useAcademicCalendar(userId)
   const activeEvents = hasProfile && realEvents ? realEvents : weekEvents
@@ -134,6 +139,16 @@ export default function Fiches({ userId }) {
 
   if (loading) {
     return <p className="text-sm text-ink-400">Chargement…</p>
+  }
+
+  // --- Révision active : Calcul mental (D.3) ---
+  if (activeGame === 'calcul-mental') {
+    return <MentalCalcGame userId={userId} onExit={() => setActiveGame(null)} />
+  }
+
+  // --- Révision active : Démonstration (D.4) ---
+  if (activeGame === 'demonstration') {
+    return <DemonstrationGame onExit={() => setActiveGame(null)} />
   }
 
   // --- Session de révision (flashcards) ---
@@ -409,6 +424,25 @@ export default function Fiches({ userId }) {
           </Button>
         </Card>
       )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => setActiveGame('calcul-mental')}
+          className="flex flex-col items-center gap-1.5 rounded-2xl border border-ink-200 bg-white p-4 text-center shadow-card transition-colors hover:border-indigo"
+        >
+          <CalculatorIcon className="w-6 h-6 text-indigo" />
+          <span className="text-sm font-semibold text-ink-800">Calcul mental</span>
+          <span className="text-[11px] text-ink-500">Série chronométrée</span>
+        </button>
+        <button
+          onClick={() => setActiveGame('demonstration')}
+          className="flex flex-col items-center gap-1.5 rounded-2xl border border-ink-200 bg-white p-4 text-center shadow-card transition-colors hover:border-indigo"
+        >
+          <PuzzleIcon className="w-6 h-6 text-indigo" />
+          <span className="text-sm font-semibold text-ink-800">Démonstration</span>
+          <span className="text-[11px] text-ink-500">Reconstitue les étapes</span>
+        </button>
+      </div>
 
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
         <FilterChip active={filter === 'all'} onClick={() => setFilter('all')} label="Toutes" />
