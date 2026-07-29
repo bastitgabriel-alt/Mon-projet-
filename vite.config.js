@@ -2,7 +2,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+// En production, l'appli est hébergée sur GitHub Pages sous /Mon-projet-/ ;
+// en dev on garde la racine pour ne pas changer l'URL locale habituelle.
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/Mon-projet-/' : '/',
   plugins: [
     react(),
     VitePWA({
@@ -15,8 +18,6 @@ export default defineConfig({
         theme_color: '#0f766e',
         background_color: '#f8fafc',
         display: 'standalone',
-        start_url: '/',
-        scope: '/',
         icons: [
           {
             src: 'icon.svg',
@@ -31,4 +32,4 @@ export default defineConfig({
   server: {
     host: true
   }
-})
+}))
