@@ -24,6 +24,16 @@ function toISO(date) {
   return date.toISOString().slice(0, 10)
 }
 
+// Première date >= `date` qui tombe sur le jour de semaine `targetDow`
+// (0=dimanche ... 6=samedi). Utilisé pour ancrer DS/khôlles sur un jour fixe
+// en semaine, quel que soit le jour de la rentrée fournie par l'élève.
+function nextWeekday(date, targetDow) {
+  const r = new Date(date)
+  const diff = (targetDow - r.getDay() + 7) % 7
+  r.setDate(r.getDate() + diff)
+  return r
+}
+
 function vacationWindows(rentreeYear) {
   return [
     { start: dateAt(rentreeYear, 10, 19), end: dateAt(rentreeYear, 11, 3), title: 'Vacances de la Toussaint' },
@@ -67,29 +77,32 @@ export function generateAcademicCalendar({ filiere, annee, dateRentree }) {
   const allVacWindows = [...vac1, ...vac2]
   const isBlocked = (d) => allVacWindows.some((w) => d >= w.start && d <= w.end)
 
-  let dsCursor = addDays(annee1Rentree, 21)
+  // Les périodes (21j, 14j) sont des multiples de 7 : une fois ancrée sur un
+  // jour de semaine fixe (via nextWeekday), chaque matière garde toujours ce
+  // même jour, sans jamais dériver — on avance le curseur d'une période
+  // complète à chaque tour, même quand l'occurrence tombe pendant des
+  // vacances (elle est alors simplement omise plutôt que décalée).
+  const DS_DOW = 2 // mardi
+  let dsCursor = nextWeekday(addDays(annee1Rentree, 21), DS_DOW)
   let dsIdx = 0
   while (dsCursor <= ecritDebut) {
     if (!isBlocked(dsCursor)) {
       events.push({ id: `ds-${dsIdx}`, date: toISO(dsCursor), type: 'ds', subjectId: DS_SUBJECTS[dsIdx % DS_SUBJECTS.length] })
       dsIdx++
-      dsCursor = addDays(dsCursor, 21)
-    } else {
-      dsCursor = addDays(dsCursor, 1)
     }
+    dsCursor = addDays(dsCursor, 21)
   }
 
+  const KHOLLE_DOWS = [1, 3, 4, 5] // lundi, mercredi, jeudi, vendredi — chaque matière sur un jour distinct
   KHOLLE_SUBJECTS.forEach((subjectId, si) => {
-    let cursor = addDays(annee1Rentree, 14 + si * 2)
+    let cursor = nextWeekday(addDays(annee1Rentree, 14), KHOLLE_DOWS[si])
     let idx = 0
     while (cursor <= ecritDebut) {
       if (!isBlocked(cursor)) {
         events.push({ id: `colle-${subjectId}-${idx}`, date: toISO(cursor), type: 'colle', subjectId })
         idx++
-        cursor = addDays(cursor, 14)
-      } else {
-        cursor = addDays(cursor, 1)
       }
+      cursor = addDays(cursor, 14)
     }
   })
 

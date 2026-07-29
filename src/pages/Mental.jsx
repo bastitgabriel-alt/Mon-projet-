@@ -3,6 +3,7 @@ import { weekEvents, examTargetDate } from '../data/mockData.js'
 import { supabase } from '../lib/supabaseClient.js'
 import { Card, Badge, Button } from '../components/ui.jsx'
 import { getContextualMessage, breathingPhases } from '../utils/mentalContext.js'
+import { useAcademicCalendar } from '../lib/academicSchedule.js'
 
 const todayIso = new Date().toISOString().slice(0, 10)
 
@@ -115,9 +116,13 @@ export default function Mental({ userId }) {
     })
   }, [userId])
 
+  const { events: realEvents, examTargetDate: realExamTargetDate, hasProfile } = useAcademicCalendar(userId)
+  const activeEvents = hasProfile && realEvents ? realEvents : weekEvents
+  const activeExamTargetDate = hasProfile && realExamTargetDate ? realExamTargetDate : examTargetDate
+
   const contextMsg = useMemo(
-    () => getContextualMessage({ weekEvents, examTargetDate, recentMoods }),
-    [recentMoods]
+    () => getContextualMessage({ weekEvents: activeEvents, examTargetDate: activeExamTargetDate, recentMoods }),
+    [activeEvents, activeExamTargetDate, recentMoods]
   )
 
   async function saveEnergy() {

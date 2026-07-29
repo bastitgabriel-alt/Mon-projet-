@@ -8,6 +8,7 @@ import { recallLevels, nextReviewState, isDue } from '../utils/spacedRepetition.
 import { checkAndAwardBadges } from '../lib/badges.js'
 import { nextUpcoming, relativeDayLabel } from '../utils/schedule.js'
 import { buildUrgentPlan } from '../utils/urgentPlan.js'
+import { useAcademicCalendar } from '../lib/academicSchedule.js'
 
 const todayIso = new Date().toISOString().slice(0, 10)
 const TIME_OPTIONS = [15, 30, 45, 60]
@@ -66,7 +67,9 @@ export default function Fiches({ userId }) {
   const [urgentMinutes, setUrgentMinutes] = useState(30)
   const [urgentPlanItems, setUrgentPlanItems] = useState([])
 
-  const nextExam = useMemo(() => nextUpcoming(weekEvents, ['ds', 'colle']), [])
+  const { events: realEvents, hasProfile } = useAcademicCalendar(userId)
+  const activeEvents = hasProfile && realEvents ? realEvents : weekEvents
+  const nextExam = useMemo(() => nextUpcoming(activeEvents, ['ds', 'colle']), [activeEvents])
 
   useEffect(() => {
     Promise.all([

@@ -18,6 +18,7 @@ import { computeStreak } from '../utils/streak.js'
 import { checkAndAwardBadges } from '../lib/badges.js'
 import BadgesCard from '../components/BadgesCard.jsx'
 import { relativeDayLabel, nextUpcoming } from '../utils/schedule.js'
+import { useAcademicCalendar, thisWeekEvents } from '../lib/academicSchedule.js'
 
 const todayIso = new Date().toISOString().slice(0, 10)
 const tomorrowIso = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
@@ -112,7 +113,15 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
 
   const selectedMood = moodOptions.find((m) => m.id === mood)
 
-  const daysToExam = Math.ceil((new Date(examTargetDate) - new Date()) / 86400000)
+  const { events: realEvents, examTargetDate: realExamTargetDate, hasProfile } = useAcademicCalendar(userId)
+  const activeEvents = hasProfile && realEvents ? realEvents : weekEvents
+  const activeExamTargetDate = hasProfile && realExamTargetDate ? realExamTargetDate : examTargetDate
+  const weekPlanEvents = useMemo(
+    () => (hasProfile && realEvents ? thisWeekEvents(realEvents) : weekEvents),
+    [hasProfile, realEvents]
+  )
+
+  const daysToExam = Math.ceil((new Date(activeExamTargetDate) - new Date()) / 86400000)
   const progressAvg = Math.round(
     Object.values(subjectProgress).reduce((a, b) => a + b, 0) / Object.values(subjectProgress).length
   )
@@ -126,7 +135,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
   }, [])
   const averageDelta = overallAverage - previousAverage
 
-  const nextColle = useMemo(() => nextUpcoming(weekEvents, ['colle']), [])
+  const nextColle = useMemo(() => nextUpcoming(activeEvents, ['colle']), [activeEvents])
 
   const recurringCount = useMemo(() => computeErrorGroups(scans).filter((g) => g.count > 1).length, [scans])
   const latestScan = scans[0]
@@ -306,10 +315,10 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
           <div className="mb-4.5 flex items-center justify-between">
             <h2 className="font-display text-[15.5px] font-semibold text-ink-900">Planning de la semaine</h2>
             <span className="text-xs text-ink-400">
-              {weekEvents.filter((e) => e.type === 'ds').length} DS · {weekEvents.filter((e) => e.type === 'colle').length} colles
+              {weekPlanEvents.filter((e) => e.type === 'ds').length} DS · {weekPlanEvents.filter((e) => e.type === 'colle').length} colles
             </span>
           </div>
-          <WeekPlan />
+          <WeekPlan events={weekPlanEvents} />
         </Card>
 
         <Card className="p-[22px]">
@@ -414,7 +423,7 @@ function KpiCard({ tone, icon, delta, value, label }) {
   )
 }
 
-function WeekPlan() {
+function WeekPlan({ events: weekEvents }) {
   const todayName = new Date().toLocaleDateString('fr-FR', { weekday: 'long' })
   const todayCap = todayName.charAt(0).toUpperCase() + todayName.slice(1)
   const days = [...new Set(weekEvents.map((e) => e.day))]
@@ -422,6 +431,11 @@ function WeekPlan() {
   return (
     <table className="w-full border-collapse">
       <tbody>
+        {days.length === 0 && (
+          <tr>
+            <td className="py-2.5 text-[12.5px] text-ink-400">Rien de prévu cette semaine.</td>
+          </tr>
+        )}
         {days.map((day) => {
           const events = weekEvents.filter((e) => e.day === day)
           const isToday = day === todayCap
