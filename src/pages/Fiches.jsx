@@ -107,12 +107,14 @@ export default function Fiches({ userId, navParams }) {
   const openFiche = allFiches.find((f) => f.id === openFicheId)
   const dueFiches = useMemo(() => allFiches.filter((f) => isDue(f, todayIso)), [allFiches])
 
-  // Arrivée depuis le bandeau "X fiches à réviser" du Dashboard : on saute
-  // direct dans la session, sans repasser par la liste.
+  // Arrivée depuis un bandeau du Dashboard : on saute direct dans l'action
+  // demandée (session de révision, ou configuration du mode urgent), sans
+  // repasser par la liste.
   useEffect(() => {
-    if (loading || autoStartHandled || navParams?.autoStart !== 'due') return
+    if (loading || autoStartHandled || !navParams?.autoStart) return
     setAutoStartHandled(true)
-    if (dueFiches.length > 0) startSession(dueFiches)
+    if (navParams.autoStart === 'due' && dueFiches.length > 0) startSession(dueFiches)
+    if (navParams.autoStart === 'urgent') setUrgentStep('setup')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, navParams, autoStartHandled, dueFiches])
 

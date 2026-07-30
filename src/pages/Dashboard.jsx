@@ -189,6 +189,10 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
   const averageDelta = overallAverage - previousAverage
 
   const nextColle = useMemo(() => nextUpcoming(activeEvents, ['colle']), [activeEvents])
+  const nextExam = useMemo(() => nextUpcoming(activeEvents, ['ds', 'colle']), [activeEvents])
+  const examSoonLabel = nextExam ? relativeDayLabel(nextExam.parsedDate) : null
+  const examIsImminent = examSoonLabel === "aujourd'hui" || examSoonLabel === 'demain'
+  const examSubject = nextExam ? subjects.find((s) => s.id === nextExam.subjectId) : null
   const quote = useMemo(() => todaysQuote(), [])
 
   const recurringCount = useMemo(() => computeErrorGroups(scans).filter((g) => g.count > 1).length, [scans])
@@ -203,6 +207,23 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
 
   return (
     <div className="flex flex-col gap-[22px]">
+      {/* Mode urgent — priorité absolue de l'écran quand un DS/colle est demain ou aujourd'hui,
+          au-dessus même du bandeau fiches dues. */}
+      {examIsImminent && (
+        <Card className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-br from-coral to-[#ff7a5c] p-4 text-white">
+          <p className="text-sm font-medium">
+            ⚡ {examSubject?.short} {examSoonLabel} — plan de révision rapide et ciblé
+          </p>
+          <Button
+            variant="secondary"
+            onClick={() => onNavigate('fiches', { autoStart: 'urgent' })}
+            className="shrink-0 bg-white px-3 py-1.5 text-xs text-coral hover:bg-white/90"
+          >
+            Mode urgent
+          </Button>
+        </Card>
+      )}
+
       {/* Fiches dues aujourd'hui — l'action la plus importante de l'écran, avant tout le reste.
           Volontairement compacte (contrairement au hero juste en dessous) pour se lire comme
           une bannière d'alerte, pas comme un second hero. */}
