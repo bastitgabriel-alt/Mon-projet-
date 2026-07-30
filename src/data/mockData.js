@@ -138,7 +138,7 @@ export const fiches = [
     lastReviewed: '20/07/2026',
     linkedCategory: 'calcul',
     generated: true,
-    summary: 'Erreurs de signe et de calcul matriciel repérées sur 2 copies récentes.'
+    summary: "Méthode : 1) calculer le polynôme caractéristique det(A − λI), 2) trouver les valeurs propres (ses racines), 3) pour chaque valeur propre, résoudre (A − λI)X = 0 pour obtenir le sous-espace propre associé, 4) vérifier que la somme des dimensions des sous-espaces propres vaut n avant de conclure à la diagonalisabilité. Pièges classiques : erreur de signe en développant le déterminant (bien appliquer le facteur (−1)^(i+j) de la comatrice), confusion entre valeur propre et vecteur propre en résolvant le système, oubli de vérifier la dimension du sous-espace propre pour une valeur propre multiple."
   },
   {
     id: 'f2',
@@ -147,7 +147,7 @@ export const fiches = [
     lastReviewed: null,
     linkedCategory: 'hypotheses',
     generated: true,
-    summary: 'Tu oublies souvent de vérifier la diagonalisabilité avant de conclure.'
+    summary: "Une matrice A est diagonalisable si et seulement si la somme des dimensions de ses sous-espaces propres égale n. Cela équivaut à : le polynôme caractéristique est scindé (racines réelles ou dans le corps considéré) ET pour chaque valeur propre, dim(sous-espace propre) = ordre de multiplicité algébrique. Piège classique : conclure 'diagonalisable' dès que le polynôme caractéristique est scindé, sans vérifier chaque sous-espace propre individuellement — ça échoue en particulier pour les valeurs propres multiples."
   },
   {
     id: 'f3',
@@ -156,7 +156,7 @@ export const fiches = [
     lastReviewed: '22/07/2026',
     linkedCategory: 'calcul',
     generated: true,
-    summary: 'Erreurs d\'homogénéité répétées : réflexe à automatiser.'
+    summary: "L'analyse dimensionnelle vérifie l'homogénéité d'une formule avant même de calculer. Dimensions de base : [L] longueur, [M] masse, [T] temps. Une énergie est en M·L²·T⁻², une force en M·L·T⁻¹, une vitesse en L·T⁻¹. Réflexe à automatiser : sur chaque résultat final, vérifier que les deux membres de l'équation ont la même unité — si un calcul donne une vitesse en m²/s, il y a forcément une erreur en amont, inutile de chercher plus loin avant de la corriger."
   },
   {
     id: 'f4',
@@ -165,7 +165,7 @@ export const fiches = [
     lastReviewed: null,
     linkedCategory: 'notions',
     generated: true,
-    summary: 'Notion mal maîtrisée détectée sur le dernier DS.'
+    summary: "La force dérive de l'énergie potentielle : F = −dEp/dx en 1D (F = −∇Ep en 3D). La force pointe dans le sens où l'énergie potentielle diminue. Ep est un scalaire (en Joules), F un vecteur (en Newtons) — ne pas les confondre. Piège classique : oublier le signe moins, ou confondre Ep avec le travail qu'elle fournit (W = −ΔEp, et non Ep directement)."
   },
   {
     id: 'f5',
@@ -174,7 +174,7 @@ export const fiches = [
     lastReviewed: '12/07/2026',
     linkedCategory: 'redaction',
     generated: true,
-    summary: 'Les transitions entre parties manquent de fluidité.'
+    summary: "Une bonne transition entre deux parties fait trois choses : 1) rappelle brièvement l'acquis de la partie précédente, 2) en montre la limite ou l'insuffisance, 3) annonce ce qu'apporte la partie suivante. Éviter les transitions plates du type 'Nous allons maintenant voir...' — préférer une transition qui pose une question ou un problème logique qui justifie le passage à la partie suivante."
   },
   {
     id: 'f6',
@@ -183,7 +183,7 @@ export const fiches = [
     lastReviewed: '25/07/2026',
     linkedCategory: null,
     generated: false,
-    summary: 'Fiche personnelle, non liée à un scan.'
+    summary: "to give up (abandonner) · to look forward to (attendre avec impatience) · to put off (reporter) · to come across (tomber sur) · to get on with (s'entendre avec / continuer) · to break down (tomber en panne / craquer) · to carry out (réaliser, mener à bien) · to bring up (élever / mentionner) · to figure out (comprendre, résoudre) · to run out of (manquer de). Astuce : le sens d'un phrasal verb est souvent très différent du verbe seul — à apprendre par cœur comme du vocabulaire, pas à déduire logiquement."
   },
   {
     id: 'f7',
@@ -192,7 +192,7 @@ export const fiches = [
     lastReviewed: null,
     linkedCategory: null,
     generated: false,
-    summary: 'À réviser avant le prochain TP noté.'
+    summary: "Notations : O(1) constant, O(log n) logarithmique (recherche dichotomique), O(n) linéaire (parcours simple), O(n log n) (tri fusion, tri rapide en moyenne), O(n²) quadratique (double boucle imbriquée), O(2ⁿ) exponentiel (récursion naïve sans mémoïsation). Méthode : compter le nombre d'opérations élémentaires en fonction de la taille n de l'entrée, puis ne garder que le terme dominant (on ignore les constantes et les termes de degré inférieur)."
   }
 ]
 
