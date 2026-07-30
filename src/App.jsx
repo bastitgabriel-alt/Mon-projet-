@@ -85,7 +85,7 @@ function AppShell() {
           {page === 'scan' && <Scan navParams={navParams} userId={session.user.id} />}
           {page === 'fiches' && <Fiches navParams={navParams} userId={session.user.id} />}
           {page === 'colle' && <ColleIA userId={session.user.id} />}
-          {page === 'mental' && <Mental userId={session.user.id} />}
+          {page === 'mental' && <Mental userId={session.user.id} onNavigate={navigate} />}
           {page === 'calendrier' && <Calendrier userId={session.user.id} />}
           {page === 'competences' && <Competences userId={session.user.id} />}
         </main>

@@ -15,6 +15,16 @@ export function getWeakestCompetencies(levels, count = 2) {
   return all.sort((a, b) => a.level - b.level).slice(0, count)
 }
 
+export function getStrongestCompetencies(levels, subjectId, count = 2) {
+  const subject = competencySubjects.find((s) => s.id === subjectId)
+  if (!subject) return []
+  return subject.competencies
+    .map((c) => ({ subjectId, subject: subject.name, competencyKey: c.key, label: c.label, level: levels[`${subjectId}__${c.key}`] || 1 }))
+    .filter((c) => c.level >= 3)
+    .sort((a, b) => b.level - a.level)
+    .slice(0, count)
+}
+
 function energyNote(energyToday) {
   if (!energyToday) return null
   if (energyToday.energie <= 4 || energyToday.stress >= 7) {
