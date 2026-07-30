@@ -266,7 +266,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
 
           {/* Slide 3 : récap focus / Pomodoro */}
           <div className="w-full shrink-0 snap-center">
-            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#3a1f1a_0%,#a94a2e_55%,#e63950_100%)]">
+            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#3a1f1a_0%,#a94a2e_55%,#c42d42_100%)]">
               <div
                 className="pointer-events-none absolute -right-6 -top-[120px] h-[260px] w-[260px] rounded-full opacity-40 blur-[50px]"
                 style={{ background: '#f5a524' }}
@@ -283,7 +283,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
               </div>
               <button
                 onClick={() => onNavigate('fiches')}
-                className="relative z-10 shrink-0 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-[13px] font-semibold backdrop-blur-sm hover:bg-white/20"
+                className="relative z-10 shrink-0 rounded-xl border border-white/30 bg-black/20 px-4 py-2.5 text-[13px] font-semibold backdrop-blur-sm hover:bg-black/30"
               >
                 Lancer un focus →
               </button>

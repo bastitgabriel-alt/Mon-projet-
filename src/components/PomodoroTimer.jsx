@@ -226,8 +226,8 @@ export default function PomodoroTimer({ userId, onExit }) {
         )}
       </div>
 
-      <Card className="p-4 bg-indigo-soft/60">
-        <p className="mb-1.5 text-sm font-semibold text-ink-900">La méthode Pomodoro, en bref</p>
+      <Card className="p-4 bg-indigo-soft">
+        <p className="mb-1.5 font-display text-sm font-semibold text-ink-900">La méthode Pomodoro, en bref</p>
         <p className="text-[12.5px] leading-relaxed text-ink-600">
           Le principe : découper le travail en sessions de <b className="text-ink-900">25 min de focus intense</b>, suivies
           d'une <b className="text-ink-900">pause de 5 min</b>, et toutes les 4 sessions d'une pause plus longue de 15 min.
