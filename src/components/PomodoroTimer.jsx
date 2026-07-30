@@ -89,6 +89,17 @@ export default function PomodoroTimer({ userId, onExit }) {
     if (notifStatus === 'granted') cancelPendingNotifications(userId)
   }
 
+  function startQuickBreak() {
+    if (notifStatus === 'granted') cancelPendingNotifications(userId)
+    setPhase('shortBreak')
+    setSecondsLeft(DURATIONS.shortBreak * 60)
+    setRunning(true)
+    if (notifStatus === 'granted') {
+      const notif = PHASE_NOTIF.shortBreak
+      scheduleNotification({ userId, delaySeconds: DURATIONS.shortBreak * 60, title: notif.title, body: notif.body })
+    }
+  }
+
   function toggle() {
     if (running) {
       setRunning(false)
@@ -202,12 +213,30 @@ export default function PomodoroTimer({ userId, onExit }) {
           </Button>
         </div>
 
+        {phase !== 'shortBreak' && (
+          <button onClick={startQuickBreak} className="text-xs font-medium text-teal hover:underline">
+            Besoin d'une pause tout de suite ? Pause de 5 min →
+          </button>
+        )}
+
         {completedCycles > 0 && (
           <p className="text-xs text-ink-500">
             {completedCycles} cycle{completedCycles > 1 ? 's' : ''} complété{completedCycles > 1 ? 's' : ''} cette session
           </p>
         )}
       </div>
+
+      <Card className="p-4 bg-indigo-soft/60">
+        <p className="mb-1.5 text-sm font-semibold text-ink-900">La méthode Pomodoro, en bref</p>
+        <p className="text-[12.5px] leading-relaxed text-ink-600">
+          Le principe : découper le travail en sessions de <b className="text-ink-900">25 min de focus intense</b>, suivies
+          d'une <b className="text-ink-900">pause de 5 min</b>, et toutes les 4 sessions d'une pause plus longue de 15 min.
+          C'est efficace car le cerveau tient mieux l'attention sur un temps court et borné que sur une durée floue : la
+          limite crée une urgence qui limite la procrastination, et les pauses régulières évitent la fatigue mentale
+          avant qu'elle ne s'installe. Résultat : on avance par petits blocs concrets, plus faciles à démarrer qu'une
+          session de révision sans fin.
+        </p>
+      </Card>
     </div>
   )
 }

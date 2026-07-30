@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   subjects,
   subjectProgress,
@@ -25,6 +25,30 @@ const tomorrowIso = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
 const CHART_SUBJECTS = ['maths', 'physique', 'anglais', 'francais']
 const CHART_COLORS = { maths: '#3b2f80', physique: '#e63950', anglais: '#0f9488', francais: '#f5a524' }
 const GOAL_OPTIONS = [5, 10, 15, 20]
+
+const MOTIVATIONAL_QUOTES = [
+  { text: "Ce n'est pas parce que les choses sont difficiles que nous n'osons pas, c'est parce que nous n'osons pas qu'elles sont difficiles.", author: 'Sénèque' },
+  { text: "Le succès, c'est se relever à chaque échec.", author: 'Winston Churchill' },
+  { text: "La chance sourit à ceux qui persévèrent.", author: 'Louis Pasteur' },
+  { text: "Ce n'est pas la charge qui vous casse, c'est la façon dont vous la portez.", author: 'Lou Holtz' },
+  { text: "On ne voit bien qu'avec le cœur, l'essentiel est invisible pour les yeux.", author: 'Antoine de Saint-Exupéry' },
+  { text: "Il n'y a pas de vent favorable pour celui qui ne sait où il va.", author: 'Sénèque' },
+  { text: "Le génie, c'est 1% d'inspiration et 99% de transpiration.", author: 'Thomas Edison' },
+  { text: "Un jour ou l'autre. Ou aujourd'hui, ou demain. Choisis aujourd'hui.", author: 'Proverbe' },
+  { text: "L'échec est simplement l'occasion de recommencer avec plus d'intelligence.", author: 'Henry Ford' },
+  { text: "C'est en forgeant qu'on devient forgeron.", author: 'Proverbe' },
+  { text: "La discipline est le pont entre les objectifs et les résultats.", author: 'Jim Rohn' },
+  { text: "Chaque expert a un jour été débutant.", author: 'Helen Hayes' },
+  { text: "Le pessimiste se plaint du vent, l'optimiste espère qu'il tourne, le réaliste ajuste ses voiles.", author: 'William Arthur Ward' },
+  { text: "Rien n'est jamais perdu tant qu'il reste quelque chose à trouver.", author: 'Pierre Dac' },
+  { text: "Tu ne peux pas contrôler le vent, mais tu peux ajuster tes voiles.", author: 'Proverbe' }
+]
+
+function todaysQuote() {
+  const start = new Date(new Date().getFullYear(), 0, 0)
+  const dayOfYear = Math.floor((Date.now() - start) / 86400000)
+  return MOTIVATIONAL_QUOTES[dayOfYear % MOTIVATIONAL_QUOTES.length]
+}
 
 function frGrade(n) {
   return n.toFixed(1).replace('.', ',')
@@ -57,16 +81,31 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
   const [badges, setBadges] = useState({ earned: [], nextBadge: null })
   const [dailyGoal, setDailyGoalState] = useState(10)
   const [todayReviews, setTodayReviews] = useState(0)
+  const [todayFocusSessions, setTodayFocusSessions] = useState(0)
+  const [totalFocusSessions, setTotalFocusSessions] = useState(0)
+  const [heroSlide, setHeroSlide] = useState(0)
+  const heroScrollRef = useRef(null)
 
   useEffect(() => {
     async function load() {
-      const [{ data: todayMood }, { data: moodHistory }, { data: scanRows }, { data: ficheRows }, { data: settings }, { count: reviewsCount }] = await Promise.all([
+      const [
+        { data: todayMood },
+        { data: moodHistory },
+        { data: scanRows },
+        { data: ficheRows },
+        { data: settings },
+        { count: reviewsCount },
+        { count: focusTodayCount },
+        { count: focusTotalCount }
+      ] = await Promise.all([
         supabase.from('moods').select('mood_id').eq('user_id', userId).eq('mood_date', todayIso).maybeSingle(),
         supabase.from('moods').select('mood_date').eq('user_id', userId),
         supabase.from('scans').select('subject_id, title, grade, scan_date, annotations(category)').eq('user_id', userId).order('scan_date', { ascending: false }),
         supabase.from('fiches').select('id, next_review').eq('user_id', userId),
         supabase.from('user_settings').select('daily_goal_reviews').eq('user_id', userId).maybeSingle(),
-        supabase.from('review_log').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('reviewed_at', todayIso).lt('reviewed_at', tomorrowIso)
+        supabase.from('review_log').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('reviewed_at', todayIso).lt('reviewed_at', tomorrowIso),
+        supabase.from('pomodoro_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('completed_at', todayIso),
+        supabase.from('pomodoro_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId)
       ])
 
       setMoodState(todayMood?.mood_id ?? null)
@@ -83,11 +122,25 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
       setFichesToReview((ficheRows || []).filter((f) => isDue({ nextReview: f.next_review }, todayIso)).length)
       setDailyGoalState(settings?.daily_goal_reviews ?? 10)
       setTodayReviews(reviewsCount || 0)
+      setTodayFocusSessions(focusTodayCount || 0)
+      setTotalFocusSessions(focusTotalCount || 0)
       setLoading(false)
     }
     load()
     checkAndAwardBadges(userId).then(setBadges)
   }, [userId])
+
+  function scrollToHeroSlide(i) {
+    const el = heroScrollRef.current
+    if (!el) return
+    el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' })
+  }
+
+  function handleHeroScroll(e) {
+    const el = e.target
+    if (!el.clientWidth) return
+    setHeroSlide(Math.round(el.scrollLeft / el.clientWidth))
+  }
 
   async function setDailyGoal(value) {
     setDailyGoalState(value)
@@ -136,6 +189,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
   const averageDelta = overallAverage - previousAverage
 
   const nextColle = useMemo(() => nextUpcoming(activeEvents, ['colle']), [activeEvents])
+  const quote = useMemo(() => todaysQuote(), [])
 
   const recurringCount = useMemo(() => computeErrorGroups(scans).filter((g) => g.count > 1).length, [scans])
   const latestScan = scans[0]
@@ -149,36 +203,103 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
 
   return (
     <div className="flex flex-col gap-[22px]">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#2c1f5e_0%,#46308f_48%,#7a3b6e_100%)]">
+      {/* Hero (carousel) */}
+      <div className="relative">
         <div
-          className="pointer-events-none absolute -right-0 -top-[120px] h-[260px] w-[260px] rounded-full opacity-55 blur-[50px]"
-          style={{ background: '#e63950' }}
-        />
-        <div
-          className="pointer-events-none absolute -left-10 -bottom-[140px] h-[220px] w-[220px] rounded-full opacity-35 blur-[50px]"
-          style={{ background: '#4d8bff' }}
-        />
-        <div className="relative z-10 self-start sm:self-auto">
-          <div className="mb-2.5 text-[13px] text-white/75">Bonjour {deriveName(userEmail)} 👋</div>
-          <div className="font-mono text-[46px] font-bold leading-none mb-1.5">J-{daysToExam}</div>
-          <div className="mb-4.5 text-[13.5px] text-white/80">avant les premiers écrits</div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-[7px] text-[12.5px] font-semibold backdrop-blur-sm">
-            <span>🔥</span> {streak > 0 ? `${streak} jour${streak > 1 ? 's' : ''} de suivi d'affilée` : 'Commence ton suivi aujourd\'hui'}
+          ref={heroScrollRef}
+          onScroll={handleHeroScroll}
+          className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth"
+        >
+          {/* Slide 1 : compte à rebours */}
+          <div className="w-full shrink-0 snap-center">
+            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#2c1f5e_0%,#46308f_48%,#7a3b6e_100%)]">
+              <div
+                className="pointer-events-none absolute -right-0 -top-[120px] h-[260px] w-[260px] rounded-full opacity-55 blur-[50px]"
+                style={{ background: '#e63950' }}
+              />
+              <div
+                className="pointer-events-none absolute -left-10 -bottom-[140px] h-[220px] w-[220px] rounded-full opacity-35 blur-[50px]"
+                style={{ background: '#4d8bff' }}
+              />
+              <div className="relative z-10 self-start sm:self-auto">
+                <div className="mb-2.5 text-[13px] text-white/75">Bonjour {deriveName(userEmail)} 👋</div>
+                <div className="font-mono text-[46px] font-bold leading-none mb-1.5">J-{daysToExam}</div>
+                <div className="mb-4.5 text-[13.5px] text-white/80">avant les premiers écrits</div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-[7px] text-[12.5px] font-semibold backdrop-blur-sm">
+                  <span>🔥</span> {streak > 0 ? `${streak} jour${streak > 1 ? 's' : ''} de suivi d'affilée` : 'Commence ton suivi aujourd\'hui'}
+                </div>
+              </div>
+              <div className="relative z-10 h-[118px] w-[118px] shrink-0 self-center">
+                <svg width="118" height="118" viewBox="0 0 118 118" className="-rotate-90">
+                  <circle cx="59" cy="59" r="42" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="10" />
+                  <circle
+                    cx="59" cy="59" r="42" fill="none" stroke="#ffffff" strokeWidth="10" strokeLinecap="round"
+                    strokeDasharray="264" strokeDashoffset={264 - (264 * progressAvg) / 100}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div className="font-mono text-[21px] font-bold">{progressAvg}%</div>
+                  <div className="mt-0.5 text-center text-[10px] leading-tight text-white/75">programme<br />couvert</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Slide 2 : citation motivante */}
+          <div className="w-full shrink-0 snap-center">
+            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex flex-col justify-center gap-4 bg-[linear-gradient(120deg,#0f3d3a_0%,#0f9488_55%,#1c6e5e_100%)]">
+              <div
+                className="pointer-events-none absolute -left-10 -top-[120px] h-[260px] w-[260px] rounded-full opacity-40 blur-[50px]"
+                style={{ background: '#f5a524' }}
+              />
+              <div
+                className="pointer-events-none absolute -right-6 -bottom-[130px] h-[220px] w-[220px] rounded-full opacity-30 blur-[50px]"
+                style={{ background: '#4d8bff' }}
+              />
+              <div className="relative z-10">
+                <div className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-white/70">Citation du jour</div>
+                <p className="font-display text-[19px] font-semibold leading-snug mb-3">« {quote.text} »</p>
+                <p className="text-[13px] text-white/75">— {quote.author}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Slide 3 : récap focus / Pomodoro */}
+          <div className="w-full shrink-0 snap-center">
+            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#3a1f1a_0%,#a94a2e_55%,#e63950_100%)]">
+              <div
+                className="pointer-events-none absolute -right-6 -top-[120px] h-[260px] w-[260px] rounded-full opacity-40 blur-[50px]"
+                style={{ background: '#f5a524' }}
+              />
+              <div className="relative z-10 self-start sm:self-auto">
+                <div className="mb-2.5 text-[13px] text-white/75">Ta régularité</div>
+                <div className="font-mono text-[46px] font-bold leading-none mb-1.5">{todayFocusSessions}</div>
+                <div className="mb-4.5 text-[13.5px] text-white/80">
+                  session{todayFocusSessions > 1 ? 's' : ''} de focus aujourd'hui
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-[7px] text-[12.5px] font-semibold backdrop-blur-sm">
+                  <span>🎯</span> {totalFocusSessions} au total depuis le début
+                </div>
+              </div>
+              <button
+                onClick={() => onNavigate('fiches')}
+                className="relative z-10 shrink-0 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-[13px] font-semibold backdrop-blur-sm hover:bg-white/20"
+              >
+                Lancer un focus →
+              </button>
+            </div>
           </div>
         </div>
-        <div className="relative z-10 h-[118px] w-[118px] shrink-0 self-center">
-          <svg width="118" height="118" viewBox="0 0 118 118" className="-rotate-90">
-            <circle cx="59" cy="59" r="42" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="10" />
-            <circle
-              cx="59" cy="59" r="42" fill="none" stroke="#ffffff" strokeWidth="10" strokeLinecap="round"
-              strokeDasharray="264" strokeDashoffset={264 - (264 * progressAvg) / 100}
+
+        <div className="mt-2.5 flex justify-center gap-1.5">
+          {[0, 1, 2].map((i) => (
+            <button
+              key={i}
+              onClick={() => scrollToHeroSlide(i)}
+              aria-label={`Aller à la carte ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${heroSlide === i ? 'w-5 bg-indigo' : 'w-1.5 bg-ink-200'}`}
             />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="font-mono text-[21px] font-bold">{progressAvg}%</div>
-            <div className="mt-0.5 text-center text-[10px] leading-tight text-white/75">programme<br />couvert</div>
-          </div>
+          ))}
         </div>
       </div>
 
