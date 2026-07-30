@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import {
   subjects,
   errorCategories,
-  generateScanResult,
   computeErrorGroups,
   computeWeeklySynthesis
 } from '../data/mockData.js'
@@ -12,13 +11,7 @@ import AnnotatedCopy from '../components/AnnotatedCopy.jsx'
 import { CameraIcon, UploadIcon, ChevronLeftIcon, SparkleIcon, CheckIcon, BookIcon } from '../components/icons.jsx'
 import { styleFor } from '../utils/categoryStyles.js'
 import { analyzeCourseImage } from '../lib/courseAi.js'
-
-const ANALYZE_STEPS = [
-  "Lecture de la copie…",
-  "Extraction des annotations du prof…",
-  "Regroupement des erreurs récurrentes…",
-  "Génération de ta synthèse…"
-]
+import { analyzeCopyImage } from '../lib/copyAi.js'
 
 // "2026-07-18" -> "18/07/2026"
 function toFrDate(isoDate) {
@@ -47,9 +40,10 @@ export default function Scan({ userId }) {
   const [mode, setMode] = useState('copie') // copie | cours
   const [step, setStep] = useState('idle') // idle | preview | analyzing | result | history | course-preview | course-analyzing | course-result | course-quiz | course-quiz-done
   const [subjectId, setSubjectId] = useState('maths')
+  const [imageFile, setImageFile] = useState(null)
   const [imageUrl, setImageUrl] = useState(null)
-  const [analyzeStep, setAnalyzeStep] = useState(0)
   const [newScan, setNewScan] = useState(null)
+  const [scanError, setScanError] = useState(null)
   const [activeAnnotation, setActiveAnnotation] = useState(null)
   const [historyScan, setHistoryScan] = useState(null)
   const [createdFicheKeys, setCreatedFicheKeys] = useState([])
@@ -100,71 +94,67 @@ export default function Scan({ userId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
-  useEffect(() => {
-    if (step !== 'analyzing') return
-    if (analyzeStep >= ANALYZE_STEPS.length) {
-      finishAnalysis()
-      return
-    }
-    const t = setTimeout(() => setAnalyzeStep((s) => s + 1), 650)
-    return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, analyzeStep])
-
   async function finishAnalysis() {
-    const subject = subjects.find((s) => s.id === subjectId)
-    const generated = generateScanResult(subjectId, `Copie du ${new Date().toLocaleDateString('fr-FR')} — ${subject?.name}`)
+    try {
+      const subject = subjects.find((s) => s.id === subjectId)
+      const analysis = await analyzeCopyImage({ subject: subjectId, file: imageFile })
 
-    const { data: insertedScan, error } = await supabase
-      .from('scans')
-      .insert({
+      const { data: insertedScan, error } = await supabase
+        .from('scans')
+        .insert({
+          user_id: userId,
+          subject_id: subjectId,
+          title: `Copie du ${new Date().toLocaleDateString('fr-FR')} — ${subject?.name}`,
+          scan_date: new Date().toISOString().slice(0, 10),
+          grade: analysis.grade || null
+        })
+        .select()
+        .single()
+
+      if (error || !insertedScan) throw new Error("Impossible d'enregistrer le scan.")
+
+      const annotationRows = (analysis.annotations || []).map((a) => ({
+        scan_id: insertedScan.id,
         user_id: userId,
-        subject_id: generated.subjectId,
-        title: generated.title,
-        scan_date: new Date().toISOString().slice(0, 10)
-      })
-      .select()
-      .single()
+        pos_x: a.x,
+        pos_y: a.y,
+        category: a.category,
+        comment: a.comment
+      }))
+      const { data: insertedAnnotations } =
+        annotationRows.length > 0 ? await supabase.from('annotations').insert(annotationRows).select() : { data: [] }
 
-    if (error || !insertedScan) {
-      setStep('idle')
-      return
+      const result = mapScanRow({ ...insertedScan, annotations: insertedAnnotations })
+      setNewScan(result)
+      setAllScans((prev) => [result, ...prev])
+      setStep('result')
+    } catch (e) {
+      setScanError(e.message)
+      setStep('preview')
     }
-
-    const annotationRows = generated.annotations.map((a) => ({
-      scan_id: insertedScan.id,
-      user_id: userId,
-      pos_x: a.x,
-      pos_y: a.y,
-      category: a.category,
-      comment: a.comment
-    }))
-    const { data: insertedAnnotations } = await supabase.from('annotations').insert(annotationRows).select()
-
-    const result = mapScanRow({ ...insertedScan, annotations: insertedAnnotations })
-    setNewScan(result)
-    setAllScans((prev) => [result, ...prev])
-    setStep('result')
   }
 
   function handleFile(e) {
     const file = e.target.files?.[0]
     if (!file) return
+    setImageFile(file)
     setImageUrl(URL.createObjectURL(file))
+    setScanError(null)
     setStep('preview')
   }
 
   function startAnalysis() {
-    setAnalyzeStep(0)
     setStep('analyzing')
+    finishAnalysis()
   }
 
   function reset() {
     setStep('idle')
+    setImageFile(null)
     setImageUrl(null)
     setNewScan(null)
+    setScanError(null)
     setActiveAnnotation(null)
-    setAnalyzeStep(0)
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (cameraInputRef.current) cameraInputRef.current.value = ''
   }
@@ -301,6 +291,7 @@ export default function Scan({ userId }) {
             ))}
           </select>
         </Card>
+        {scanError && <Card className="bg-coral-soft p-3 text-sm text-coral">{scanError}</Card>}
         <Button onClick={startAnalysis} className="w-full">
           <SparkleIcon /> Lancer l'analyse
         </Button>
@@ -313,21 +304,9 @@ export default function Scan({ userId }) {
       <div className="flex flex-col gap-4">
         <h1 className="text-xl font-bold text-ink-900">Analyse en cours…</h1>
         <AnnotatedCopy imageUrl={imageUrl} annotations={[]} />
-        <Card className="p-5">
-          <ul className="flex flex-col gap-3">
-            {ANALYZE_STEPS.map((label, i) => (
-              <li key={label} className="flex items-center gap-3 text-sm">
-                <span
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                    i < analyzeStep ? 'bg-indigo text-white' : i === analyzeStep ? 'bg-indigo-soft text-indigo animate-pulse' : 'bg-ink-100 text-ink-400'
-                  }`}
-                >
-                  {i < analyzeStep ? <CheckIcon className="w-3.5 h-3.5" /> : i + 1}
-                </span>
-                <span className={i <= analyzeStep ? 'text-ink-700' : 'text-ink-400'}>{label}</span>
-              </li>
-            ))}
-          </ul>
+        <Card className="flex items-center gap-3 p-5">
+          <span className="h-6 w-6 shrink-0 animate-pulse rounded-full bg-indigo-soft" />
+          <p className="text-sm text-ink-600">Le professeur virtuel lit tes annotations et prépare ta synthèse d'erreurs…</p>
         </Card>
       </div>
     )
@@ -347,7 +326,7 @@ export default function Scan({ userId }) {
         </div>
         <div>
           <h1 className="text-xl font-bold text-ink-900">{newScan.title}</h1>
-          <p className="text-sm text-ink-500">{subject?.name} · {newScan.date}</p>
+          <p className="text-sm text-ink-500">{subject?.name} · {newScan.date}{newScan.grade ? ` · ${newScan.grade}` : ''}</p>
         </div>
 
         <AnnotatedCopy
@@ -359,7 +338,13 @@ export default function Scan({ userId }) {
 
         <div>
           <SectionTitle title="Annotations détectées" eyebrow={`${newScan.annotations.length} repérées`} />
-          <AnnotationList annotations={newScan.annotations} activeId={activeAnnotation} onSelect={setActiveAnnotation} />
+          {newScan.annotations.length > 0 ? (
+            <AnnotationList annotations={newScan.annotations} activeId={activeAnnotation} onSelect={setActiveAnnotation} />
+          ) : (
+            <Card className="p-4 text-center text-sm text-ink-500">
+              Aucune annotation trouvée sur cette photo — vérifie qu'elle est bien nette et que les corrections du prof sont visibles.
+            </Card>
+          )}
         </div>
 
         {recurring.length > 0 && (

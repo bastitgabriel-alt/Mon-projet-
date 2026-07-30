@@ -1,9 +1,9 @@
 import { supabase } from './supabaseClient.js'
 import { resizeImageToBase64 } from './imageResize.js'
 
-const FUNCTION_URL = 'https://vgornmsdsfqactxaoieu.supabase.co/functions/v1/scan-course'
+const FUNCTION_URL = 'https://vgornmsdsfqactxaoieu.supabase.co/functions/v1/scan-copy'
 
-export async function analyzeCourseImage({ subject, file }) {
+export async function analyzeCopyImage({ subject, file }) {
   const imageBase64 = await resizeImageToBase64(file)
 
   const {
@@ -21,7 +21,7 @@ export async function analyzeCourseImage({ subject, file }) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(err.error || "Le service de lecture de cours n'a pas répondu.")
+    throw new Error(err.error || "Le service d'analyse de copie n'a pas répondu.")
   }
   return res.json()
 }
