@@ -84,6 +84,14 @@ export default function Fiches({ userId, navParams }) {
   const [newSummary, setNewSummary] = useState('')
   const [savingFiche, setSavingFiche] = useState(false)
 
+  // Banque de fiches (templates prêts à l'emploi)
+  const [showTemplateBank, setShowTemplateBank] = useState(false)
+  const [templates, setTemplates] = useState([])
+  const [templatesLoaded, setTemplatesLoaded] = useState(false)
+  const [templateFilter, setTemplateFilter] = useState('all')
+  const [addedTemplateIds, setAddedTemplateIds] = useState([])
+  const [addingTemplateId, setAddingTemplateId] = useState(null)
+
   const { events: realEvents, hasProfile } = useAcademicCalendar(userId)
   const activeEvents = hasProfile && realEvents ? realEvents : weekEvents
   const nextExam = useMemo(() => nextUpcoming(activeEvents, ['ds', 'colle']), [activeEvents])
@@ -117,6 +125,33 @@ export default function Fiches({ userId, navParams }) {
     if (navParams.autoStart === 'urgent') setUrgentStep('setup')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, navParams, autoStartHandled, dueFiches])
+
+  async function openTemplateBank() {
+    setShowTemplateBank(true)
+    if (templatesLoaded) return
+    const { data } = await supabase.from('fiche_templates').select('*').order('subject_id')
+    setTemplates(data || [])
+    setTemplatesLoaded(true)
+  }
+
+  async function addTemplateToMyFiches(template) {
+    setAddingTemplateId(template.id)
+    const { data, error } = await supabase
+      .from('fiches')
+      .insert({
+        user_id: userId,
+        subject_id: template.subject_id,
+        title: template.title,
+        question: template.question,
+        summary: template.summary
+      })
+      .select()
+      .single()
+    setAddingTemplateId(null)
+    if (error || !data) return
+    setAllFiches((prev) => [mapFicheRow(data), ...prev])
+    setAddedTemplateIds((prev) => [...prev, template.id])
+  }
 
   function openUrgentPlan() {
     const items = buildUrgentPlan({ subjectId: urgentSubjectId, minutes: urgentMinutes, fiches: allFiches, scans })
@@ -368,6 +403,62 @@ export default function Fiches({ userId, navParams }) {
     )
   }
 
+  // --- Banque de fiches (templates prêts à l'emploi) ---
+  if (showTemplateBank) {
+    const filteredTemplates = templateFilter === 'all' ? templates : templates.filter((t) => t.subject_id === templateFilter)
+    return (
+      <div className="flex flex-col gap-4">
+        <button onClick={() => setShowTemplateBank(false)} className="flex items-center gap-1 text-sm font-medium text-ink-500 hover:text-ink-700">
+          <ChevronLeftIcon className="w-4 h-4" /> Retour
+        </button>
+        <div>
+          <h1 className="font-display text-xl font-semibold text-ink-900">Banque de fiches</h1>
+          <p className="text-sm text-ink-500">Des fiches déjà écrites, prêtes à rejoindre ta répétition espacée.</p>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          <FilterChip active={templateFilter === 'all'} onClick={() => setTemplateFilter('all')} label="Toutes" />
+          {subjects.map((s) => (
+            <FilterChip key={s.id} active={templateFilter === s.id} onClick={() => setTemplateFilter(s.id)} label={s.short} />
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          {filteredTemplates.map((t) => {
+            const subject = subjects.find((s) => s.id === t.subject_id)
+            const added = addedTemplateIds.includes(t.id)
+            return (
+              <Card key={t.id} className="flex items-center gap-3 p-3.5">
+                <span className={`h-9 w-1.5 shrink-0 rounded-full ${subject?.accent || 'bg-ink-300'}`} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-ink-800">{t.title}</p>
+                  <p className="text-xs text-ink-500">{subject?.name}</p>
+                </div>
+                {added ? (
+                  <Badge className="shrink-0 bg-teal-soft text-teal">
+                    <CheckIcon className="mr-1 w-3.5 h-3.5" /> Ajoutée
+                  </Badge>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    onClick={() => addTemplateToMyFiches(t)}
+                    disabled={addingTemplateId === t.id}
+                    className="shrink-0 px-3 py-1.5 text-xs"
+                  >
+                    {addingTemplateId === t.id ? '…' : 'Ajouter'}
+                  </Button>
+                )}
+              </Card>
+            )
+          })}
+          {templatesLoaded && filteredTemplates.length === 0 && (
+            <Card className="p-4 text-center text-sm text-ink-500">Aucune fiche pour l'instant dans cette matière.</Card>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   // --- Mode urgent : configuration ---
   if (urgentStep === 'setup') {
     return (
@@ -599,6 +690,9 @@ export default function Fiches({ userId, navParams }) {
             <FilterChip key={s.id} active={filter === s.id} onClick={() => setFilter(s.id)} label={s.short} />
           ))}
         </div>
+        <Button variant="ghost" onClick={openTemplateBank} className="shrink-0 border border-ink-200 px-3 py-1.5 text-xs">
+          Banque de fiches
+        </Button>
         <Button variant="secondary" onClick={() => setShowCreateForm(true)} className="shrink-0 px-3 py-1.5 text-xs">
           + Nouvelle fiche
         </Button>

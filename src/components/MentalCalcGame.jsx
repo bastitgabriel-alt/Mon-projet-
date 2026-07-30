@@ -12,6 +12,8 @@ export default function MentalCalcGame({ userId, onExit }) {
   const [selected, setSelected] = useState(null)
   const [timeLeft, setTimeLeft] = useState(8)
   const [isNewRecord, setIsNewRecord] = useState(false)
+  const [leaderboard, setLeaderboard] = useState([])
+  const [myRank, setMyRank] = useState(null)
 
   useEffect(() => {
     supabase
@@ -19,8 +21,28 @@ export default function MentalCalcGame({ userId, onExit }) {
       .select('best_streak')
       .eq('user_id', userId)
       .maybeSingle()
-      .then(({ data }) => setBestStreak(data?.best_streak || 0))
+      .then(({ data }) => {
+        setBestStreak(data?.best_streak || 0)
+        loadLeaderboard(data?.best_streak || 0)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
+
+  async function loadLeaderboard(myBest) {
+    const { data: top } = await supabase
+      .from('mental_calc_best')
+      .select('user_id, best_streak')
+      .order('best_streak', { ascending: false })
+      .limit(10)
+    setLeaderboard(top || [])
+    if (myBest > 0) {
+      const { count } = await supabase
+        .from('mental_calc_best')
+        .select('user_id', { count: 'exact', head: true })
+        .gt('best_streak', myBest)
+      setMyRank((count || 0) + 1)
+    }
+  }
 
   useEffect(() => {
     if (phase !== 'playing' || selected !== null) return
@@ -66,6 +88,7 @@ export default function MentalCalcGame({ userId, onExit }) {
       await supabase
         .from('mental_calc_best')
         .upsert({ user_id: userId, best_streak: streak, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+      loadLeaderboard(streak)
     }
   }
 
@@ -87,6 +110,7 @@ export default function MentalCalcGame({ userId, onExit }) {
         <Button onClick={start} className="w-full">
           Commencer
         </Button>
+        <Leaderboard rows={leaderboard} userId={userId} myRank={myRank} />
       </div>
     )
   }
@@ -157,6 +181,37 @@ export default function MentalCalcGame({ userId, onExit }) {
         </Button>
         <Button onClick={onExit}>Retour aux fiches</Button>
       </div>
+      <Leaderboard rows={leaderboard} userId={userId} myRank={myRank} className="w-full text-left" />
     </div>
+  )
+}
+
+function Leaderboard({ rows, userId, myRank, className = '' }) {
+  if (rows.length === 0) return null
+  return (
+    <Card className={`p-4 ${className}`}>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
+        Classement · meilleures séries
+      </p>
+      <div className="flex flex-col gap-1">
+        {rows.map((row, i) => {
+          const isMe = row.user_id === userId
+          return (
+            <div
+              key={row.user_id}
+              className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-sm ${
+                isMe ? 'bg-indigo-soft font-semibold text-indigo' : 'text-ink-700'
+              }`}
+            >
+              <span>#{i + 1}{isMe ? ' · Toi' : ''}</span>
+              <span className="font-mono">{row.best_streak}</span>
+            </div>
+          )
+        })}
+      </div>
+      {myRank && myRank > rows.length && (
+        <p className="mt-2 text-xs text-ink-500">Ta position : #{myRank}</p>
+      )}
+    </Card>
   )
 }
