@@ -3,6 +3,13 @@ import { subjects } from '../data/mockData.js'
 import { supabase } from '../lib/supabaseClient.js'
 import { Card, Button } from './ui.jsx'
 import { ChevronLeftIcon } from './icons.jsx'
+import { isPushSupported, getNotificationPermission, subscribeToPush, scheduleNotification, cancelPendingNotifications } from '../lib/pushNotifications.js'
+
+const PHASE_NOTIF = {
+  focus: { title: 'Fin du focus', body: 'Ta session de focus est terminée. Passe en pause.' },
+  shortBreak: { title: 'Fin de la pause', body: 'La pause est terminée. Retour au focus.' },
+  longBreak: { title: 'Fin de la pause', body: 'La pause est terminée. Retour au focus.' }
+}
 
 const DURATIONS = { focus: 25, shortBreak: 5, longBreak: 15 }
 const CYCLES_BEFORE_LONG_BREAK = 4
@@ -21,6 +28,8 @@ export default function PomodoroTimer({ userId, onExit }) {
   const [running, setRunning] = useState(false)
   const [completedCycles, setCompletedCycles] = useState(0)
   const [todayCount, setTodayCount] = useState(0)
+  const [notifStatus, setNotifStatus] = useState('unsupported') // unsupported | default | denied | granted
+  const [subscribing, setSubscribing] = useState(false)
 
   useEffect(() => {
     const todayIso = new Date().toISOString().slice(0, 10)
@@ -30,7 +39,20 @@ export default function PomodoroTimer({ userId, onExit }) {
       .eq('user_id', userId)
       .gte('completed_at', todayIso)
       .then(({ count }) => setTodayCount(count || 0))
+
+    setNotifStatus(getNotificationPermission())
   }, [userId])
+
+  async function enableNotifications() {
+    setSubscribing(true)
+    try {
+      await subscribeToPush(userId)
+      setNotifStatus('granted')
+    } catch {
+      setNotifStatus(getNotificationPermission())
+    }
+    setSubscribing(false)
+  }
 
   useEffect(() => {
     if (!running) return
@@ -45,6 +67,7 @@ export default function PomodoroTimer({ userId, onExit }) {
 
   async function handlePhaseEnd() {
     setRunning(false)
+    if (notifStatus === 'granted') cancelPendingNotifications(userId)
     if (phase === 'focus') {
       await supabase.from('pomodoro_sessions').insert({ user_id: userId, subject_id: subjectId, duration_minutes: DURATIONS.focus })
       setTodayCount((c) => c + 1)
@@ -63,6 +86,25 @@ export default function PomodoroTimer({ userId, onExit }) {
     setRunning(false)
     setPhase('focus')
     setSecondsLeft(DURATIONS.focus * 60)
+    if (notifStatus === 'granted') cancelPendingNotifications(userId)
+  }
+
+  function toggle() {
+    if (running) {
+      setRunning(false)
+      if (notifStatus === 'granted') cancelPendingNotifications(userId)
+    } else {
+      setRunning(true)
+      if (notifStatus === 'granted') {
+        const notif = PHASE_NOTIF[phase]
+        scheduleNotification({ userId, delaySeconds: secondsLeft, title: notif.title, body: notif.body })
+      }
+    }
+  }
+
+  function handleExit() {
+    if (notifStatus === 'granted') cancelPendingNotifications(userId)
+    onExit()
   }
 
   const totalSeconds = DURATIONS[phase] * 60
@@ -73,7 +115,7 @@ export default function PomodoroTimer({ userId, onExit }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <button onClick={onExit} className="flex items-center gap-1 text-sm font-medium text-ink-500 hover:text-ink-700">
+        <button onClick={handleExit} className="flex items-center gap-1 text-sm font-medium text-ink-500 hover:text-ink-700">
           <ChevronLeftIcon className="w-4 h-4" /> Retour aux fiches
         </button>
         {todayCount > 0 && (
@@ -82,6 +124,20 @@ export default function PomodoroTimer({ userId, onExit }) {
           </span>
         )}
       </div>
+
+      {notifStatus === 'default' && (
+        <Card className="flex items-center justify-between gap-3 bg-indigo-soft p-4">
+          <p className="text-sm text-indigo">Reçois une notification à la fin du focus, même si tu changes d'écran.</p>
+          <Button variant="secondary" onClick={enableNotifications} disabled={subscribing} className="shrink-0 bg-white text-xs px-3 py-1.5">
+            {subscribing ? '…' : 'Activer'}
+          </Button>
+        </Card>
+      )}
+      {notifStatus === 'denied' && (
+        <Card className="p-4 bg-amber-soft text-sm text-amber">
+          Notifications bloquées pour ce site — active-les dans les réglages de ton navigateur si tu changes d'avis.
+        </Card>
+      )}
 
       {isFreshFocus && (
         <Card className="p-4">
@@ -138,7 +194,7 @@ export default function PomodoroTimer({ userId, onExit }) {
         </div>
 
         <div className="flex gap-2">
-          <Button onClick={() => setRunning((r) => !r)} className="px-8">
+          <Button onClick={toggle} className="px-8">
             {running ? 'Pause' : 'Démarrer'}
           </Button>
           <Button variant="ghost" onClick={reset} className="border border-ink-200">

@@ -11,6 +11,12 @@ export default defineConfig(({ command }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false,
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,ico,png}']
+      },
       includeAssets: ['icon.svg'],
       manifest: {
         name: 'Marge - Organise tes révisions de prépa',
