@@ -74,6 +74,13 @@ export default function Fiches({ userId }) {
   // Révision active (D.3 / D.4 / D.5) + focus
   const [activeGame, setActiveGame] = useState(null) // null | 'calcul-mental' | 'demonstration' | 'erreur-classique' | 'pomodoro'
 
+  // Création manuelle d'une fiche
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [newSubjectId, setNewSubjectId] = useState(subjects[0].id)
+  const [newTitle, setNewTitle] = useState('')
+  const [newSummary, setNewSummary] = useState('')
+  const [savingFiche, setSavingFiche] = useState(false)
+
   const { events: realEvents, hasProfile } = useAcademicCalendar(userId)
   const activeEvents = hasProfile && realEvents ? realEvents : weekEvents
   const nextExam = useMemo(() => nextUpcoming(activeEvents, ['ds', 'colle']), [activeEvents])
@@ -111,6 +118,22 @@ export default function Fiches({ userId }) {
     setNewBadges([])
     setOpenFicheId(null)
     setUrgentStep(null)
+  }
+
+  async function createFiche() {
+    if (!newTitle.trim() || !newSummary.trim()) return
+    setSavingFiche(true)
+    const { data, error } = await supabase
+      .from('fiches')
+      .insert({ user_id: userId, subject_id: newSubjectId, title: newTitle.trim(), summary: newSummary.trim() })
+      .select()
+      .single()
+    setSavingFiche(false)
+    if (error || !data) return
+    setAllFiches((prev) => [mapFicheRow(data), ...prev])
+    setNewTitle('')
+    setNewSummary('')
+    setShowCreateForm(false)
   }
 
   async function rate(quality) {
@@ -251,6 +274,59 @@ export default function Fiches({ userId }) {
             </div>
           </div>
         )}
+      </div>
+    )
+  }
+
+  // --- Création manuelle d'une fiche ---
+  if (showCreateForm) {
+    return (
+      <div className="flex flex-col gap-4">
+        <button onClick={() => setShowCreateForm(false)} className="flex items-center gap-1 text-sm font-medium text-ink-500 hover:text-ink-700">
+          <ChevronLeftIcon className="w-4 h-4" /> Annuler
+        </button>
+        <div>
+          <h1 className="font-display text-xl font-semibold text-ink-900">Nouvelle fiche</h1>
+          <p className="text-sm text-ink-500">Écris ta propre fiche, elle rentre direct dans la répétition espacée.</p>
+        </div>
+
+        <Card className="flex flex-col gap-4 p-5">
+          <div>
+            <p className="mb-2 text-sm font-medium text-ink-700">Matière</p>
+            <select
+              value={newSubjectId}
+              onChange={(e) => setNewSubjectId(e.target.value)}
+              className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm font-medium text-ink-700"
+            >
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium text-ink-700">Titre / question</p>
+            <input
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Ex : Formule de Taylor-Lagrange"
+              className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-700"
+            />
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium text-ink-700">Contenu / réponse</p>
+            <textarea
+              value={newSummary}
+              onChange={(e) => setNewSummary(e.target.value)}
+              rows={5}
+              placeholder="Ce que tu dois retenir…"
+              className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-700"
+            />
+          </div>
+        </Card>
+
+        <Button onClick={createFiche} disabled={!newTitle.trim() || !newSummary.trim() || savingFiche} className="w-full">
+          {savingFiche ? 'Création…' : 'Créer la fiche'}
+        </Button>
       </div>
     )
   }
@@ -472,11 +548,16 @@ export default function Fiches({ userId }) {
         </button>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-        <FilterChip active={filter === 'all'} onClick={() => setFilter('all')} label="Toutes" />
-        {subjects.map((s) => (
-          <FilterChip key={s.id} active={filter === s.id} onClick={() => setFilter(s.id)} label={s.short} />
-        ))}
+      <div className="flex items-center gap-2">
+        <div className="flex flex-1 gap-2 overflow-x-auto no-scrollbar pb-1">
+          <FilterChip active={filter === 'all'} onClick={() => setFilter('all')} label="Toutes" />
+          {subjects.map((s) => (
+            <FilterChip key={s.id} active={filter === s.id} onClick={() => setFilter(s.id)} label={s.short} />
+          ))}
+        </div>
+        <Button variant="secondary" onClick={() => setShowCreateForm(true)} className="shrink-0 px-3 py-1.5 text-xs">
+          + Nouvelle fiche
+        </Button>
       </div>
 
       <div className="flex flex-col gap-2">
