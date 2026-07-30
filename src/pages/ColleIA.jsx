@@ -7,6 +7,7 @@ import { Card, Badge, Button } from '../components/ui.jsx'
 import { ChevronLeftIcon, MicIcon, SparkleIcon } from '../components/icons.jsx'
 import { askExaminerTurn, getColleFeedback } from '../lib/colleAi.js'
 import { getWeakestCompetencies } from '../utils/weeklyPlan.js'
+import { computeColleProgression } from '../utils/colleProgression.js'
 
 const SpeechRecognitionCtor =
   typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null
@@ -81,7 +82,7 @@ export default function ColleIA({ userId }) {
       .eq('user_id', userId)
       .eq('status', 'completed')
       .order('created_at', { ascending: false })
-      .limit(5)
+      .limit(60)
       .then(({ data }) => setPastSessions(data || []))
 
     supabase
@@ -138,6 +139,8 @@ export default function ColleIA({ userId }) {
     const weakest = getWeakestCompetencies(competencyLevels, competencySubjects.flatMap((s) => s.competencies).length)
     return weakest.find((w) => (subjectBank[w.subjectId]?.[w.competencyKey] || []).length > 0) || null
   }, [competencyLevels])
+
+  const progression = useMemo(() => computeColleProgression(pastSessions), [pastSessions])
 
   function selectSubject(id) {
     setSubjectId(id)
@@ -359,6 +362,44 @@ export default function ColleIA({ userId }) {
             Mode Khôlle
           </button>
         </div>
+
+        {progression.sessionCount >= 2 && (
+          <Card className="p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="font-display text-[15.5px] font-semibold text-ink-900">Ta progression à l'oral</p>
+              {progression.delta !== null && (
+                <span className={`text-sm font-bold ${progression.delta >= 0 ? 'text-teal' : 'text-coral'}`}>
+                  <span className="font-mono">
+                    {progression.delta >= 0 ? '↑' : '↓'} {Math.abs(progression.delta)}
+                  </span>{' '}
+                  vs dernière colle
+                </span>
+              )}
+            </div>
+            <svg viewBox="0 0 320 100" preserveAspectRatio="none" className="block h-auto w-full">
+              <polyline
+                points={progression.scoreTimeline
+                  .map((p, i) => `${(i * 320) / Math.max(1, progression.scoreTimeline.length - 1)},${100 - (p.score / 20) * 100}`)
+                  .join(' ')}
+                fill="none"
+                stroke="#3b2f80"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {progression.dimensionProgress.length > 0 && (
+              <div className="mt-3 flex flex-col gap-1 border-t border-ink-100 pt-3">
+                {progression.dimensionProgress.map((d, i) => (
+                  <p key={i} className="text-xs text-ink-600">
+                    Tu as {d.gain > 0 ? 'progressé' : 'régressé'} de {Math.abs(d.gain)} point{Math.abs(d.gain) > 1 ? 's' : ''} sur la {d.label}{' '}
+                    depuis ta première colle notée.
+                  </p>
+                ))}
+              </div>
+            )}
+          </Card>
+        )}
 
         {weakestSujetTarget && (
           <Card className="flex items-center justify-between gap-3 bg-amber-soft p-4">
@@ -696,19 +737,33 @@ export default function ColleIA({ userId }) {
 
         <Card className="p-5">
           <div>
-            <p className="mb-1 text-sm font-semibold text-ink-800">Clarté</p>
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-sm font-semibold text-ink-800">Clarté</p>
+              {typeof feedback.clarte_score === 'number' && <span className="font-mono text-xs text-indigo">{feedback.clarte_score}/5</span>}
+            </div>
             <p className="text-sm text-ink-600">{feedback.clarte}</p>
           </div>
           <div className="mt-3 border-t border-ink-100 pt-3">
-            <p className="mb-1 text-sm font-semibold text-ink-800">Structure</p>
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-sm font-semibold text-ink-800">Structure</p>
+              {typeof feedback.structure_score === 'number' && <span className="font-mono text-xs text-indigo">{feedback.structure_score}/5</span>}
+            </div>
             <p className="text-sm text-ink-600">{feedback.structure}</p>
           </div>
           <div className="mt-3 border-t border-ink-100 pt-3">
-            <p className="mb-1 text-sm font-semibold text-ink-800">Gestion du temps</p>
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-sm font-semibold text-ink-800">Gestion du temps</p>
+              {typeof feedback.gestion_temps_score === 'number' && <span className="font-mono text-xs text-indigo">{feedback.gestion_temps_score}/5</span>}
+            </div>
             <p className="text-sm text-ink-600">{feedback.gestion_temps}</p>
           </div>
           <div className="mt-3 border-t border-ink-100 pt-3">
-            <p className="mb-1 text-sm font-semibold text-ink-800">Maîtrise technique</p>
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-sm font-semibold text-ink-800">Maîtrise technique</p>
+              {typeof feedback.maitrise_technique_score === 'number' && (
+                <span className="font-mono text-xs text-indigo">{feedback.maitrise_technique_score}/5</span>
+              )}
+            </div>
             <p className="text-sm text-ink-600">{feedback.maitrise_technique}</p>
           </div>
         </Card>
