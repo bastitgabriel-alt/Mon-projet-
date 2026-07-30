@@ -1,13 +1,16 @@
-import { HomeIcon, ScanIcon, CardsIcon, MicIcon, PulseIcon, CalendarIcon, TargetIcon } from './icons.jsx'
+import { HomeIcon, ScanIcon, CardsIcon, MicIcon, TargetIcon } from './icons.jsx'
 
+// Calendrier et Mental sont volontairement retirés de la navigation (pas
+// supprimés du code) : on recentre l'appli sur 3 piliers — Révisions,
+// Colle IA, Tableau de bord — plutôt que de disperser l'attention sur
+// 7 modules. Voir App.jsx : les pages restent routables, juste plus
+// accessibles depuis la sidebar.
 const tabs = [
   { id: 'dashboard', label: 'Tableau de bord', Icon: HomeIcon },
-  { id: 'calendrier', label: 'Calendrier', Icon: CalendarIcon },
   { id: 'scan', label: 'Copies', Icon: ScanIcon },
   { id: 'fiches', label: 'Fiches', Icon: CardsIcon },
   { id: 'competences', label: 'Compétences', Icon: TargetIcon },
-  { id: 'colle', label: 'Colle IA', Icon: MicIcon },
-  { id: 'mental', label: 'Mental', Icon: PulseIcon }
+  { id: 'colle', label: 'Colle IA', Icon: MicIcon }
 ]
 
 export default function Nav({ current, onNavigate, userEmail, onSignOut }) {
