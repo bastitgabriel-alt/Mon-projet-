@@ -28,6 +28,7 @@ function mapFicheRow(row) {
     id: row.id,
     subjectId: row.subject_id,
     title: row.title,
+    question: row.question,
     summary: row.summary,
     linkedCategory: row.linked_category,
     generated: row.generated,
@@ -78,6 +79,7 @@ export default function Fiches({ userId }) {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [newSubjectId, setNewSubjectId] = useState(subjects[0].id)
   const [newTitle, setNewTitle] = useState('')
+  const [newQuestion, setNewQuestion] = useState('')
   const [newSummary, setNewSummary] = useState('')
   const [savingFiche, setSavingFiche] = useState(false)
 
@@ -121,17 +123,24 @@ export default function Fiches({ userId }) {
   }
 
   async function createFiche() {
-    if (!newTitle.trim() || !newSummary.trim()) return
+    if (!newTitle.trim() || !newQuestion.trim() || !newSummary.trim()) return
     setSavingFiche(true)
     const { data, error } = await supabase
       .from('fiches')
-      .insert({ user_id: userId, subject_id: newSubjectId, title: newTitle.trim(), summary: newSummary.trim() })
+      .insert({
+        user_id: userId,
+        subject_id: newSubjectId,
+        title: newTitle.trim(),
+        question: newQuestion.trim(),
+        summary: newSummary.trim()
+      })
       .select()
       .single()
     setSavingFiche(false)
     if (error || !data) return
     setAllFiches((prev) => [mapFicheRow(data), ...prev])
     setNewTitle('')
+    setNewQuestion('')
     setNewSummary('')
     setShowCreateForm(false)
   }
@@ -237,11 +246,14 @@ export default function Fiches({ userId }) {
             <span className={`h-2.5 w-2.5 rounded-full ${subject?.accent}`} />
             <span className="text-sm font-medium text-ink-500">{subject?.name}</span>
           </div>
-          <h2 className="font-display text-lg font-semibold text-ink-900">{fiche.title}</h2>
+          <p className="text-xs font-medium uppercase tracking-wide text-ink-400">{fiche.title}</p>
+          <h2 className="mt-1 font-display text-lg font-semibold text-ink-900">
+            {fiche.question || fiche.title}
+          </h2>
 
           {revealed ? (
             <div className="mt-4 flex-1">
-              <p className="text-sm text-ink-700">{fiche.summary}</p>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-ink-700">{fiche.summary}</p>
               {category && (
                 <div className="mt-4 rounded-xl bg-ink-50 p-4">
                   <Badge className={style.badge}>{category.label}</Badge>
@@ -304,7 +316,7 @@ export default function Fiches({ userId }) {
             </select>
           </div>
           <div>
-            <p className="mb-2 text-sm font-medium text-ink-700">Titre / question</p>
+            <p className="mb-2 text-sm font-medium text-ink-700">Titre (thème de la fiche)</p>
             <input
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
@@ -313,18 +325,31 @@ export default function Fiches({ userId }) {
             />
           </div>
           <div>
-            <p className="mb-2 text-sm font-medium text-ink-700">Contenu / réponse</p>
+            <p className="mb-2 text-sm font-medium text-ink-700">Question (recto)</p>
+            <input
+              value={newQuestion}
+              onChange={(e) => setNewQuestion(e.target.value)}
+              placeholder="Ex : Quand et comment appliquer la formule de Taylor-Lagrange ?"
+              className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-700"
+            />
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium text-ink-700">Réponse (verso)</p>
             <textarea
               value={newSummary}
               onChange={(e) => setNewSummary(e.target.value)}
-              rows={5}
-              placeholder="Ce que tu dois retenir…"
+              rows={10}
+              placeholder="Développe vraiment : méthode complète, formules, pièges à éviter, exemples… comme une fiche Anki détaillée, pas juste une phrase."
               className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-700"
             />
           </div>
         </Card>
 
-        <Button onClick={createFiche} disabled={!newTitle.trim() || !newSummary.trim() || savingFiche} className="w-full">
+        <Button
+          onClick={createFiche}
+          disabled={!newTitle.trim() || !newQuestion.trim() || !newSummary.trim() || savingFiche}
+          className="w-full"
+        >
           {savingFiche ? 'Création…' : 'Créer la fiche'}
         </Button>
       </div>
@@ -450,8 +475,15 @@ export default function Fiches({ userId }) {
           </Badge>
         )}
 
+        {openFiche.question && (
+          <Card className="p-5 bg-indigo-soft">
+            <p className="text-xs font-semibold uppercase tracking-wide text-indigo">Question</p>
+            <p className="mt-1.5 font-display text-base font-semibold text-ink-900">{openFiche.question}</p>
+          </Card>
+        )}
+
         <Card className="p-5">
-          <p className="text-sm text-ink-700">{openFiche.summary}</p>
+          <p className="whitespace-pre-line text-sm leading-relaxed text-ink-700">{openFiche.summary}</p>
           {category && (
             <div className="mt-4 rounded-xl bg-ink-50 p-4">
               <Badge className={style.badge}>{category.label}</Badge>

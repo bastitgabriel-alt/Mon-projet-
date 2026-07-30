@@ -135,64 +135,71 @@ export const fiches = [
     id: 'f1',
     subjectId: 'maths',
     title: 'Réduction des endomorphismes — les pièges classiques',
+    question: 'Comment réduire un endomorphisme, et quels sont les pièges classiques à éviter ?',
     lastReviewed: '20/07/2026',
     linkedCategory: 'calcul',
     generated: true,
-    summary: "Méthode : 1) calculer le polynôme caractéristique det(A − λI), 2) trouver les valeurs propres (ses racines), 3) pour chaque valeur propre, résoudre (A − λI)X = 0 pour obtenir le sous-espace propre associé, 4) vérifier que la somme des dimensions des sous-espaces propres vaut n avant de conclure à la diagonalisabilité. Pièges classiques : erreur de signe en développant le déterminant (bien appliquer le facteur (−1)^(i+j) de la comatrice), confusion entre valeur propre et vecteur propre en résolvant le système, oubli de vérifier la dimension du sous-espace propre pour une valeur propre multiple."
+    summary: "Méthode en 4 étapes :\n1) Calculer le polynôme caractéristique det(A − λI).\n2) Trouver les valeurs propres, c'est-à-dire les racines de ce polynôme.\n3) Pour chaque valeur propre λ, résoudre le système (A − λI)X = 0 pour obtenir le sous-espace propre associé.\n4) Vérifier que la somme des dimensions des sous-espaces propres est égale à n avant de conclure à la diagonalisabilité.\n\nPièges classiques :\n– Erreur de signe en développant le déterminant : bien appliquer le facteur (−1)^(i+j) de la comatrice à chaque terme.\n– Confondre valeur propre et vecteur propre en résolvant le système linéaire.\n– Oublier de vérifier la dimension du sous-espace propre associé à une valeur propre multiple : le polynôme caractéristique scindé ne suffit pas.\n\nÀ retenir : une matrice non diagonalisable peut souvent être trigonalisée — pense à cette alternative si un sous-espace propre est de dimension trop petite."
   },
   {
     id: 'f2',
     subjectId: 'maths',
     title: 'Vérifier les hypothèses de diagonalisation',
+    question: "Quelles hypothèses vérifier avant d'affirmer qu'une matrice est diagonalisable ?",
     lastReviewed: null,
     linkedCategory: 'hypotheses',
     generated: true,
-    summary: "Une matrice A est diagonalisable si et seulement si la somme des dimensions de ses sous-espaces propres égale n. Cela équivaut à : le polynôme caractéristique est scindé (racines réelles ou dans le corps considéré) ET pour chaque valeur propre, dim(sous-espace propre) = ordre de multiplicité algébrique. Piège classique : conclure 'diagonalisable' dès que le polynôme caractéristique est scindé, sans vérifier chaque sous-espace propre individuellement — ça échoue en particulier pour les valeurs propres multiples."
+    summary: "Une matrice A est diagonalisable si et seulement si la somme des dimensions de ses sous-espaces propres est égale à n.\n\nCela équivaut à deux conditions cumulatives :\n1) le polynôme caractéristique est scindé (racines dans le corps considéré),\n2) pour chaque valeur propre, la dimension du sous-espace propre égale son ordre de multiplicité algébrique.\n\nPiège classique : conclure « diagonalisable » dès que le polynôme caractéristique est scindé, sans vérifier chaque sous-espace propre individuellement — cette vérification est indispensable dès qu'une valeur propre est multiple (ordre ≥ 2).\n\nRéflexe utile : si dim(sous-espace propre) < ordre de multiplicité pour au moins une valeur propre, la matrice n'est pas diagonalisable — regarde alors du côté de la trigonalisation."
   },
   {
     id: 'f3',
     subjectId: 'physique',
     title: 'Mécanique du point — analyse dimensionnelle',
+    question: "Comment utiliser l'analyse dimensionnelle pour vérifier un résultat de mécanique ?",
     lastReviewed: '22/07/2026',
     linkedCategory: 'calcul',
     generated: true,
-    summary: "L'analyse dimensionnelle vérifie l'homogénéité d'une formule avant même de calculer. Dimensions de base : [L] longueur, [M] masse, [T] temps. Une énergie est en M·L²·T⁻², une force en M·L·T⁻¹, une vitesse en L·T⁻¹. Réflexe à automatiser : sur chaque résultat final, vérifier que les deux membres de l'équation ont la même unité — si un calcul donne une vitesse en m²/s, il y a forcément une erreur en amont, inutile de chercher plus loin avant de la corriger."
+    summary: "L'analyse dimensionnelle permet de vérifier l'homogénéité d'une formule avant même de faire les calculs numériques.\n\nDimensions de base : [L] longueur, [M] masse, [T] temps.\n\nGrandeurs courantes :\n– une vitesse : L·T⁻¹\n– une accélération : L·T⁻²\n– une force : M·L·T⁻²\n– une énergie (ou un travail) : M·L²·T⁻²\n– une puissance : M·L²·T⁻³\n\nRéflexe à automatiser : sur chaque résultat final, vérifie que les deux membres de l'équation ont la même dimension. Si un calcul donne par exemple une vitesse en m²/s, il y a forcément une erreur en amont — inutile de continuer avant de la corriger, ça fait gagner du temps en DS."
   },
   {
     id: 'f4',
     subjectId: 'physique',
     title: 'Force vs énergie potentielle : ne plus confondre',
+    question: "Quelle est la relation entre force et énergie potentielle, et quelle confusion faut-il éviter ?",
     lastReviewed: null,
     linkedCategory: 'notions',
     generated: true,
-    summary: "La force dérive de l'énergie potentielle : F = −dEp/dx en 1D (F = −∇Ep en 3D). La force pointe dans le sens où l'énergie potentielle diminue. Ep est un scalaire (en Joules), F un vecteur (en Newtons) — ne pas les confondre. Piège classique : oublier le signe moins, ou confondre Ep avec le travail qu'elle fournit (W = −ΔEp, et non Ep directement)."
+    summary: "La force dérive de l'énergie potentielle : F = −dEp/dx en une dimension (F = −∇Ep en trois dimensions).\n\nLa force pointe toujours dans le sens où l'énergie potentielle diminue — un système évolue spontanément vers les états de plus basse énergie potentielle.\n\nÀ ne pas confondre :\n– Ep est un scalaire, exprimé en Joules.\n– F est un vecteur, exprimé en Newtons.\n\nPiège classique : oublier le signe moins dans la relation, ou confondre Ep avec le travail qu'elle fournit. Le bon lien est W = −ΔEp (le travail d'une force conservative est l'opposé de la variation d'énergie potentielle), et non Ep directement."
   },
   {
     id: 'f5',
     subjectId: 'francais',
     title: 'Construire des transitions efficaces',
+    question: 'Comment construire une transition efficace entre deux parties de dissertation ?',
     lastReviewed: '12/07/2026',
     linkedCategory: 'redaction',
     generated: true,
-    summary: "Une bonne transition entre deux parties fait trois choses : 1) rappelle brièvement l'acquis de la partie précédente, 2) en montre la limite ou l'insuffisance, 3) annonce ce qu'apporte la partie suivante. Éviter les transitions plates du type 'Nous allons maintenant voir...' — préférer une transition qui pose une question ou un problème logique qui justifie le passage à la partie suivante."
+    summary: "Une bonne transition remplit trois fonctions :\n1) elle rappelle brièvement l'acquis de la partie précédente,\n2) elle en montre la limite ou l'insuffisance,\n3) elle annonce ce qu'apporte la partie suivante.\n\nÀ éviter : les transitions plates du type « Nous allons maintenant voir... », qui n'apportent aucune valeur argumentative.\n\nÀ privilégier : une transition qui pose une question ou soulève un problème logique, de sorte que le passage à la partie suivante apparaisse comme une nécessité de la réflexion, et non comme un simple découpage administratif du plan."
   },
   {
     id: 'f6',
     subjectId: 'anglais',
     title: 'Phrasal verbs — fiche de synthèse',
+    question: 'Quels sont les phrasal verbs anglais les plus utiles à connaître par cœur ?',
     lastReviewed: '25/07/2026',
     linkedCategory: null,
     generated: false,
-    summary: "to give up (abandonner) · to look forward to (attendre avec impatience) · to put off (reporter) · to come across (tomber sur) · to get on with (s'entendre avec / continuer) · to break down (tomber en panne / craquer) · to carry out (réaliser, mener à bien) · to bring up (élever / mentionner) · to figure out (comprendre, résoudre) · to run out of (manquer de). Astuce : le sens d'un phrasal verb est souvent très différent du verbe seul — à apprendre par cœur comme du vocabulaire, pas à déduire logiquement."
+    summary: "to give up — abandonner\nto look forward to — attendre avec impatience\nto put off — reporter\nto come across — tomber sur (par hasard)\nto get on with — s'entendre avec / continuer (une tâche)\nto break down — tomber en panne / craquer (émotionnellement)\nto carry out — réaliser, mener à bien\nto bring up — élever (un enfant) / mentionner (un sujet)\nto figure out — comprendre, résoudre\nto run out of — manquer de, être à court de\n\nAstuce : le sens d'un phrasal verb est souvent très différent de celui du verbe seul (« to give up » n'a rien à voir avec « donner »). Mieux vaut les apprendre par cœur comme du vocabulaire à part entière plutôt que d'essayer de les déduire logiquement."
   },
   {
     id: 'f7',
     subjectId: 'info',
     title: 'Complexité algorithmique — rappels',
+    question: 'Quelles sont les classes de complexité algorithmique à connaître, et comment les déterminer ?',
     lastReviewed: null,
     linkedCategory: null,
     generated: false,
-    summary: "Notations : O(1) constant, O(log n) logarithmique (recherche dichotomique), O(n) linéaire (parcours simple), O(n log n) (tri fusion, tri rapide en moyenne), O(n²) quadratique (double boucle imbriquée), O(2ⁿ) exponentiel (récursion naïve sans mémoïsation). Méthode : compter le nombre d'opérations élémentaires en fonction de la taille n de l'entrée, puis ne garder que le terme dominant (on ignore les constantes et les termes de degré inférieur)."
+    summary: "Notations classiques, de la plus rapide à la plus lente :\n– O(1) : constant (accès direct à un élément)\n– O(log n) : logarithmique (recherche dichotomique)\n– O(n) : linéaire (parcours simple d'une structure)\n– O(n log n) : quasi-linéaire (tri fusion, tri rapide en moyenne)\n– O(n²) : quadratique (double boucle imbriquée, tris naïfs)\n– O(2ⁿ) : exponentiel (récursion naïve sans mémoïsation)\n\nMéthode pour déterminer la complexité d'un algorithme : compter le nombre d'opérations élémentaires en fonction de la taille n de l'entrée, puis ne garder que le terme dominant (on ignore les constantes multiplicatives et les termes de degré inférieur)."
   }
 ]
 

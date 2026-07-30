@@ -248,6 +248,7 @@ export default function Scan({ userId }) {
       user_id: userId,
       subject_id: group.subjectId,
       title: `${category.label} en ${subject?.short}`,
+      question: `Quel est le piège récurrent sur "${category.label.toLowerCase()}" en ${subject?.short}, et comment l'éviter ?`,
       summary: category.tip,
       linked_category: group.category,
       generated: true,

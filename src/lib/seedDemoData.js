@@ -47,6 +47,7 @@ export async function seedDemoDataIfNeeded(userId) {
     user_id: userId,
     subject_id: f.subjectId,
     title: f.title,
+    question: f.question,
     summary: f.summary,
     linked_category: f.linkedCategory,
     generated: f.generated,
