@@ -142,6 +142,16 @@ export function PuzzleIcon({ className = 'w-6 h-6' }) {
   )
 }
 
+export function TimerIcon({ className = 'w-6 h-6' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <circle cx="12" cy="13" r="8" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 9v4l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 2h6M12 2v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 export function MicIcon({ className = 'w-6 h-6' }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>

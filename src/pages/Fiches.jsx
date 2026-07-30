@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { subjects, errorCategories, weekEvents } from '../data/mockData.js'
 import { supabase } from '../lib/supabaseClient.js'
 import { Card, Badge, Button } from '../components/ui.jsx'
-import { ChevronLeftIcon, SparkleIcon, CheckIcon, CalculatorIcon, PuzzleIcon } from '../components/icons.jsx'
+import { ChevronLeftIcon, SparkleIcon, CheckIcon, CalculatorIcon, PuzzleIcon, TimerIcon } from '../components/icons.jsx'
 import { styleFor } from '../utils/categoryStyles.js'
 import { recallLevels, nextReviewState, isDue } from '../utils/spacedRepetition.js'
 import { checkAndAwardBadges } from '../lib/badges.js'
@@ -12,6 +12,7 @@ import { useAcademicCalendar } from '../lib/academicSchedule.js'
 import MentalCalcGame from '../components/MentalCalcGame.jsx'
 import DemonstrationGame from '../components/DemonstrationGame.jsx'
 import ClassicErrorGame from '../components/ClassicErrorGame.jsx'
+import PomodoroTimer from '../components/PomodoroTimer.jsx'
 
 const todayIso = new Date().toISOString().slice(0, 10)
 const TIME_OPTIONS = [15, 30, 45, 60]
@@ -70,8 +71,8 @@ export default function Fiches({ userId }) {
   const [urgentMinutes, setUrgentMinutes] = useState(30)
   const [urgentPlanItems, setUrgentPlanItems] = useState([])
 
-  // Révision active (D.3 / D.4)
-  const [activeGame, setActiveGame] = useState(null) // null | 'calcul-mental' | 'demonstration'
+  // Révision active (D.3 / D.4 / D.5) + focus
+  const [activeGame, setActiveGame] = useState(null) // null | 'calcul-mental' | 'demonstration' | 'erreur-classique' | 'pomodoro'
 
   const { events: realEvents, hasProfile } = useAcademicCalendar(userId)
   const activeEvents = hasProfile && realEvents ? realEvents : weekEvents
@@ -155,6 +156,11 @@ export default function Fiches({ userId }) {
   // --- Révision active : Erreur classique (D.5) ---
   if (activeGame === 'erreur-classique') {
     return <ClassicErrorGame onExit={() => setActiveGame(null)} />
+  }
+
+  // --- Focus : minuteur Pomodoro ---
+  if (activeGame === 'pomodoro') {
+    return <PomodoroTimer userId={userId} onExit={() => setActiveGame(null)} />
   }
 
   // --- Session de révision (flashcards) ---
@@ -431,7 +437,7 @@ export default function Fiches({ userId }) {
         </Card>
       )}
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <button
           onClick={() => setActiveGame('calcul-mental')}
           className="flex flex-col items-center gap-1.5 rounded-2xl border border-ink-200 bg-white p-4 text-center shadow-card transition-colors hover:border-indigo"
@@ -455,6 +461,14 @@ export default function Fiches({ userId }) {
           <CheckIcon className="w-6 h-6 text-indigo" />
           <span className="text-sm font-semibold text-ink-800">Erreur classique</span>
           <span className="text-[11px] text-ink-500">Trouve le piège</span>
+        </button>
+        <button
+          onClick={() => setActiveGame('pomodoro')}
+          className="flex flex-col items-center gap-1.5 rounded-2xl border border-ink-200 bg-white p-4 text-center shadow-card transition-colors hover:border-indigo"
+        >
+          <TimerIcon className="w-6 h-6 text-indigo" />
+          <span className="text-sm font-semibold text-ink-800">Focus</span>
+          <span className="text-[11px] text-ink-500">Minuteur Pomodoro</span>
         </button>
       </div>
 
