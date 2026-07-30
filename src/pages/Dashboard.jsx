@@ -212,7 +212,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
       {examIsImminent && (
         <Card className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-br from-coral to-[#ff7a5c] p-4 text-white">
           <p className="text-sm font-medium">
-            ⚡ {examSubject?.short} {examSoonLabel} — plan de révision rapide et ciblé
+            ⚡ {examSubject?.short} {examSoonLabel} — prépare un plan de révision ciblé
           </p>
           <Button
             variant="secondary"
@@ -224,18 +224,16 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
         </Card>
       )}
 
-      {/* Fiches dues aujourd'hui — l'action la plus importante de l'écran, avant tout le reste.
-          Volontairement compacte (contrairement au hero juste en dessous) pour se lire comme
-          une bannière d'alerte, pas comme un second hero. */}
+      {/* Fiches dues aujourd'hui — un rappel quotidien, volontairement plus discret que le
+          mode urgent au-dessus : c'est routinier, pas une alerte. */}
       {fichesToReview > 0 && (
-        <Card className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-br from-indigo to-[#5b3fae] p-4 text-white">
-          <p className="text-sm font-medium">
-            <span className="font-mono text-base font-bold">{fichesToReview}</span> fiche{fichesToReview > 1 ? 's' : ''} à réviser aujourd'hui
+        <Card className="flex flex-wrap items-center justify-between gap-3 bg-indigo-soft p-4">
+          <p className="text-sm font-medium text-ink-900">
+            <span className="font-mono text-base font-bold text-indigo">{fichesToReview}</span> fiche{fichesToReview > 1 ? 's' : ''} à réviser aujourd'hui
           </p>
           <Button
-            variant="secondary"
             onClick={() => onNavigate('fiches', { autoStart: 'due' })}
-            className="shrink-0 bg-white px-3 py-1.5 text-xs text-indigo hover:bg-white/90"
+            className="shrink-0 px-3 py-1.5 text-xs"
           >
             Réviser maintenant
           </Button>

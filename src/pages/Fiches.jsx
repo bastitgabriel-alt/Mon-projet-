@@ -544,14 +544,14 @@ export default function Fiches({ userId, navParams }) {
       )}
 
       {dueFiches.length > 0 && (
-        <Card className="flex items-center justify-between gap-3 bg-gradient-to-br from-indigo to-[#5b3fae] p-5 text-white">
+        <Card className="flex items-center justify-between gap-3 bg-indigo-soft p-5">
           <div>
-            <p className="font-display text-lg font-semibold">
+            <p className="font-display text-lg font-semibold text-ink-900">
               {dueFiches.length} fiche{dueFiches.length > 1 ? 's' : ''} à réviser aujourd'hui
             </p>
-            <p className="text-sm text-white/80">Une session rapide en répétition espacée.</p>
+            <p className="text-sm text-ink-600">Une session rapide en répétition espacée.</p>
           </div>
-          <Button variant="secondary" onClick={() => startSession(dueFiches)} className="shrink-0 bg-white text-indigo hover:bg-white/90">
+          <Button onClick={() => startSession(dueFiches)} className="shrink-0">
             Commencer
           </Button>
         </Card>
