@@ -11,6 +11,7 @@ import { buildUrgentPlan } from '../utils/urgentPlan.js'
 import { useAcademicCalendar } from '../lib/academicSchedule.js'
 import MentalCalcGame from '../components/MentalCalcGame.jsx'
 import DemonstrationGame from '../components/DemonstrationGame.jsx'
+import ClassicErrorGame from '../components/ClassicErrorGame.jsx'
 
 const todayIso = new Date().toISOString().slice(0, 10)
 const TIME_OPTIONS = [15, 30, 45, 60]
@@ -149,6 +150,11 @@ export default function Fiches({ userId }) {
   // --- Révision active : Démonstration (D.4) ---
   if (activeGame === 'demonstration') {
     return <DemonstrationGame onExit={() => setActiveGame(null)} />
+  }
+
+  // --- Révision active : Erreur classique (D.5) ---
+  if (activeGame === 'erreur-classique') {
+    return <ClassicErrorGame onExit={() => setActiveGame(null)} />
   }
 
   // --- Session de révision (flashcards) ---
@@ -425,7 +431,7 @@ export default function Fiches({ userId }) {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <button
           onClick={() => setActiveGame('calcul-mental')}
           className="flex flex-col items-center gap-1.5 rounded-2xl border border-ink-200 bg-white p-4 text-center shadow-card transition-colors hover:border-indigo"
@@ -441,6 +447,14 @@ export default function Fiches({ userId }) {
           <PuzzleIcon className="w-6 h-6 text-indigo" />
           <span className="text-sm font-semibold text-ink-800">Démonstration</span>
           <span className="text-[11px] text-ink-500">Reconstitue les étapes</span>
+        </button>
+        <button
+          onClick={() => setActiveGame('erreur-classique')}
+          className="flex flex-col items-center gap-1.5 rounded-2xl border border-ink-200 bg-white p-4 text-center shadow-card transition-colors hover:border-indigo"
+        >
+          <CheckIcon className="w-6 h-6 text-indigo" />
+          <span className="text-sm font-semibold text-ink-800">Erreur classique</span>
+          <span className="text-[11px] text-ink-500">Trouve le piège</span>
         </button>
       </div>
 
