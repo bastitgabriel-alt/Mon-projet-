@@ -52,11 +52,12 @@ function dueLabel(fiche) {
   return { text: `Prochaine révision le ${toFrDate(fiche.nextReview)}`, tone: 'bg-teal-soft text-teal' }
 }
 
-export default function Fiches({ userId }) {
+export default function Fiches({ userId, navParams }) {
   const [allFiches, setAllFiches] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [openFicheId, setOpenFicheId] = useState(null)
+  const [autoStartHandled, setAutoStartHandled] = useState(false)
 
   // Session de révision (flashcards)
   const [sessionQueue, setSessionQueue] = useState(null) // null = pas de session en cours
@@ -105,6 +106,15 @@ export default function Fiches({ userId }) {
   const filtered = filter === 'all' ? allFiches : allFiches.filter((f) => f.subjectId === filter)
   const openFiche = allFiches.find((f) => f.id === openFicheId)
   const dueFiches = useMemo(() => allFiches.filter((f) => isDue(f, todayIso)), [allFiches])
+
+  // Arrivée depuis le bandeau "X fiches à réviser" du Dashboard : on saute
+  // direct dans la session, sans repasser par la liste.
+  useEffect(() => {
+    if (loading || autoStartHandled || navParams?.autoStart !== 'due') return
+    setAutoStartHandled(true)
+    if (dueFiches.length > 0) startSession(dueFiches)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, navParams, autoStartHandled, dueFiches])
 
   function openUrgentPlan() {
     const items = buildUrgentPlan({ subjectId: urgentSubjectId, minutes: urgentMinutes, fiches: allFiches, scans })

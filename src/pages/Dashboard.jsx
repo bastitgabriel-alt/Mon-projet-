@@ -203,6 +203,24 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
 
   return (
     <div className="flex flex-col gap-[22px]">
+      {/* Fiches dues aujourd'hui — l'action la plus importante de l'écran, avant tout le reste.
+          Volontairement compacte (contrairement au hero juste en dessous) pour se lire comme
+          une bannière d'alerte, pas comme un second hero. */}
+      {fichesToReview > 0 && (
+        <Card className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-br from-indigo to-[#5b3fae] p-4 text-white">
+          <p className="text-sm font-medium">
+            <span className="font-mono text-base font-bold">{fichesToReview}</span> fiche{fichesToReview > 1 ? 's' : ''} à réviser aujourd'hui
+          </p>
+          <Button
+            variant="secondary"
+            onClick={() => onNavigate('fiches', { autoStart: 'due' })}
+            className="shrink-0 bg-white px-3 py-1.5 text-xs text-indigo hover:bg-white/90"
+          >
+            Réviser maintenant
+          </Button>
+        </Card>
+      )}
+
       {/* Hero (carousel) */}
       <div className="relative">
         <div
@@ -317,8 +335,9 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
         ))}
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* KPIs — la tuile "fiches à réviser" ne s'affiche que si le bandeau du dessus
+          ne montre pas déjà cette même info, pour éviter de répéter le même chiffre. */}
+      <div className={`grid grid-cols-2 gap-4 ${fichesToReview > 0 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
         <KpiCard
           tone="indigo"
           icon={<path d="M3 17l6-6 4 4 8-8M17 7h4v4" />}
@@ -337,13 +356,15 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
           value={nextColle ? nextColle.time : '—'}
           label={nextColle ? `prochaine colle · ${subjects.find((s) => s.id === nextColle.subjectId)?.short}` : 'aucune colle prévue'}
         />
-        <KpiCard
-          tone="amber"
-          icon={<><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></>}
-          delta={<span className="text-amber font-bold">à revoir</span>}
-          value={String(fichesToReview)}
-          label="fiches à réviser"
-        />
+        {fichesToReview === 0 && (
+          <KpiCard
+            tone="amber"
+            icon={<><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></>}
+            delta={<span className="text-teal font-bold">à jour</span>}
+            value="0"
+            label="fiches à réviser"
+          />
+        )}
         <KpiCard
           tone="teal"
           icon={<><path d="M12 9v4M12 17h.01" /><circle cx="12" cy="12" r="9" /></>}
