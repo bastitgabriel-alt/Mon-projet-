@@ -75,7 +75,7 @@ export default function Scan({ userId }) {
   const courseFileInputRef = useRef(null)
 
   async function loadData() {
-    const [{ data: scanRows }, { data: ficheRows }, { data: courseRows }, { data: moodRows }] = await Promise.all([
+    const [{ data: scanRows }, { data: ficheRows }, { data: courseRows }, { data: reviewRows }] = await Promise.all([
       supabase
         .from('scans')
         .select('*, annotations(*)')
@@ -87,7 +87,7 @@ export default function Scan({ userId }) {
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false }),
-      supabase.from('moods').select('mood_date').eq('user_id', userId)
+      supabase.from('review_log').select('reviewed_at').eq('user_id', userId)
     ])
     setAllScans((scanRows || []).map(mapScanRow))
     setCreatedFicheKeys(
@@ -96,7 +96,12 @@ export default function Scan({ userId }) {
         .map((f) => `${f.subject_id}__${f.linked_category}`)
     )
     setFichesToReview((ficheRows || []).filter((f) => isDue({ nextReview: f.next_review }, todayIso)).length)
-    setStreak(computeStreak((moodRows || []).map((m) => m.mood_date)))
+    // Le streak reflète une vraie activité (scan ou révision), pas un check-in dédié.
+    const activityDates = [
+      ...(scanRows || []).map((s) => s.scan_date),
+      ...(reviewRows || []).map((r) => r.reviewed_at.slice(0, 10))
+    ]
+    setStreak(computeStreak(activityDates))
     setCourseScans(courseRows || [])
     setLoading(false)
   }

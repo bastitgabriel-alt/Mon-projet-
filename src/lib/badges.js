@@ -3,17 +3,23 @@ import { badgeDefinitions } from '../data/badges.js'
 import { computeStreak } from '../utils/streak.js'
 
 async function fetchStats(userId) {
-  const [{ count: scans }, { data: reviewRows }, { data: moodRows }, { data: ficheRows }] = await Promise.all([
+  const [{ count: scans }, { data: reviewRows }, { data: scanDateRows }, { data: ficheRows }] = await Promise.all([
     supabase.from('scans').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-    supabase.from('review_log').select('id').eq('user_id', userId),
-    supabase.from('moods').select('mood_date').eq('user_id', userId),
+    supabase.from('review_log').select('id, reviewed_at').eq('user_id', userId),
+    supabase.from('scans').select('scan_date').eq('user_id', userId),
     supabase.from('fiches').select('repetitions').eq('user_id', userId)
   ])
+
+  // Le streak reflète une vraie activité (scan ou révision), pas un check-in dédié.
+  const activityDates = [
+    ...(scanDateRows || []).map((s) => s.scan_date),
+    ...(reviewRows || []).map((r) => r.reviewed_at.slice(0, 10))
+  ]
 
   return {
     scans: scans || 0,
     reviews: (reviewRows || []).length,
-    streak: computeStreak((moodRows || []).map((m) => m.mood_date)),
+    streak: computeStreak(activityDates),
     mastered: (ficheRows || []).filter((f) => f.repetitions >= 3).length
   }
 }

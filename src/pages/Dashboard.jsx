@@ -1,214 +1,78 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  subjects,
-  subjectProgress,
-  subjectAverages,
-  gradeHistory,
-  competitionGoal,
-  examTargetDate,
-  weekEvents,
-  moodOptions,
-  computeErrorGroups
-} from '../data/mockData.js'
+import { useEffect, useMemo, useState } from 'react'
+import { subjects, weekEvents } from '../data/mockData.js'
 import { supabase } from '../lib/supabaseClient.js'
-import { Card, Button } from '../components/ui.jsx'
-import { ScanIcon } from '../components/icons.jsx'
+import { Card, Badge, Button } from '../components/ui.jsx'
+import { CameraIcon } from '../components/icons.jsx'
 import { isDue } from '../utils/spacedRepetition.js'
 import { computeStreak } from '../utils/streak.js'
-import { checkAndAwardBadges } from '../lib/badges.js'
-import BadgesCard from '../components/BadgesCard.jsx'
 import { relativeDayLabel, nextUpcoming } from '../utils/schedule.js'
-import { useAcademicCalendar, thisWeekEvents } from '../lib/academicSchedule.js'
+import { useAcademicCalendar } from '../lib/academicSchedule.js'
 
 const todayIso = new Date().toISOString().slice(0, 10)
-const tomorrowIso = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
-const CHART_SUBJECTS = ['maths', 'physique', 'anglais', 'francais']
-const CHART_COLORS = { maths: '#1b2a4a', physique: '#c1666b', anglais: '#5c7a67', francais: '#e8a94c' }
-const GOAL_OPTIONS = [5, 10, 15, 20]
 
-const MOTIVATIONAL_QUOTES = [
-  { text: "Ce n'est pas parce que les choses sont difficiles que nous n'osons pas, c'est parce que nous n'osons pas qu'elles sont difficiles.", author: 'Sénèque' },
-  { text: "Le succès, c'est se relever à chaque échec.", author: 'Winston Churchill' },
-  { text: "La chance sourit à ceux qui persévèrent.", author: 'Louis Pasteur' },
-  { text: "Ce n'est pas la charge qui vous casse, c'est la façon dont vous la portez.", author: 'Lou Holtz' },
-  { text: "On ne voit bien qu'avec le cœur, l'essentiel est invisible pour les yeux.", author: 'Antoine de Saint-Exupéry' },
-  { text: "Il n'y a pas de vent favorable pour celui qui ne sait où il va.", author: 'Sénèque' },
-  { text: "Le génie, c'est 1% d'inspiration et 99% de transpiration.", author: 'Thomas Edison' },
-  { text: "Un jour ou l'autre. Ou aujourd'hui, ou demain. Choisis aujourd'hui.", author: 'Proverbe' },
-  { text: "L'échec est simplement l'occasion de recommencer avec plus d'intelligence.", author: 'Henry Ford' },
-  { text: "C'est en forgeant qu'on devient forgeron.", author: 'Proverbe' },
-  { text: "La discipline est le pont entre les objectifs et les résultats.", author: 'Jim Rohn' },
-  { text: "Chaque expert a un jour été débutant.", author: 'Helen Hayes' },
-  { text: "Le pessimiste se plaint du vent, l'optimiste espère qu'il tourne, le réaliste ajuste ses voiles.", author: 'William Arthur Ward' },
-  { text: "Rien n'est jamais perdu tant qu'il reste quelque chose à trouver.", author: 'Pierre Dac' },
-  { text: "Tu ne peux pas contrôler le vent, mais tu peux ajuster tes voiles.", author: 'Proverbe' }
-]
-
-function todaysQuote() {
-  const start = new Date(new Date().getFullYear(), 0, 0)
-  const dayOfYear = Math.floor((Date.now() - start) / 86400000)
-  return MOTIVATIONAL_QUOTES[dayOfYear % MOTIVATIONAL_QUOTES.length]
+// "2026-07-18" -> "18/07/2026"
+function toFrDate(isoDate) {
+  const [y, m, d] = isoDate.split('-')
+  return `${d}/${m}/${y}`
 }
 
-function frGrade(n) {
-  return n.toFixed(1).replace('.', ',')
-}
-
-function deriveName(email) {
-  const local = (email || '').split('@')[0].split(/[.\-_0-9]/)[0]
-  return local ? local.charAt(0).toUpperCase() + local.slice(1) : 'toi'
-}
-
-function buildPolyline(values, min, max) {
-  const w = 320
-  const h = 120
-  const step = w / (values.length - 1)
-  return values
-    .map((v, i) => {
-      const x = i * step
-      const y = h - ((v - min) / (max - min)) * (h - 20) - 10
-      return `${x.toFixed(1)},${y.toFixed(1)}`
-    })
-    .join(' ')
-}
-
-export default function Dashboard({ onNavigate, userId, userEmail }) {
-  const [mood, setMoodState] = useState(null)
-  const [streak, setStreak] = useState(0)
-  const [scans, setScans] = useState([])
-  const [fichesToReview, setFichesToReview] = useState(0)
+export default function Dashboard({ onNavigate, userId }) {
   const [loading, setLoading] = useState(true)
-  const [badges, setBadges] = useState({ earned: [], nextBadge: null })
-  const [dailyGoal, setDailyGoalState] = useState(10)
-  const [todayReviews, setTodayReviews] = useState(0)
-  const [todayFocusSessions, setTodayFocusSessions] = useState(0)
-  const [totalFocusSessions, setTotalFocusSessions] = useState(0)
-  const [heroSlide, setHeroSlide] = useState(0)
-  const heroScrollRef = useRef(null)
+  const [fichesToReview, setFichesToReview] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [recentScans, setRecentScans] = useState([])
 
   useEffect(() => {
     async function load() {
-      const [
-        { data: todayMood },
-        { data: moodHistory },
-        { data: scanRows },
-        { data: ficheRows },
-        { data: settings },
-        { count: reviewsCount },
-        { count: focusTodayCount },
-        { count: focusTotalCount }
-      ] = await Promise.all([
-        supabase.from('moods').select('mood_id').eq('user_id', userId).eq('mood_date', todayIso).maybeSingle(),
-        supabase.from('moods').select('mood_date').eq('user_id', userId),
-        supabase.from('scans').select('subject_id, title, grade, scan_date, annotations(category)').eq('user_id', userId).order('scan_date', { ascending: false }),
-        supabase.from('fiches').select('id, next_review').eq('user_id', userId),
-        supabase.from('user_settings').select('daily_goal_reviews').eq('user_id', userId).maybeSingle(),
-        supabase.from('review_log').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('reviewed_at', todayIso).lt('reviewed_at', tomorrowIso),
-        supabase.from('pomodoro_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('completed_at', todayIso),
-        supabase.from('pomodoro_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId)
+      const [{ data: ficheRows }, { data: recentScanRows }, { data: allScanDates }, { data: reviewRows }] = await Promise.all([
+        supabase.from('fiches').select('next_review').eq('user_id', userId),
+        supabase
+          .from('scans')
+          .select('id, subject_id, title, grade, scan_date, annotations(id)')
+          .eq('user_id', userId)
+          .order('scan_date', { ascending: false })
+          .limit(4),
+        supabase.from('scans').select('scan_date').eq('user_id', userId),
+        supabase.from('review_log').select('reviewed_at').eq('user_id', userId)
       ])
 
-      setMoodState(todayMood?.mood_id ?? null)
-      setStreak(computeStreak((moodHistory || []).map((m) => m.mood_date)))
-      setScans(
-        (scanRows || []).map((s) => ({
+      setFichesToReview((ficheRows || []).filter((f) => isDue({ nextReview: f.next_review }, todayIso)).length)
+      setRecentScans(
+        (recentScanRows || []).map((s) => ({
+          id: s.id,
           subjectId: s.subject_id,
           title: s.title,
           grade: s.grade,
-          date: s.scan_date,
-          annotations: s.annotations || []
+          date: toFrDate(s.scan_date),
+          annotationsCount: (s.annotations || []).length
         }))
       )
-      setFichesToReview((ficheRows || []).filter((f) => isDue({ nextReview: f.next_review }, todayIso)).length)
-      setDailyGoalState(settings?.daily_goal_reviews ?? 10)
-      setTodayReviews(reviewsCount || 0)
-      setTodayFocusSessions(focusTodayCount || 0)
-      setTotalFocusSessions(focusTotalCount || 0)
+      // Le streak reflète une vraie activité (scan ou révision), pas juste
+      // l'ouverture de l'appli — plus fiable qu'un check-in d'humeur dédié.
+      const activityDates = [
+        ...(allScanDates || []).map((s) => s.scan_date),
+        ...(reviewRows || []).map((r) => r.reviewed_at.slice(0, 10))
+      ]
+      setStreak(computeStreak(activityDates))
       setLoading(false)
     }
     load()
-    checkAndAwardBadges(userId).then(setBadges)
   }, [userId])
 
-  function scrollToHeroSlide(i) {
-    const el = heroScrollRef.current
-    if (!el) return
-    el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' })
-  }
-
-  function handleHeroScroll(e) {
-    const el = e.target
-    if (!el.clientWidth) return
-    setHeroSlide(Math.round(el.scrollLeft / el.clientWidth))
-  }
-
-  async function setDailyGoal(value) {
-    setDailyGoalState(value)
-    await supabase
-      .from('user_settings')
-      .upsert({ user_id: userId, daily_goal_reviews: value }, { onConflict: 'user_id' })
-  }
-
-  async function setMood(id) {
-    const alreadyLoggedToday = mood !== null
-    setMoodState(id)
-    await supabase
-      .from('moods')
-      .upsert({ user_id: userId, mood_date: todayIso, mood_id: id }, { onConflict: 'user_id,mood_date' })
-    // computeStreak (au chargement) exclut aujourd'hui tant qu'il n'est pas
-    // encore renseigné : le premier enregistrement du jour allonge donc la
-    // série d'un jour ; un changement d'humeur le même jour ne la change pas.
-    if (!alreadyLoggedToday) {
-      setStreak((s) => s + 1)
-      checkAndAwardBadges(userId).then(setBadges)
-    }
-  }
-
-  const selectedMood = moodOptions.find((m) => m.id === mood)
-
-  const { events: realEvents, examTargetDate: realExamTargetDate, hasProfile } = useAcademicCalendar(userId)
+  const { events: realEvents, hasProfile } = useAcademicCalendar(userId)
   const activeEvents = hasProfile && realEvents ? realEvents : weekEvents
-  const activeExamTargetDate = hasProfile && realExamTargetDate ? realExamTargetDate : examTargetDate
-  const weekPlanEvents = useMemo(
-    () => (hasProfile && realEvents ? thisWeekEvents(realEvents) : weekEvents),
-    [hasProfile, realEvents]
-  )
-
-  const daysToExam = Math.ceil((new Date(activeExamTargetDate) - new Date()) / 86400000)
-  const progressAvg = Math.round(
-    Object.values(subjectProgress).reduce((a, b) => a + b, 0) / Object.values(subjectProgress).length
-  )
-  const overallAverage = useMemo(() => {
-    const values = CHART_SUBJECTS.map((id) => subjectAverages[id])
-    return values.reduce((a, b) => a + b, 0) / values.length
-  }, [])
-  const previousAverage = useMemo(() => {
-    const values = CHART_SUBJECTS.map((id) => gradeHistory[id][gradeHistory[id].length - 2])
-    return values.reduce((a, b) => a + b, 0) / values.length
-  }, [])
-  const averageDelta = overallAverage - previousAverage
-
-  const nextColle = useMemo(() => nextUpcoming(activeEvents, ['colle']), [activeEvents])
   const nextExam = useMemo(() => nextUpcoming(activeEvents, ['ds', 'colle']), [activeEvents])
   const examSoonLabel = nextExam ? relativeDayLabel(nextExam.parsedDate) : null
   const examIsImminent = examSoonLabel === "aujourd'hui" || examSoonLabel === 'demain'
   const examSubject = nextExam ? subjects.find((s) => s.id === nextExam.subjectId) : null
-  const quote = useMemo(() => todaysQuote(), [])
-
-  const recurringCount = useMemo(() => computeErrorGroups(scans).filter((g) => g.count > 1).length, [scans])
-  const latestScan = scans[0]
-
-  const chartMin = Math.min(...CHART_SUBJECTS.flatMap((id) => gradeHistory[id])) - 1
-  const chartMax = Math.max(...CHART_SUBJECTS.flatMap((id) => gradeHistory[id])) + 1
 
   if (loading) {
     return <p className="text-sm text-ink-400">Chargement…</p>
   }
 
   return (
-    <div className="flex flex-col gap-[22px]">
-      {/* Mode urgent — priorité absolue de l'écran quand un DS/colle est demain ou aujourd'hui,
-          au-dessus même du bandeau fiches dues. */}
+    <div className="flex flex-col gap-6">
+      {/* Mode urgent — priorité absolue de l'écran quand un DS/colle est demain ou aujourd'hui. */}
       {examIsImminent && (
         <Card className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-br from-coral to-[#d98f82] p-4 text-white">
           <p className="text-sm font-medium">
@@ -224,407 +88,77 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
         </Card>
       )}
 
-      {/* Fiches dues aujourd'hui — un rappel quotidien, volontairement plus discret que le
-          mode urgent au-dessus : c'est routinier, pas une alerte. */}
-      {fichesToReview > 0 && (
-        <Card className="flex flex-wrap items-center justify-between gap-3 bg-indigo-soft p-4">
-          <p className="text-sm font-medium text-ink-900">
-            <span className="font-mono text-base font-bold text-indigo">{fichesToReview}</span> fiche{fichesToReview > 1 ? 's' : ''} à réviser aujourd'hui
-          </p>
-          <Button
-            onClick={() => onNavigate('fiches', { autoStart: 'due' })}
-            className="shrink-0 px-3 py-1.5 text-xs"
-          >
-            Réviser maintenant
-          </Button>
-        </Card>
-      )}
-
-      {/* Hero (carousel) */}
-      <div className="relative">
-        <div
-          ref={heroScrollRef}
-          onScroll={handleHeroScroll}
-          className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth"
-        >
-          {/* Slide 1 : compte à rebours */}
-          <div className="w-full shrink-0 snap-center">
-            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#141f36_0%,#1b2a4a_48%,#4a2e33_100%)]">
-              <div
-                className="pointer-events-none absolute -right-0 -top-[120px] h-[260px] w-[260px] rounded-full opacity-55 blur-[50px]"
-                style={{ background: '#c1666b' }}
-              />
-              <div
-                className="pointer-events-none absolute -left-10 -bottom-[140px] h-[220px] w-[220px] rounded-full opacity-35 blur-[50px]"
-                style={{ background: '#7c9885' }}
-              />
-              <div className="relative z-10 self-start sm:self-auto">
-                <div className="mb-2.5 text-[13px] text-white/75">Bonjour {deriveName(userEmail)} 👋</div>
-                <div className="font-mono text-[46px] font-bold leading-none mb-1.5">J-{daysToExam}</div>
-                <div className="mb-4.5 text-[13.5px] text-white/80">avant les premiers écrits</div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-[7px] text-[12.5px] font-semibold backdrop-blur-sm">
-                  <span>🔥</span> {streak > 0 ? `${streak} jour${streak > 1 ? 's' : ''} de suivi d'affilée` : 'Commence ton suivi aujourd\'hui'}
-                </div>
-              </div>
-              <div className="relative z-10 h-[118px] w-[118px] shrink-0 self-center">
-                <svg width="118" height="118" viewBox="0 0 118 118" className="-rotate-90">
-                  <circle cx="59" cy="59" r="42" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="10" />
-                  <circle
-                    cx="59" cy="59" r="42" fill="none" stroke="#ffffff" strokeWidth="10" strokeLinecap="round"
-                    strokeDasharray="264" strokeDashoffset={264 - (264 * progressAvg) / 100}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="font-mono text-[21px] font-bold">{progressAvg}%</div>
-                  <div className="mt-0.5 text-center text-[10px] leading-tight text-white/75">programme<br />couvert</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Slide 2 : citation motivante */}
-          <div className="w-full shrink-0 snap-center">
-            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex flex-col justify-center gap-4 bg-[linear-gradient(120deg,#2e3d30_0%,#5c7a67_55%,#3f5647_100%)]">
-              <div
-                className="pointer-events-none absolute -left-10 -top-[120px] h-[260px] w-[260px] rounded-full opacity-40 blur-[50px]"
-                style={{ background: '#e8a94c' }}
-              />
-              <div
-                className="pointer-events-none absolute -right-6 -bottom-[130px] h-[220px] w-[220px] rounded-full opacity-30 blur-[50px]"
-                style={{ background: '#7c9885' }}
-              />
-              <div className="relative z-10">
-                <div className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-white/70">Citation du jour</div>
-                <p className="font-display text-[19px] font-semibold leading-snug mb-3">« {quote.text} »</p>
-                <p className="text-[13px] text-white/75">— {quote.author}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Slide 3 : récap focus / Pomodoro */}
-          <div className="w-full shrink-0 snap-center">
-            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#3a2620_0%,#8a4a44_55%,#9c4a50_100%)]">
-              <div
-                className="pointer-events-none absolute -right-6 -top-[120px] h-[260px] w-[260px] rounded-full opacity-40 blur-[50px]"
-                style={{ background: '#e8a94c' }}
-              />
-              <div className="relative z-10 self-start sm:self-auto">
-                <div className="mb-2.5 text-[13px] text-white/75">Ta régularité</div>
-                <div className="font-mono text-[46px] font-bold leading-none mb-1.5">{todayFocusSessions}</div>
-                <div className="mb-4.5 text-[13.5px] text-white/80">
-                  session{todayFocusSessions > 1 ? 's' : ''} de focus aujourd'hui
-                </div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-[7px] text-[12.5px] font-semibold backdrop-blur-sm">
-                  <span>🎯</span> {totalFocusSessions} au total depuis le début
-                </div>
-              </div>
-              <button
-                onClick={() => onNavigate('fiches')}
-                className="relative z-10 shrink-0 rounded-xl border border-white/30 bg-black/20 px-4 py-2.5 text-[13px] font-semibold backdrop-blur-sm hover:bg-black/30"
-              >
-                Lancer un focus →
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-2.5 flex justify-center gap-1.5">
-          {[0, 1, 2].map((i) => (
-            <button
-              key={i}
-              onClick={() => scrollToHeroSlide(i)}
-              aria-label={`Aller à la carte ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all ${heroSlide === i ? 'w-5 bg-indigo' : 'w-1.5 bg-ink-200'}`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Objectif du jour */}
-      <DailyGoalCard goal={dailyGoal} done={todayReviews} onSetGoal={setDailyGoal} onReview={() => onNavigate('fiches')} />
-
-      {/* Chips matières */}
-      <div className="flex flex-wrap gap-2.5">
-        {subjects.map((s) => (
-          <div key={s.id} className="flex items-center gap-2 rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-[12.5px] transition-transform hover:-translate-y-0.5 hover:shadow-soft">
-            <span className={`h-[9px] w-[9px] shrink-0 rounded-full ${s.accent}`} />
-            <span className="font-semibold text-ink-900">{s.short}</span>
-            <span className="font-mono text-xs text-ink-400">{frGrade(subjectAverages[s.id])}/20</span>
-          </div>
-        ))}
-      </div>
-
-      {/* KPIs — la tuile "fiches à réviser" ne s'affiche que si le bandeau du dessus
-          ne montre pas déjà cette même info, pour éviter de répéter le même chiffre. */}
-      <div className={`grid grid-cols-2 gap-4 ${fichesToReview > 0 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
-        <KpiCard
-          tone="indigo"
-          icon={<path d="M3 17l6-6 4 4 8-8M17 7h4v4" />}
-          delta={
-            <span className={`font-bold ${averageDelta >= 0 ? 'text-teal' : 'text-coral'}`}>
-              {averageDelta >= 0 ? '↑' : '↓'} {frGrade(Math.abs(averageDelta))}
-            </span>
-          }
-          value={frGrade(overallAverage)}
-          label="moyenne générale /20"
-        />
-        <KpiCard
-          tone="coral"
-          icon={<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></>}
-          delta={<span className="text-coral font-bold">{nextColle ? relativeDayLabel(nextColle.parsedDate) : '—'}</span>}
-          value={nextColle ? nextColle.time : '—'}
-          label={nextColle ? `prochaine colle · ${subjects.find((s) => s.id === nextColle.subjectId)?.short}` : 'aucune colle prévue'}
-        />
-        {fichesToReview === 0 && (
-          <KpiCard
-            tone="amber"
-            icon={<><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></>}
-            delta={<span className="text-teal font-bold">à jour</span>}
-            value="0"
-            label="fiches à réviser"
-          />
-        )}
-        <KpiCard
-          tone="teal"
-          icon={<><path d="M12 9v4M12 17h.01" /><circle cx="12" cy="12" r="9" /></>}
-          delta={<span className="text-coral font-bold">actif</span>}
-          value={String(recurringCount)}
-          label="erreurs récurrentes en cours"
-        />
-      </div>
-
-      {/* Graphique + mini cards */}
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <Card className="p-[22px]">
-          <div className="mb-4.5 flex items-center justify-between">
-            <h2 className="font-display text-[15.5px] font-semibold text-ink-900">Évolution des notes</h2>
-            <span className="text-xs text-ink-400">5 derniers DS</span>
-          </div>
-          <div className="mb-3.5 flex flex-wrap gap-4">
-            {CHART_SUBJECTS.map((id) => (
-              <div key={id} className="flex items-center gap-1.5 text-xs font-medium text-ink-500">
-                <span className="h-2 w-2 rounded-full" style={{ background: CHART_COLORS[id] }} />
-                {subjects.find((s) => s.id === id)?.short}
-              </div>
-            ))}
-          </div>
-          <svg viewBox="0 0 320 120" preserveAspectRatio="none" className="w-full h-auto block">
-            {[10, 32.5, 55, 77.5, 100].map((y) => (
-              <line key={y} x1="0" y1={y} x2="320" y2={y} stroke="#e8ebf1" strokeWidth="1" />
-            ))}
-            {CHART_SUBJECTS.map((id) => (
-              <polyline
-                key={id}
-                points={buildPolyline(gradeHistory[id], chartMin, chartMax)}
-                fill="none"
-                stroke={CHART_COLORS[id]}
-                strokeWidth={id === 'maths' ? 2.6 : 2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            ))}
-          </svg>
-          <div className="mt-1 flex justify-between px-1 font-mono text-[11px] text-ink-400">
-            {gradeHistory.maths.map((_, i) => <span key={i}>DS{i + 1}</span>)}
-          </div>
-        </Card>
-
-        <div className="flex flex-col gap-4">
-          <Card className="p-[22px]">
-            <div className="mb-3 flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-coral to-[#d98f82]">
-                <ScanIcon className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <div className="text-[13px] font-semibold text-ink-900">Copies scannées</div>
-                {latestScan ? (
-                  <div className="text-xs text-ink-400">
-                    {subjects.find((s) => s.id === latestScan.subjectId)?.name}{latestScan.grade ? ` · ${latestScan.grade}` : ''}
-                  </div>
-                ) : (
-                  <div className="text-xs text-ink-400">Aucun scan pour l'instant</div>
-                )}
-              </div>
-            </div>
-            <p className="mb-3 text-[12.5px] leading-relaxed text-ink-600">
-              {recurringCount > 0
-                ? <>Tu as <b className="text-ink-900">{recurringCount} erreur{recurringCount > 1 ? 's' : ''} récurrente{recurringCount > 1 ? 's' : ''}</b> détectée{recurringCount > 1 ? 's' : ''} sur tes dernières copies.</>
-                : 'Scanne une copie pour repérer tes erreurs récurrentes.'}
+      {/* Repères immédiats : ce qu'il y a à faire, et depuis combien de temps
+          on tient le rythme — pour qu'on comprenne l'appli dès l'arrivée. */}
+      <div className="flex gap-3">
+        <button onClick={() => onNavigate('fiches', { autoStart: 'due' })} className="flex-1 text-left">
+          <Card className="p-3.5 transition-transform hover:-translate-y-0.5">
+            <p className={`font-mono text-2xl font-bold ${fichesToReview > 0 ? 'text-coral' : 'text-ink-900'}`}>
+              {fichesToReview}
             </p>
-            <Button onClick={() => onNavigate('scan')} className="w-full">
-              Scanner une copie
-            </Button>
+            <p className="text-xs text-ink-500">fiche{fichesToReview > 1 ? 's' : ''} à réviser</p>
           </Card>
-
-          <Card className="p-[22px]">
-            <h2 className="mb-3 font-display text-sm font-semibold text-ink-900">Objectif concours</h2>
-            <div className="mb-1.5 flex items-center justify-between">
-              <span className="font-display text-[14.5px] font-semibold text-ink-900">{competitionGoal.school}</span>
-              <span className="font-mono text-[11.5px] text-ink-400">top {competitionGoal.targetRank}</span>
-            </div>
-            <div className="mb-1.5 h-[7px] overflow-hidden rounded bg-indigo-soft">
-              <div className="h-full rounded bg-gradient-to-r from-indigo to-coral transition-all duration-700" style={{ width: `${competitionGoal.progress}%` }} />
-            </div>
-            <div className="text-[11.5px] text-ink-400">Classement estimé : ~{competitionGoal.estimatedRank}ᵉ</div>
-          </Card>
-        </div>
-      </div>
-
-      {/* Planning + humeur */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="p-[22px]">
-          <div className="mb-4.5 flex items-center justify-between">
-            <h2 className="font-display text-[15.5px] font-semibold text-ink-900">Planning de la semaine</h2>
-            <span className="text-xs text-ink-400">
-              {weekPlanEvents.filter((e) => e.type === 'ds').length} DS · {weekPlanEvents.filter((e) => e.type === 'colle').length} colles
-            </span>
-          </div>
-          <WeekPlan events={weekPlanEvents} />
-        </Card>
-
-        <Card className="p-[22px]">
-          <h2 className="mb-4.5 font-display text-[15.5px] font-semibold text-ink-900">Comment tu te sens ?</h2>
-          <div className="mb-4 flex gap-2">
-            {moodOptions.map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => setMood(opt.id)}
-                className={`flex-1 rounded-[11px] border-[1.5px] px-1.5 py-3 text-center text-xs transition-colors ${
-                  mood === opt.id ? 'border-amber bg-amber-soft font-bold text-[#8a5d22]' : 'border-ink-200 bg-white text-ink-600 hover:border-ink-400'
-                }`}
-              >
-                <span className="mb-1 block text-lg">{opt.emoji}</span>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <div className="mb-3.5 text-[12.5px] text-ink-600">
-            <b className="text-ink-900">{streak}</b> jour{streak > 1 ? 's' : ''} de suivi d'affilée
-          </div>
-          <div className="rounded-[9px] bg-teal-soft px-3.5 py-2.5 text-[12.5px] font-medium leading-relaxed text-teal">
-            {selectedMood ? selectedMood.hint : "Sélectionne ton humeur pour un conseil personnalisé."}
-          </div>
-        </Card>
-      </div>
-
-      <BadgesCard earned={badges.earned} nextBadge={badges.nextBadge} />
-    </div>
-  )
-}
-
-function DailyGoalCard({ goal, done, onSetGoal, onReview }) {
-  const percent = Math.min(100, Math.round((done / goal) * 100))
-  const reached = done >= goal
-
-  return (
-    <Card className={`p-[22px] transition-colors ${reached ? 'bg-teal-soft' : ''}`}>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-display text-[15.5px] font-semibold text-ink-900">Objectif du jour</h2>
-        <div className="flex gap-1.5">
-          {GOAL_OPTIONS.map((g) => (
-            <button
-              key={g}
-              onClick={() => onSetGoal(g)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                goal === g ? 'bg-indigo text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'
-              }`}
-            >
-              {g}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="mb-2 flex items-end justify-between">
-        <span className="font-mono text-2xl font-bold text-ink-900">
-          {done}<span className="text-ink-400"> / {goal}</span>
-        </span>
-        <span className="text-[12.5px] text-ink-500">fiches révisées aujourd'hui</span>
-      </div>
-
-      <div className="mb-3 h-2.5 overflow-hidden rounded-full bg-ink-100">
-        <div
-          className={`h-full rounded-full transition-all duration-700 ${reached ? 'bg-teal' : 'bg-gradient-to-r from-indigo to-coral'}`}
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-
-      {reached ? (
-        <p className="text-[12.5px] font-medium text-teal">🎉 Objectif atteint — journée productive !</p>
-      ) : (
-        <button onClick={onReview} className="text-[12.5px] font-medium text-indigo hover:underline">
-          Réviser quelques fiches →
         </button>
-      )}
-    </Card>
-  )
-}
-
-function KpiCard({ tone, icon, delta, value, label }) {
-  const toneClasses = {
-    indigo: { bg: 'bg-indigo-soft', stroke: 'text-indigo' },
-    coral: { bg: 'bg-coral-soft', stroke: 'text-coral' },
-    amber: { bg: 'bg-amber-soft', stroke: 'text-amber' },
-    teal: { bg: 'bg-teal-soft', stroke: 'text-teal' }
-  }[tone]
-
-  return (
-    <Card className="p-[18px_20px] transition-transform hover:-translate-y-[3px]">
-      <div className="mb-3.5 flex items-center justify-between">
-        <div className={`flex h-8 w-8 items-center justify-center rounded-[9px] ${toneClasses.bg}`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-[15px] h-[15px] ${toneClasses.stroke}`}>
-            {icon}
-          </svg>
-        </div>
-        <div className="text-[11.5px]">{delta}</div>
+        <Card className="flex-1 p-3.5">
+          <p className="font-mono text-2xl font-bold text-ink-900">🔥 {streak}</p>
+          <p className="text-xs text-ink-500">jour{streak > 1 ? 's' : ''} de suivi d'affilée</p>
+        </Card>
       </div>
-      <div className="mb-0.5 font-mono text-[23px] font-bold leading-tight text-ink-900">{value}</div>
-      <div className="text-[12.5px] text-ink-500">{label}</div>
-    </Card>
-  )
-}
 
-function WeekPlan({ events: weekEvents }) {
-  const todayName = new Date().toLocaleDateString('fr-FR', { weekday: 'long' })
-  const todayCap = todayName.charAt(0).toUpperCase() + todayName.slice(1)
-  const days = [...new Set(weekEvents.map((e) => e.day))]
+      {/* Zone de scan — le cœur de Marge : photo → erreurs détectées → fiches. */}
+      <button onClick={() => onNavigate('scan')} className="block w-full text-left">
+        <div className="relative overflow-hidden rounded-[20px] bg-indigo p-6">
+          <div className="pointer-events-none absolute right-0 top-0 h-11 w-11 bg-[linear-gradient(135deg,transparent_50%,rgba(250,247,240,0.12)_50%)]" />
+          <div className="pointer-events-none absolute inset-3.5 rounded-2xl border border-dashed border-white/25" />
+          <div className="scan-sweep-line" />
+          <div className="relative z-10 flex flex-col items-center gap-3 py-3">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-amber">
+              <CameraIcon className="h-6 w-6 text-indigo" />
+            </span>
+            <span className="font-display text-lg font-medium text-white">Scanner une copie</span>
+            <span className="text-xs text-white/60">Photo ou import de fichier</span>
+          </div>
+        </div>
+      </button>
 
-  return (
-    <table className="w-full border-collapse">
-      <tbody>
-        {days.length === 0 && (
-          <tr>
-            <td className="py-2.5 text-[12.5px] text-ink-400">Rien de prévu cette semaine.</td>
-          </tr>
-        )}
-        {days.map((day) => {
-          const events = weekEvents.filter((e) => e.day === day)
-          const isToday = day === todayCap
-          return (
-            <tr key={day} className={isToday ? 'bg-gradient-to-r from-indigo-soft to-transparent' : ''}>
-              <td className="w-[90px] border-t border-ink-100 py-2.5 align-middle text-xs font-bold uppercase tracking-wide text-ink-500 first:border-t-0">
-                {day}
-              </td>
-              <td className="border-t border-ink-100 py-2.5 align-middle text-sm first:border-t-0">
-                {events.length === 0 ? (
-                  <span className="text-[12.5px] text-ink-400">Rien de prévu</span>
-                ) : (
-                  events.map((e) => {
-                    const subject = subjects.find((s) => s.id === e.subjectId)
-                    return (
-                      <div key={e.id} className="flex items-center gap-1.5 py-0.5 text-[12.5px] font-medium">
-                        <span className={`h-[7px] w-[7px] shrink-0 rounded-full ${subject?.accent}`} />
-                        {e.title}
-                        <span className="ml-auto font-mono text-[11.5px] text-ink-400">{e.time}</span>
-                      </div>
-                    )
-                  })
-                )}
-              </td>
-            </tr>
-          )
-        })}
-      </tbody>
-    </table>
+      {/* Copies récentes */}
+      <div>
+        <div className="mb-2 flex items-baseline justify-between">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Copies récentes</p>
+          <button onClick={() => onNavigate('scan')} className="text-xs font-medium text-indigo hover:underline">
+            Tout voir
+          </button>
+        </div>
+        <div className="flex flex-col gap-2">
+          {recentScans.map((s) => {
+            const subject = subjects.find((sub) => sub.id === s.subjectId)
+            return (
+              <button key={s.id} onClick={() => onNavigate('scan')} className="text-left">
+                <Card className="flex items-center gap-3 p-3.5 hover:bg-ink-50 transition-colors">
+                  <span className={`h-9 w-1.5 shrink-0 rounded-full ${subject?.accent || 'bg-ink-300'}`} />
+                  <div className="relative h-11 w-9 shrink-0 overflow-hidden rounded-[5px] border border-ink-200 bg-canvas">
+                    <div className="absolute right-0 top-0 h-3 w-3 bg-[linear-gradient(135deg,transparent_50%,#e0dbcb_50%)]" />
+                    {s.annotationsCount > 0 && (
+                      <>
+                        <div className="absolute inset-x-1.5 top-3 h-[1.5px] bg-coral/60" />
+                        <div className="absolute inset-x-1.5 top-[22px] h-[1.5px] bg-coral/35" />
+                      </>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-sm font-medium text-ink-800">{s.title}</p>
+                    <p className="text-xs text-ink-500">{subject?.name} · {s.date}{s.grade ? ` · ${s.grade}` : ''}</p>
+                  </div>
+                  <Badge className="shrink-0 bg-ink-100 text-ink-600">{s.annotationsCount} annotations</Badge>
+                </Card>
+              </button>
+            )
+          })}
+          {recentScans.length === 0 && (
+            <Card className="p-4 text-center text-sm text-ink-500">Aucune copie scannée pour l'instant.</Card>
+          )}
+        </div>
+      </div>
+    </div>
   )
 }
