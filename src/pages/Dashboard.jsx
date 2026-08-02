@@ -81,7 +81,7 @@ export default function Dashboard({ onNavigate, userId }) {
           <Button
             variant="secondary"
             onClick={() => onNavigate('fiches', { autoStart: 'urgent' })}
-            className="shrink-0 bg-white px-3 py-1.5 text-xs text-coral hover:bg-white/90"
+            className="shrink-0 !bg-white px-3 py-1.5 text-xs !text-coral hover:!bg-white/90"
           >
             Mode urgent
           </Button>
