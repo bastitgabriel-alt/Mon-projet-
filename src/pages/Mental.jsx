@@ -28,10 +28,10 @@ const METRICS = [
 ]
 
 const TONE_CARD = {
-  coral: 'bg-gradient-to-br from-coral to-[#ff7a5c] text-white',
-  amber: 'bg-gradient-to-br from-amber to-[#d98c12] text-white',
-  indigo: 'bg-gradient-to-br from-indigo to-[#5b3fae] text-white',
-  teal: 'bg-gradient-to-br from-teal to-[#0c7a70] text-white'
+  coral: 'bg-gradient-to-br from-coral to-[#d98f82] text-white',
+  amber: 'bg-gradient-to-br from-amber to-[#c08a34] text-white',
+  indigo: 'bg-gradient-to-br from-indigo to-[#2e4368] text-white',
+  teal: 'bg-gradient-to-br from-teal to-[#46614f] text-white'
 }
 
 function toFrDate(isoDate) {

@@ -9,7 +9,7 @@ export default function AnnotatedCopy({ imageUrl, annotations, activeId, onSelec
       {imageUrl ? (
         <img src={imageUrl} alt="Copie scannée" className="h-full w-full object-cover" />
       ) : (
-        <div className="h-full w-full bg-[repeating-linear-gradient(to_bottom,#f8fafc_0px,#f8fafc_27px,#e2e8f0_28px)] p-6">
+        <div className="h-full w-full bg-[repeating-linear-gradient(to_bottom,#f7f4ec_0px,#f7f4ec_27px,#e0dbcb_28px)] p-6">
           <div className="h-full w-full opacity-60" />
         </div>
       )}

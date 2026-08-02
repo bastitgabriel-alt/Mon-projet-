@@ -23,30 +23,32 @@ export default {
           500: '#f59e0b',
           600: '#d97706'
         },
+        // Nuancier "papier / encre" (juillet 2026) : palette chaude, encre marine
+        // et rouge stylo plutôt que les dégradés violets/indigo d'origine —
+        // voir .claude/agents/design.md pour le détail du nuancier.
         ink: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a'
+          50: '#f7f4ec',
+          100: '#ede9de',
+          200: '#e0dbcb',
+          400: '#a39c89',
+          500: '#837b68',
+          600: '#665f4f',
+          700: '#504a3d',
+          800: '#423d34',
+          900: '#3d3a35'
         },
-        // Palette du tableau de bord (sidebar + KPIs), distincte de brand/coach
-        // utilisés par le scan et les fiches — voir .claude/agents/design.md
-        indigo: { DEFAULT: '#3b2f80', soft: '#ece9fa' },
-        coral: { DEFAULT: '#e63950', soft: '#fdeaed' },
-        amber: { DEFAULT: '#f5a524', soft: '#fef3e2' },
-        teal: { DEFAULT: '#0f9488', soft: '#e4f6f3' },
-        sidebar: { 1: '#1c1440', 2: '#2c1f5e', soft: '#a79fd1', line: 'rgba(255,255,255,0.09)' },
-        canvas: '#f6f5fb'
+        indigo: { DEFAULT: '#1b2a4a', soft: '#e8ebf1' },
+        coral: { DEFAULT: '#c1666b', soft: '#f4e5e4' },
+        amber: { DEFAULT: '#e8a94c', soft: '#faf0dc' },
+        teal: { DEFAULT: '#5c7a67', soft: '#e8eee9' },
+        sage: '#7c9885',
+        sidebar: { 1: '#111b30', 2: '#1b2a4a', soft: '#9aa6b8', line: 'rgba(255,255,255,0.09)' },
+        canvas: '#faf7f0'
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
         display: ['Fraunces', 'serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
         hand: ['Caveat', 'cursive']
       },
       boxShadow: {

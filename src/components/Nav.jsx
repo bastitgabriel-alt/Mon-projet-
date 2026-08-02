@@ -44,7 +44,7 @@ export default function Nav({ current, onNavigate, userEmail, onSignOut }) {
       </nav>
 
       <div className="hidden md:flex items-center gap-2.5 border-t border-sidebar-line pt-4">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-coral to-[#ff7a5c] font-mono text-[12.5px] font-bold">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-coral to-[#d98f82] font-mono text-[12.5px] font-bold">
           {initial}
         </div>
         <div className="min-w-0 flex-1">

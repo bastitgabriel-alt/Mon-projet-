@@ -185,13 +185,13 @@ export default function PomodoroTimer({ userId, onExit }) {
 
         <div className="relative h-56 w-56">
           <svg viewBox="0 0 200 200" className="-rotate-90">
-            <circle cx="100" cy="100" r="88" fill="none" stroke="#efecf9" strokeWidth="12" />
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#e8ebf1" strokeWidth="12" />
             <circle
               cx="100"
               cy="100"
               r="88"
               fill="none"
-              stroke={phase === 'focus' ? '#3b2f80' : '#0f9488'}
+              stroke={phase === 'focus' ? '#1b2a4a' : '#5c7a67'}
               strokeWidth="12"
               strokeLinecap="round"
               strokeDasharray={2 * Math.PI * 88}

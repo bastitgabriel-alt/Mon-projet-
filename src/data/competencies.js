@@ -8,7 +8,7 @@ export const competencySubjects = [
   {
     id: 'maths',
     name: 'Mathématiques',
-    accent: 'bg-brand-500',
+    accent: 'bg-indigo',
     competencies: [
       { key: 'algebre', label: 'Algèbre linéaire' },
       { key: 'analyse', label: 'Analyse' },
@@ -20,7 +20,7 @@ export const competencySubjects = [
   {
     id: 'physique',
     name: 'Physique-Chimie',
-    accent: 'bg-sky-500',
+    accent: 'bg-[#4a6fa5]',
     competencies: [
       { key: 'mecanique', label: 'Mécanique' },
       { key: 'electromag', label: 'Électromagnétisme' },
@@ -31,7 +31,7 @@ export const competencySubjects = [
   {
     id: 'francais',
     name: 'Français-Philosophie',
-    accent: 'bg-violet-500',
+    accent: 'bg-[#7a4b5c]',
     competencies: [
       { key: 'dissertation', label: 'Dissertation' },
       { key: 'analyse_texte', label: 'Analyse de texte' },
@@ -41,7 +41,7 @@ export const competencySubjects = [
   {
     id: 'anglais',
     name: 'Anglais LV1',
-    accent: 'bg-amber-500',
+    accent: 'bg-amber',
     competencies: [
       { key: 'grammaire', label: 'Grammaire & expression écrite' },
       { key: 'comprehension', label: 'Compréhension orale' },
@@ -51,7 +51,7 @@ export const competencySubjects = [
   {
     id: 'info',
     name: 'Informatique',
-    accent: 'bg-rose-400',
+    accent: 'bg-sage',
     competencies: [
       { key: 'algo', label: 'Algorithmique' },
       { key: 'structures', label: 'Structures de données' }
@@ -60,7 +60,7 @@ export const competencySubjects = [
   {
     id: 'oral',
     name: 'Oral / Khôlle',
-    accent: 'bg-indigo',
+    accent: 'bg-coral',
     competencies: [
       { key: 'clarte', label: "Clarté d'exposition" },
       { key: 'structure', label: 'Structure du raisonnement' },

@@ -382,7 +382,7 @@ export default function ColleIA({ userId }) {
                   .map((p, i) => `${(i * 320) / Math.max(1, progression.scoreTimeline.length - 1)},${100 - (p.score / 20) * 100}`)
                   .join(' ')}
                 fill="none"
-                stroke="#3b2f80"
+                stroke="#1b2a4a"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"

@@ -30,7 +30,7 @@ export function Badge({ children, className = '' }) {
 
 export function Button({ children, variant = 'primary', className = '', ...props }) {
   const variants = {
-    primary: 'bg-gradient-to-br from-indigo to-[#5b3fae] text-white hover:brightness-110',
+    primary: 'bg-gradient-to-br from-indigo to-[#2e4368] text-white hover:brightness-110',
     secondary: 'bg-indigo-soft text-indigo hover:brightness-95',
     ghost: 'bg-transparent text-ink-600 hover:bg-ink-100'
   }

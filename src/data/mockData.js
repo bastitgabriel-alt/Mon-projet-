@@ -2,11 +2,11 @@
 // Tout est statique / en mémoire : aucun backend n'est requis pour le MVP.
 
 export const subjects = [
-  { id: 'maths', name: 'Mathématiques', short: 'Maths', accent: 'bg-brand-500' },
-  { id: 'physique', name: 'Physique-Chimie', short: 'Physique', accent: 'bg-sky-500' },
-  { id: 'francais', name: 'Français-Philosophie', short: 'Français', accent: 'bg-violet-500' },
-  { id: 'anglais', name: 'Anglais LV1', short: 'Anglais', accent: 'bg-amber-500' },
-  { id: 'info', name: 'Informatique', short: 'Info', accent: 'bg-rose-400' }
+  { id: 'maths', name: 'Mathématiques', short: 'Maths', accent: 'bg-indigo' },
+  { id: 'physique', name: 'Physique-Chimie', short: 'Physique', accent: 'bg-[#4a6fa5]' },
+  { id: 'francais', name: 'Français-Philosophie', short: 'Français', accent: 'bg-[#7a4b5c]' },
+  { id: 'anglais', name: 'Anglais LV1', short: 'Anglais', accent: 'bg-amber' },
+  { id: 'info', name: 'Informatique', short: 'Info', accent: 'bg-sage' }
 ]
 
 export const subjectProgress = {

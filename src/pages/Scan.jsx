@@ -14,6 +14,10 @@ import { analyzeCourseImage } from '../lib/courseAi.js'
 import { analyzeCopyImage } from '../lib/copyAi.js'
 import { computeAutoCompetencyDowngrades } from '../utils/competencyAutoUpdate.js'
 import { competencySubjects, levelLabels } from '../data/competencies.js'
+import { isDue } from '../utils/spacedRepetition.js'
+import { computeStreak } from '../utils/streak.js'
+
+const todayIso = new Date().toISOString().slice(0, 10)
 
 // "2026-07-18" -> "18/07/2026"
 function toFrDate(isoDate) {
@@ -55,6 +59,8 @@ export default function Scan({ userId }) {
 
   const [allScans, setAllScans] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fichesToReview, setFichesToReview] = useState(0)
+  const [streak, setStreak] = useState(0)
 
   // --- Scan de cours + quiz ---
   const [courseScans, setCourseScans] = useState([])
@@ -69,18 +75,19 @@ export default function Scan({ userId }) {
   const courseFileInputRef = useRef(null)
 
   async function loadData() {
-    const [{ data: scanRows }, { data: ficheRows }, { data: courseRows }] = await Promise.all([
+    const [{ data: scanRows }, { data: ficheRows }, { data: courseRows }, { data: moodRows }] = await Promise.all([
       supabase
         .from('scans')
         .select('*, annotations(*)')
         .eq('user_id', userId)
         .order('scan_date', { ascending: false }),
-      supabase.from('fiches').select('subject_id, linked_category').eq('user_id', userId),
+      supabase.from('fiches').select('subject_id, linked_category, next_review, last_reviewed, repetitions').eq('user_id', userId),
       supabase
         .from('course_scans')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false }),
+      supabase.from('moods').select('mood_date').eq('user_id', userId)
     ])
     setAllScans((scanRows || []).map(mapScanRow))
     setCreatedFicheKeys(
@@ -88,6 +95,8 @@ export default function Scan({ userId }) {
         .filter((f) => f.linked_category)
         .map((f) => `${f.subject_id}__${f.linked_category}`)
     )
+    setFichesToReview((ficheRows || []).filter((f) => isDue({ nextReview: f.next_review }, todayIso)).length)
+    setStreak(computeStreak((moodRows || []).map((m) => m.mood_date)))
     setCourseScans(courseRows || [])
     setLoading(false)
   }
@@ -614,6 +623,21 @@ export default function Scan({ userId }) {
   // step === 'idle'
   return (
     <div className="flex flex-col gap-6">
+      {/* Repères immédiats : ce qu'il y a à faire, et depuis combien de temps
+          on tient le rythme — pour qu'on comprenne l'appli dès l'arrivée. */}
+      <div className="flex gap-3">
+        <Card className="flex-1 p-3.5">
+          <p className={`font-mono text-2xl font-bold ${fichesToReview > 0 ? 'text-coral' : 'text-ink-900'}`}>
+            {fichesToReview}
+          </p>
+          <p className="text-xs text-ink-500">fiche{fichesToReview > 1 ? 's' : ''} à réviser</p>
+        </Card>
+        <Card className="flex-1 p-3.5">
+          <p className="font-mono text-2xl font-bold text-ink-900">🔥 {streak}</p>
+          <p className="text-xs text-ink-500">jour{streak > 1 ? 's' : ''} de suivi d'affilée</p>
+        </Card>
+      </div>
+
       <div className="flex rounded-xl bg-ink-100 p-1">
         <button
           onClick={() => setMode('copie')}
@@ -650,24 +674,26 @@ export default function Scan({ userId }) {
             </select>
           </Card>
 
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => cameraInputRef.current?.click()}
-              className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-indigo to-[#5b3fae] p-6 text-white shadow-soft hover:brightness-110 transition-all"
-            >
-              <CameraIcon className="w-8 h-8" />
-              <span className="text-sm font-semibold">Prendre en photo</span>
+          <div className="relative overflow-hidden rounded-[20px] bg-indigo p-6">
+            <div className="pointer-events-none absolute right-0 top-0 h-11 w-11 bg-[linear-gradient(135deg,transparent_50%,rgba(250,247,240,0.12)_50%)]" />
+            <div className="pointer-events-none absolute inset-3.5 rounded-2xl border border-dashed border-white/25" />
+            <div className="scan-sweep-line" />
+            <button onClick={() => cameraInputRef.current?.click()} className="relative z-10 flex w-full flex-col items-center gap-3 py-3">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-amber">
+                <CameraIcon className="h-6 w-6 text-indigo" />
+              </span>
+              <span className="font-display text-lg font-medium text-white">Scanner une copie</span>
+              <span className="text-xs text-white/60">Photo depuis l'appareil</span>
             </button>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center gap-2 rounded-2xl bg-white border border-ink-100 p-6 text-ink-800 shadow-card hover:bg-ink-50 transition-colors"
-            >
-              <UploadIcon className="w-8 h-8 text-indigo" />
-              <span className="text-sm font-semibold">Importer un fichier</span>
-            </button>
-            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
           </div>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="text-center text-xs font-medium text-ink-500 underline decoration-ink-300 underline-offset-2 hover:text-indigo"
+          >
+            ou importer un fichier depuis mon appareil
+          </button>
+          <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
         </>
       )}
 
@@ -691,7 +717,7 @@ export default function Scan({ userId }) {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => courseCameraInputRef.current?.click()}
-              className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-amber to-[#d98c12] p-6 text-white shadow-soft hover:brightness-110 transition-all"
+              className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-amber to-[#c08a34] p-6 text-white shadow-soft hover:brightness-110 transition-all"
             >
               <CameraIcon className="w-8 h-8" />
               <span className="text-sm font-semibold">Prendre en photo</span>
@@ -750,12 +776,21 @@ export default function Scan({ userId }) {
                 className="text-left"
               >
                 <Card className="flex items-center gap-3 p-3.5 hover:bg-ink-50 transition-colors">
-                  <span className={`h-9 w-1.5 rounded-full ${subject?.accent || 'bg-ink-300'}`} />
+                  <span className={`h-9 w-1.5 shrink-0 rounded-full ${subject?.accent || 'bg-ink-300'}`} />
+                  <div className="relative h-11 w-9 shrink-0 overflow-hidden rounded-[5px] border border-ink-200 bg-canvas">
+                    <div className="absolute right-0 top-0 h-3 w-3 bg-[linear-gradient(135deg,transparent_50%,#e0dbcb_50%)]" />
+                    {s.annotations.length > 0 && (
+                      <>
+                        <div className="absolute inset-x-1.5 top-3 h-[1.5px] bg-coral/60" />
+                        <div className="absolute inset-x-1.5 top-[22px] h-[1.5px] bg-coral/35" />
+                      </>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-sm font-medium text-ink-800">{s.title}</p>
                     <p className="text-xs text-ink-500">{subject?.name} · {s.date}{s.grade ? ` · ${s.grade}` : ''}</p>
                   </div>
-                  <Badge className="bg-ink-100 text-ink-600">{s.annotations.length} annotations</Badge>
+                  <Badge className="shrink-0 bg-ink-100 text-ink-600">{s.annotations.length} annotations</Badge>
                 </Card>
               </button>
             )

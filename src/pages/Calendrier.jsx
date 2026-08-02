@@ -15,12 +15,12 @@ const ALERT_TONE = {
 
 const FILIERE_OPTIONS = ['MPSI', 'PCSI', 'MP', 'PSI', 'PC', 'PT', 'BCPST']
 const MODE_TONE = {
-  normal: 'bg-gradient-to-br from-teal to-[#0c7a70] text-white',
-  survie: 'bg-gradient-to-br from-coral to-[#ff7a5c] text-white',
-  kholle: 'bg-gradient-to-br from-coral to-[#ff7a5c] text-white',
-  consolidation: 'bg-gradient-to-br from-teal to-[#0c7a70] text-white',
-  simulation: 'bg-gradient-to-br from-amber to-[#d98c12] text-white',
-  recuperation: 'bg-gradient-to-br from-indigo to-[#5b3fae] text-white'
+  normal: 'bg-gradient-to-br from-teal to-[#46614f] text-white',
+  survie: 'bg-gradient-to-br from-coral to-[#d98f82] text-white',
+  kholle: 'bg-gradient-to-br from-coral to-[#d98f82] text-white',
+  consolidation: 'bg-gradient-to-br from-teal to-[#46614f] text-white',
+  simulation: 'bg-gradient-to-br from-amber to-[#c08a34] text-white',
+  recuperation: 'bg-gradient-to-br from-indigo to-[#2e4368] text-white'
 }
 const WEEKS_PAGE = 12
 

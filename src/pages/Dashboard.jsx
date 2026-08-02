@@ -23,7 +23,7 @@ import { useAcademicCalendar, thisWeekEvents } from '../lib/academicSchedule.js'
 const todayIso = new Date().toISOString().slice(0, 10)
 const tomorrowIso = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
 const CHART_SUBJECTS = ['maths', 'physique', 'anglais', 'francais']
-const CHART_COLORS = { maths: '#3b2f80', physique: '#e63950', anglais: '#0f9488', francais: '#f5a524' }
+const CHART_COLORS = { maths: '#1b2a4a', physique: '#c1666b', anglais: '#5c7a67', francais: '#e8a94c' }
 const GOAL_OPTIONS = [5, 10, 15, 20]
 
 const MOTIVATIONAL_QUOTES = [
@@ -210,7 +210,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
       {/* Mode urgent — priorité absolue de l'écran quand un DS/colle est demain ou aujourd'hui,
           au-dessus même du bandeau fiches dues. */}
       {examIsImminent && (
-        <Card className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-br from-coral to-[#ff7a5c] p-4 text-white">
+        <Card className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-br from-coral to-[#d98f82] p-4 text-white">
           <p className="text-sm font-medium">
             ⚡ {examSubject?.short} {examSoonLabel} — prépare un plan de révision ciblé
           </p>
@@ -249,14 +249,14 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
         >
           {/* Slide 1 : compte à rebours */}
           <div className="w-full shrink-0 snap-center">
-            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#2c1f5e_0%,#46308f_48%,#7a3b6e_100%)]">
+            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#141f36_0%,#1b2a4a_48%,#4a2e33_100%)]">
               <div
                 className="pointer-events-none absolute -right-0 -top-[120px] h-[260px] w-[260px] rounded-full opacity-55 blur-[50px]"
-                style={{ background: '#e63950' }}
+                style={{ background: '#c1666b' }}
               />
               <div
                 className="pointer-events-none absolute -left-10 -bottom-[140px] h-[220px] w-[220px] rounded-full opacity-35 blur-[50px]"
-                style={{ background: '#4d8bff' }}
+                style={{ background: '#7c9885' }}
               />
               <div className="relative z-10 self-start sm:self-auto">
                 <div className="mb-2.5 text-[13px] text-white/75">Bonjour {deriveName(userEmail)} 👋</div>
@@ -284,14 +284,14 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
 
           {/* Slide 2 : citation motivante */}
           <div className="w-full shrink-0 snap-center">
-            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex flex-col justify-center gap-4 bg-[linear-gradient(120deg,#0f3d3a_0%,#0f9488_55%,#1c6e5e_100%)]">
+            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex flex-col justify-center gap-4 bg-[linear-gradient(120deg,#2e3d30_0%,#5c7a67_55%,#3f5647_100%)]">
               <div
                 className="pointer-events-none absolute -left-10 -top-[120px] h-[260px] w-[260px] rounded-full opacity-40 blur-[50px]"
-                style={{ background: '#f5a524' }}
+                style={{ background: '#e8a94c' }}
               />
               <div
                 className="pointer-events-none absolute -right-6 -bottom-[130px] h-[220px] w-[220px] rounded-full opacity-30 blur-[50px]"
-                style={{ background: '#4d8bff' }}
+                style={{ background: '#7c9885' }}
               />
               <div className="relative z-10">
                 <div className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-white/70">Citation du jour</div>
@@ -303,10 +303,10 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
 
           {/* Slide 3 : récap focus / Pomodoro */}
           <div className="w-full shrink-0 snap-center">
-            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#3a1f1a_0%,#a94a2e_55%,#c42d42_100%)]">
+            <div className="relative h-full overflow-hidden rounded-[20px] p-[30px] text-white flex items-center justify-between gap-6 flex-col sm:flex-row bg-[linear-gradient(120deg,#3a2620_0%,#8a4a44_55%,#9c4a50_100%)]">
               <div
                 className="pointer-events-none absolute -right-6 -top-[120px] h-[260px] w-[260px] rounded-full opacity-40 blur-[50px]"
-                style={{ background: '#f5a524' }}
+                style={{ background: '#e8a94c' }}
               />
               <div className="relative z-10 self-start sm:self-auto">
                 <div className="mb-2.5 text-[13px] text-white/75">Ta régularité</div>
@@ -410,7 +410,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
           </div>
           <svg viewBox="0 0 320 120" preserveAspectRatio="none" className="w-full h-auto block">
             {[10, 32.5, 55, 77.5, 100].map((y) => (
-              <line key={y} x1="0" y1={y} x2="320" y2={y} stroke="#efecf9" strokeWidth="1" />
+              <line key={y} x1="0" y1={y} x2="320" y2={y} stroke="#e8ebf1" strokeWidth="1" />
             ))}
             {CHART_SUBJECTS.map((id) => (
               <polyline
@@ -432,7 +432,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
         <div className="flex flex-col gap-4">
           <Card className="p-[22px]">
             <div className="mb-3 flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-coral to-[#ff7a5c]">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-coral to-[#d98f82]">
                 <ScanIcon className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -490,7 +490,7 @@ export default function Dashboard({ onNavigate, userId, userEmail }) {
                 key={opt.id}
                 onClick={() => setMood(opt.id)}
                 className={`flex-1 rounded-[11px] border-[1.5px] px-1.5 py-3 text-center text-xs transition-colors ${
-                  mood === opt.id ? 'border-amber bg-amber-soft font-bold text-[#a9660a]' : 'border-ink-200 bg-white text-ink-600 hover:border-ink-400'
+                  mood === opt.id ? 'border-amber bg-amber-soft font-bold text-[#8a5d22]' : 'border-ink-200 bg-white text-ink-600 hover:border-ink-400'
                 }`}
               >
                 <span className="mb-1 block text-lg">{opt.emoji}</span>

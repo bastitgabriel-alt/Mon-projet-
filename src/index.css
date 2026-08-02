@@ -23,3 +23,20 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* Ligne de balayage animée de la zone de scan (écran Scan) */
+@keyframes scan-sweep {
+  0%, 100% { top: 18%; opacity: 0; }
+  10% { opacity: 1; }
+  50% { top: 80%; opacity: 1; }
+  90% { opacity: 0; }
+}
+.scan-sweep-line {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, theme('colors.amber.DEFAULT'), transparent);
+  box-shadow: 0 0 12px 1px theme('colors.amber.DEFAULT');
+  animation: scan-sweep 2.8s ease-in-out infinite;
+}

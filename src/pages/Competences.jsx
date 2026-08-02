@@ -32,19 +32,19 @@ function RadarChart({ items }) {
           key={r}
           points={items.map((_, i) => point(i, (r / 5) * maxR).join(',')).join(' ')}
           fill="none"
-          stroke="#efecf9"
+          stroke="#e8ebf1"
           strokeWidth="1"
         />
       ))}
       {items.map((_, i) => {
         const [x, y] = point(i, maxR)
-        return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="#efecf9" strokeWidth="1" />
+        return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="#e8ebf1" strokeWidth="1" />
       })}
-      <polygon points={polygonPoints} fill="rgba(59,47,128,0.25)" stroke="#3b2f80" strokeWidth="2" />
+      <polygon points={polygonPoints} fill="rgba(59,47,128,0.25)" stroke="#1b2a4a" strokeWidth="2" />
       {items.map((item, i) => {
         const [x, y] = point(i, maxR + 18)
         return (
-          <text key={i} x={x} y={y} textAnchor="middle" fontSize="9" fill="#94a3b8">
+          <text key={i} x={x} y={y} textAnchor="middle" fontSize="9" fill="#a39c89">
             {item.label.length > 13 ? `${item.label.slice(0, 12)}…` : item.label}
           </text>
         )
@@ -134,7 +134,7 @@ export default function Competences({ userId }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <Card className="bg-gradient-to-br from-indigo to-[#5b3fae] p-5 text-white">
+      <Card className="bg-gradient-to-br from-indigo to-[#2e4368] p-5 text-white">
         <p className="text-xs font-semibold uppercase tracking-wide text-white/70">Score global</p>
         <p className="mt-1 font-mono text-3xl font-bold">
           {scoreGlobal}
@@ -168,7 +168,7 @@ export default function Competences({ userId }) {
               <polyline
                 points={buildTimelinePolyline(scoreTimeline)}
                 fill="none"
-                stroke="#3b2f80"
+                stroke="#1b2a4a"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"

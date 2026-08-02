@@ -616,7 +616,7 @@ export default function Fiches({ userId, navParams }) {
   return (
     <div className="flex flex-col gap-5">
       {examIsImminent ? (
-        <Card className="flex items-center justify-between gap-3 bg-gradient-to-br from-coral to-[#ff7a5c] p-5 text-white">
+        <Card className="flex items-center justify-between gap-3 bg-gradient-to-br from-coral to-[#d98f82] p-5 text-white">
           <div>
             <p className="font-display text-lg font-semibold">⚡ {examSubject?.name} {examSoonLabel}</p>
             <p className="text-sm text-white/80">Prépare un plan de révision rapide et ciblé.</p>
