@@ -12,6 +12,8 @@ import { CameraIcon, UploadIcon, ChevronLeftIcon, SparkleIcon, CheckIcon, BookIc
 import { styleFor } from '../utils/categoryStyles.js'
 import { analyzeCourseImage } from '../lib/courseAi.js'
 import { analyzeCopyImage } from '../lib/copyAi.js'
+import { computeAutoCompetencyDowngrades } from '../utils/competencyAutoUpdate.js'
+import { competencySubjects, levelLabels } from '../data/competencies.js'
 
 // "2026-07-18" -> "18/07/2026"
 function toFrDate(isoDate) {
@@ -44,6 +46,7 @@ export default function Scan({ userId }) {
   const [imageUrl, setImageUrl] = useState(null)
   const [newScan, setNewScan] = useState(null)
   const [scanError, setScanError] = useState(null)
+  const [competencyUpdates, setCompetencyUpdates] = useState([])
   const [activeAnnotation, setActiveAnnotation] = useState(null)
   const [historyScan, setHistoryScan] = useState(null)
   const [createdFicheKeys, setCreatedFicheKeys] = useState([])
@@ -119,7 +122,8 @@ export default function Scan({ userId }) {
         pos_x: a.x,
         pos_y: a.y,
         category: a.category,
-        comment: a.comment
+        comment: a.comment,
+        competency_key: a.competency_key || null
       }))
       const { data: insertedAnnotations } =
         annotationRows.length > 0 ? await supabase.from('annotations').insert(annotationRows).select() : { data: [] }
@@ -127,11 +131,50 @@ export default function Scan({ userId }) {
       const result = mapScanRow({ ...insertedScan, annotations: insertedAnnotations })
       setNewScan(result)
       setAllScans((prev) => [result, ...prev])
+      const updates = await applyCompetencyAutoUpdates()
+      setCompetencyUpdates(updates)
       setStep('result')
     } catch (e) {
       setScanError(e.message)
       setStep('preview')
     }
+  }
+
+  // Ferme la boucle scan → fiche → compétences : recalcule, sur l'ensemble
+  // des erreurs déjà détectées (toutes copies confondues), si une compétence
+  // revient assez souvent pour justifier de plafonner son niveau — sans
+  // jamais le faire remonter automatiquement.
+  async function applyCompetencyAutoUpdates() {
+    const [{ data: scanRows }, { data: levelRows }] = await Promise.all([
+      supabase.from('scans').select('subject_id, annotations(competency_key)').eq('user_id', userId),
+      supabase.from('competency_levels').select('subject_id, competency_key, level').eq('user_id', userId)
+    ])
+
+    const scansForCompute = (scanRows || []).map((s) => ({
+      subjectId: s.subject_id,
+      annotations: (s.annotations || []).map((a) => ({ competencyKey: a.competency_key }))
+    }))
+    const levelsMap = {}
+    ;(levelRows || []).forEach((r) => {
+      levelsMap[`${r.subject_id}__${r.competency_key}`] = r.level
+    })
+
+    const updates = computeAutoCompetencyDowngrades({ scans: scansForCompute, currentLevels: levelsMap })
+    if (updates.length === 0) return []
+
+    const now = new Date().toISOString()
+    await Promise.all(
+      updates.flatMap((u) => [
+        supabase.from('competency_levels').upsert(
+          { user_id: userId, subject_id: u.subjectId, competency_key: u.competencyKey, level: u.newLevel, updated_at: now },
+          { onConflict: 'user_id,subject_id,competency_key' }
+        ),
+        supabase
+          .from('competency_history')
+          .insert({ user_id: userId, subject_id: u.subjectId, competency_key: u.competencyKey, level: u.newLevel, recorded_at: now })
+      ])
+    )
+    return updates
   }
 
   function handleFile(e) {
@@ -154,6 +197,7 @@ export default function Scan({ userId }) {
     setImageUrl(null)
     setNewScan(null)
     setScanError(null)
+    setCompetencyUpdates([])
     setActiveAnnotation(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (cameraInputRef.current) cameraInputRef.current.value = ''
@@ -346,6 +390,31 @@ export default function Scan({ userId }) {
             </Card>
           )}
         </div>
+
+        {competencyUpdates.length > 0 && (
+          <div>
+            <SectionTitle title="Ton radar de compétences a bougé" eyebrow="Mis à jour automatiquement" />
+            <div className="flex flex-col gap-2">
+              {competencyUpdates.map((u) => {
+                const compSubject = competencySubjects.find((s) => s.id === u.subjectId)
+                const competency = compSubject?.competencies.find((c) => c.key === u.competencyKey)
+                return (
+                  <Card key={`${u.subjectId}__${u.competencyKey}`} className="flex items-center gap-3 border-l-4 border-l-amber p-3.5">
+                    <span className="text-lg">📉</span>
+                    <div>
+                      <p className="text-sm font-medium text-ink-800">
+                        {competency?.label || u.competencyKey} <span className="text-ink-400">· {compSubject?.name}</span>
+                      </p>
+                      <p className="mt-0.5 text-xs text-ink-500">
+                        {u.count} erreur{u.count > 1 ? 's' : ''} récurrente{u.count > 1 ? 's' : ''} détectée{u.count > 1 ? 's' : ''} → niveau ajusté à « {levelLabels[u.newLevel - 1]} ».
+                      </p>
+                    </div>
+                  </Card>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {recurring.length > 0 && (
           <div>
