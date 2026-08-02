@@ -130,11 +130,12 @@ export default function Scan({ userId, navParams }) {
 
       if (error || !insertedScan) throw new Error("Impossible d'enregistrer le scan.")
 
+      const clampPos = (n) => Math.min(95, Math.max(5, Number(n) || 50))
       const annotationRows = (analysis.annotations || []).map((a) => ({
         scan_id: insertedScan.id,
         user_id: userId,
-        pos_x: a.x,
-        pos_y: a.y,
+        pos_x: clampPos(a.x),
+        pos_y: clampPos(a.y),
         category: a.category,
         comment: a.comment,
         competency_key: a.competency_key || null
