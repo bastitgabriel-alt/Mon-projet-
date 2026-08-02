@@ -1,13 +1,13 @@
-import { HomeIcon, ScanIcon, CardsIcon, MicIcon, TargetIcon } from './icons.jsx'
+import { HomeIcon, CardsIcon, MicIcon, TargetIcon } from './icons.jsx'
 
-// Calendrier et Mental sont volontairement retirés de la navigation (pas
-// supprimés du code) : on recentre l'appli sur 3 piliers — Révisions,
-// Colle IA, Tableau de bord — plutôt que de disperser l'attention sur
-// 7 modules. Voir App.jsx : les pages restent routables, juste plus
-// accessibles depuis la sidebar.
+// Calendrier, Mental et Copies sont volontairement retirés de la navigation
+// (pas supprimés du code) : le Dashboard est désormais l'unique point
+// d'entrée du scan (copie corrigée / page de cours), donc l'onglet Copies
+// n'a plus besoin d'être un pilier de nav à part — il reste routable via
+// onNavigate('scan', ...) depuis le Dashboard. Voir App.jsx : les pages
+// restent routables, juste plus accessibles depuis la sidebar.
 const tabs = [
   { id: 'dashboard', label: 'Tableau de bord', Icon: HomeIcon },
-  { id: 'scan', label: 'Copies', Icon: ScanIcon },
   { id: 'fiches', label: 'Fiches', Icon: CardsIcon },
   { id: 'competences', label: 'Compétences', Icon: TargetIcon },
   { id: 'colle', label: 'Colle IA', Icon: MicIcon }

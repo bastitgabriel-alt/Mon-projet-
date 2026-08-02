@@ -21,6 +21,7 @@ export default function Dashboard({ onNavigate, userId }) {
   const [fichesToReview, setFichesToReview] = useState(0)
   const [streak, setStreak] = useState(0)
   const [recentScans, setRecentScans] = useState([])
+  const [scanMode, setScanMode] = useState('copie') // copie | cours
 
   useEffect(() => {
     async function load() {
@@ -105,17 +106,40 @@ export default function Dashboard({ onNavigate, userId }) {
         </Card>
       </div>
 
-      {/* Zone de scan — le cœur de Marge : photo → erreurs détectées → fiches. */}
-      <button onClick={() => onNavigate('scan')} className="block w-full text-left">
-        <div className="relative overflow-hidden rounded-[20px] bg-indigo p-6">
+      {/* Zone de scan — le cœur de Marge : photo → erreurs détectées → fiches.
+          Le choix copie/cours ne fait que présélectionner le mode ouvert dans
+          l'onglet Copies (qui reste seul propriétaire du flux de capture). */}
+      <div className="flex rounded-xl bg-ink-100 p-1">
+        <button
+          onClick={() => setScanMode('copie')}
+          className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
+            scanMode === 'copie' ? 'bg-white text-indigo shadow-card' : 'text-ink-500'
+          }`}
+        >
+          Copie corrigée
+        </button>
+        <button
+          onClick={() => setScanMode('cours')}
+          className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
+            scanMode === 'cours' ? 'bg-white text-indigo shadow-card' : 'text-ink-500'
+          }`}
+        >
+          Page de cours
+        </button>
+      </div>
+
+      <button onClick={() => onNavigate('scan', { mode: scanMode })} className="block w-full text-left">
+        <div className={`relative overflow-hidden rounded-[20px] p-6 ${scanMode === 'cours' ? 'bg-gradient-to-br from-amber to-[#c08a34]' : 'bg-indigo'}`}>
           <div className="pointer-events-none absolute right-0 top-0 h-11 w-11 bg-[linear-gradient(135deg,transparent_50%,rgba(250,247,240,0.12)_50%)]" />
           <div className="pointer-events-none absolute inset-3.5 rounded-2xl border border-dashed border-white/25" />
           <div className="scan-sweep-line" />
           <div className="relative z-10 flex flex-col items-center gap-3 py-3">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-amber">
-              <CameraIcon className="h-6 w-6 text-indigo" />
+            <span className={`flex h-14 w-14 items-center justify-center rounded-full ${scanMode === 'cours' ? 'bg-white' : 'bg-amber'}`}>
+              <CameraIcon className={`h-6 w-6 ${scanMode === 'cours' ? 'text-amber' : 'text-indigo'}`} />
             </span>
-            <span className="font-display text-lg font-medium text-white">Scanner une copie</span>
+            <span className="font-display text-lg font-medium text-white">
+              {scanMode === 'cours' ? 'Scanner un cours' : 'Scanner une copie'}
+            </span>
             <span className="text-xs text-white/60">Photo ou import de fichier</span>
           </div>
         </div>

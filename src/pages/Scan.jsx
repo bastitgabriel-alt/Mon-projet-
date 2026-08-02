@@ -42,8 +42,8 @@ function mapScanRow(row) {
   }
 }
 
-export default function Scan({ userId }) {
-  const [mode, setMode] = useState('copie') // copie | cours
+export default function Scan({ userId, navParams }) {
+  const [mode, setMode] = useState(navParams?.mode === 'cours' ? 'cours' : 'copie') // copie | cours
   const [step, setStep] = useState('idle') // idle | preview | analyzing | result | history | course-preview | course-analyzing | course-result | course-quiz | course-quiz-done
   const [subjectId, setSubjectId] = useState('maths')
   const [imageFile, setImageFile] = useState(null)
