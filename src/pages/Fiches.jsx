@@ -663,17 +663,18 @@ export default function Fiches({ userId, navParams }) {
         <span className="text-[11px] text-ink-500">Minuteur Pomodoro</span>
       </button>
 
-      <div className="flex items-center gap-2">
-        <div className="flex flex-1 gap-2 overflow-x-auto no-scrollbar pb-1">
-          <FilterChip active={filter === 'all'} onClick={() => setFilter('all')} label="Toutes" />
-          {subjects.map((s) => (
-            <FilterChip key={s.id} active={filter === s.id} onClick={() => setFilter(s.id)} label={s.short} />
-          ))}
-        </div>
-        <Button variant="ghost" onClick={openTemplateBank} className="shrink-0 border border-ink-200 px-3 py-1.5 text-xs">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+        <FilterChip active={filter === 'all'} onClick={() => setFilter('all')} label="Toutes" />
+        {subjects.map((s) => (
+          <FilterChip key={s.id} active={filter === s.id} onClick={() => setFilter(s.id)} label={s.short} />
+        ))}
+      </div>
+
+      <div className="flex gap-2">
+        <Button variant="ghost" onClick={openTemplateBank} className="flex-1 border border-ink-200 px-3 py-1.5 text-xs">
           Banque de fiches
         </Button>
-        <Button variant="secondary" onClick={() => setShowCreateForm(true)} className="shrink-0 px-3 py-1.5 text-xs">
+        <Button variant="secondary" onClick={() => setShowCreateForm(true)} className="flex-1 px-3 py-1.5 text-xs">
           + Nouvelle fiche
         </Button>
       </div>
