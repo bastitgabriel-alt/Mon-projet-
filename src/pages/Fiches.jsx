@@ -244,9 +244,13 @@ export default function Fiches({ userId, navParams }) {
 
   // --- Session de révision (flashcards) ---
   if (sessionQueue) {
+    // Session plein écran, sans sidebar ni header : l'effet "zéro distraction"
+    // qui rend une révision addictive se casse dès qu'on voit autre chose que
+    // la carte en cours. `fixed inset-0` couvre tout le viewport par-dessus
+    // le reste de l'appli, peu importe la mise en page qui l'englobe.
     if (sessionIndex >= sessionQueue.length) {
       return (
-        <div className="flex flex-col items-center gap-4 py-10 text-center">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-canvas px-6 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-teal-soft">
             <CheckIcon className="w-7 h-7 text-teal" />
           </div>
@@ -280,59 +284,61 @@ export default function Fiches({ userId, navParams }) {
     const style = fiche.linkedCategory ? styleFor(fiche.linkedCategory) : null
 
     return (
-      <div className="flex flex-col gap-4">
-        <button onClick={() => setSessionQueue(null)} className="flex items-center gap-1 text-sm font-medium text-ink-500 hover:text-ink-700">
-          <ChevronLeftIcon className="w-4 h-4" /> Quitter la session
-        </button>
-        <p className="text-xs font-medium uppercase tracking-wide text-ink-400">
-          Fiche {sessionIndex + 1} / {sessionQueue.length}
-        </p>
+      <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-canvas px-5 py-5 md:px-8 md:py-8">
+        <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4">
+          <button onClick={() => setSessionQueue(null)} className="flex items-center gap-1 text-sm font-medium text-ink-500 hover:text-ink-700">
+            <ChevronLeftIcon className="w-4 h-4" /> Quitter la session
+          </button>
+          <p className="text-xs font-medium uppercase tracking-wide text-ink-400">
+            Fiche {sessionIndex + 1} / {sessionQueue.length}
+          </p>
 
-        <Card className="flex min-h-[280px] flex-col p-6">
-          <div className="mb-3 flex items-center gap-2">
-            <span className={`h-2.5 w-2.5 rounded-full ${subject?.accent}`} />
-            <span className="text-sm font-medium text-ink-500">{subject?.name}</span>
-          </div>
-          <p className="text-xs font-medium uppercase tracking-wide text-ink-400">{fiche.title}</p>
-          <h2 className="mt-1 font-display text-lg font-semibold text-ink-900">
-            {fiche.question || fiche.title}
-          </h2>
-
-          {revealed ? (
-            <div className="mt-4 flex-1">
-              <p className="whitespace-pre-line text-sm leading-relaxed text-ink-700">{fiche.summary}</p>
-              {category && (
-                <div className="mt-4 rounded-xl bg-ink-50 p-4">
-                  <Badge className={style.badge}>{category.label}</Badge>
-                  <p className="mt-2 text-sm text-ink-600">{category.tip}</p>
-                </div>
-              )}
+          <Card className="flex min-h-[280px] flex-1 flex-col p-6">
+            <div className="mb-3 flex items-center gap-2">
+              <span className={`h-2.5 w-2.5 rounded-full ${subject?.accent}`} />
+              <span className="text-sm font-medium text-ink-500">{subject?.name}</span>
             </div>
-          ) : (
-            <div className="mt-4 flex flex-1 items-center justify-center">
-              <Button variant="secondary" onClick={() => setRevealed(true)}>
-                Voir la réponse
-              </Button>
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-400">{fiche.title}</p>
+            <h2 className="mt-1 font-display text-lg font-semibold text-ink-900">
+              {fiche.question || fiche.title}
+            </h2>
+
+            {revealed ? (
+              <div className="mt-4 flex-1">
+                <p className="whitespace-pre-line text-sm leading-relaxed text-ink-700">{fiche.summary}</p>
+                {category && (
+                  <div className="mt-4 rounded-xl bg-ink-50 p-4">
+                    <Badge className={style.badge}>{category.label}</Badge>
+                    <p className="mt-2 text-sm text-ink-600">{category.tip}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-4 flex flex-1 items-center justify-center">
+                <Button variant="secondary" onClick={() => setRevealed(true)}>
+                  Voir la réponse
+                </Button>
+              </div>
+            )}
+          </Card>
+
+          {revealed && (
+            <div>
+              <p className="mb-2 text-center text-xs font-medium text-ink-500">Comment as-tu retenu cette fiche ?</p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {recallLevels.map((level) => (
+                  <button
+                    key={level.id}
+                    onClick={() => rate(level.quality)}
+                    className="rounded-xl border border-ink-200 bg-white px-2 py-2.5 text-xs font-medium text-ink-700 transition-colors hover:border-indigo hover:bg-indigo-soft hover:text-indigo"
+                  >
+                    {level.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
-        </Card>
-
-        {revealed && (
-          <div>
-            <p className="mb-2 text-center text-xs font-medium text-ink-500">Comment as-tu retenu cette fiche ?</p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {recallLevels.map((level) => (
-                <button
-                  key={level.id}
-                  onClick={() => rate(level.quality)}
-                  className="rounded-xl border border-ink-200 bg-white px-2 py-2.5 text-xs font-medium text-ink-700 transition-colors hover:border-indigo hover:bg-indigo-soft hover:text-indigo"
-                >
-                  {level.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     )
   }
