@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { subjects, errorCategories, weekEvents } from '../data/mockData.js'
 import { supabase } from '../lib/supabaseClient.js'
 import { Card, Badge, Button } from '../components/ui.jsx'
-import { ChevronLeftIcon, SparkleIcon, CheckIcon, CalculatorIcon, PuzzleIcon, TimerIcon } from '../components/icons.jsx'
+import { ChevronLeftIcon, SparkleIcon, CheckIcon, TimerIcon } from '../components/icons.jsx'
 import { styleFor } from '../utils/categoryStyles.js'
 import { recallLevels, nextReviewState, isDue } from '../utils/spacedRepetition.js'
 import { checkAndAwardBadges } from '../lib/badges.js'
@@ -648,40 +648,14 @@ export default function Fiches({ userId, navParams }) {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <button
-          onClick={() => setActiveGame('calcul-mental')}
-          className="flex flex-col items-center gap-1.5 rounded-2xl border border-ink-200 bg-white p-4 text-center shadow-card transition-colors hover:border-indigo"
-        >
-          <CalculatorIcon className="w-6 h-6 text-indigo" />
-          <span className="text-sm font-semibold text-ink-800">Calcul mental</span>
-          <span className="text-[11px] text-ink-500">Série chronométrée</span>
-        </button>
-        <button
-          onClick={() => setActiveGame('demonstration')}
-          className="flex flex-col items-center gap-1.5 rounded-2xl border border-ink-200 bg-white p-4 text-center shadow-card transition-colors hover:border-indigo"
-        >
-          <PuzzleIcon className="w-6 h-6 text-indigo" />
-          <span className="text-sm font-semibold text-ink-800">Démonstration</span>
-          <span className="text-[11px] text-ink-500">Reconstitue les étapes</span>
-        </button>
-        <button
-          onClick={() => setActiveGame('erreur-classique')}
-          className="flex flex-col items-center gap-1.5 rounded-2xl border border-ink-200 bg-white p-4 text-center shadow-card transition-colors hover:border-indigo"
-        >
-          <CheckIcon className="w-6 h-6 text-indigo" />
-          <span className="text-sm font-semibold text-ink-800">Erreur classique</span>
-          <span className="text-[11px] text-ink-500">Trouve le piège</span>
-        </button>
-        <button
-          onClick={() => setActiveGame('pomodoro')}
-          className="flex flex-col items-center gap-1.5 rounded-2xl border border-ink-200 bg-white p-4 text-center shadow-card transition-colors hover:border-indigo"
-        >
-          <TimerIcon className="w-6 h-6 text-indigo" />
-          <span className="text-sm font-semibold text-ink-800">Focus</span>
-          <span className="text-[11px] text-ink-500">Minuteur Pomodoro</span>
-        </button>
-      </div>
+      <button
+        onClick={() => setActiveGame('pomodoro')}
+        className="flex items-center gap-2.5 rounded-2xl border border-ink-200 bg-white px-4 py-3 shadow-card transition-colors hover:border-indigo"
+      >
+        <TimerIcon className="w-5 h-5 text-indigo shrink-0" />
+        <span className="text-sm font-semibold text-ink-800">Focus</span>
+        <span className="text-[11px] text-ink-500">Minuteur Pomodoro</span>
+      </button>
 
       <div className="flex items-center gap-2">
         <div className="flex flex-1 gap-2 overflow-x-auto no-scrollbar pb-1">
