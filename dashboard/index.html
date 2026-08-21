@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Analyses Boutique</title>
+<meta name="description" content="Tableau de bord d'analyses de boutique.">
+
+<!-- écran d'accueil iOS -->
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Analyses">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+<!-- écran d'accueil Android -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+    :root {
+      --app-bg: #f1f2f3;
+      --surface: #ffffff;
+      --surface-sub: #fafbfb;
+      --border: #e1e3e5;
+      --border-sub: #ebeef0;
+      --text: #202223;
+      --text-sub: #6d7175;
+      --text-dis: #8c9196;
+      --viz-teal: #4b9c99;
+      --viz-teal-fill: #b3d9d7;
+      --viz-navy: #1c2260;
+      --viz-compare: #babec3;
+      --link: #2c6ecb;
+      --up: #007f5f;
+      --hover: #f1f2f3;
+      --active: #edeeef;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  
+    /* --- édition des valeurs --- */
+    .btn-edit {
+      font: inherit; font-size: 13px; font-weight: 500; color: var(--text);
+      background: var(--surface); border: 1px solid #babec3; border-radius: 8px;
+      padding: 6px 12px; cursor: pointer; display: inline-flex; align-items: center;
+      gap: 6px; flex-shrink: 0; box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+    }
+    .btn-edit:hover { background: var(--surface-sub); }
+    .btn-edit:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+    [data-editing="on"] .btn-edit {
+      background: var(--viz-teal); border-color: var(--viz-teal); color: #ffffff;
+    }
+    [data-editing="on"] .ed {
+      box-shadow: inset 0 -1.5px 0 var(--viz-teal-fill); border-radius: 3px; cursor: text;
+    }
+    [data-editing="on"] .ed:hover { background: #eef6f5; }
+    .ed:focus {
+      outline: none; background: #eef6f5;
+      box-shadow: 0 0 0 2px var(--viz-teal); border-radius: 3px;
+    }
+
+    /* --- écrans étroits : la mise en page bureau reste intacte au-dessus de 900px --- */
+    @media (max-width: 900px) {
+      div[style*="border-right: 1px solid var(--border)"] { display: none !important; }
+      div[style*="repeat(3, minmax(0, 1fr))"] { grid-template-columns: 1fr !important; }
+      #topbar { padding: 0 12px !important; gap: 10px !important; }
+      #topbar > div:first-child { width: auto !important; flex: 1 1 auto !important; }
+      #topbar > div:last-child { width: auto !important; }
+      #topbar > div:last-child > span { display: none !important; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
+
+    /* mode plein écran : on respecte l'encoche */
+    #topbar { padding-top: env(safe-area-inset-top, 0px) !important; height: calc(56px + env(safe-area-inset-top, 0px)) !important; }
+    /* barre du haut à l'étroit sur téléphone */
+    @media (max-width: 700px) {
+      #topbar > div:nth-child(2) { display: none !important; }
+      #topbar > div:first-child > span { white-space: nowrap !important; }
+    }
+</style>
+</head>
+<body>
+<div style="width: 100%; height: auto; min-height: 100%; background: var(--app-bg); display: flex; flex-direction: column;">
+
+  <!-- TOP BAR -->
+  <div id="topbar" style="display: flex; align-items: center; padding: 0 16px; height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 16px;">
+    <div style="display: flex; align-items: center; gap: 8px; width: 200px; flex-shrink: 0;">
+      <div style="width: 24px; height: 24px; border-radius: 5px; background: #95bf47; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l1-5h14l1 5"/><path d="M4 10a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M5 10v9h14v-9"/></svg>
+      </div>
+      <span style="font-size: 13.5px; font-weight: 600; color: var(--text);">Ma boutique</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+
+    <div style="flex: 1; display: flex; justify-content: center;">
+      <div style="display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 8px; background: var(--app-bg); border: 1px solid var(--border); width: 100%; max-width: 460px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/></svg>
+        <span style="font-size: 13px; color: var(--text-sub);">Rechercher</span>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 9px; width: 200px; flex-shrink: 0; justify-content: flex-end;">
+      <div style="width: 28px; height: 28px; border-radius: 50%; background: #36a46b; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 11.5px; font-weight: 600; flex-shrink: 0;">CM</div>
+      <span style="font-size: 13px; font-weight: 500; color: var(--text);">Camille Morel</span>
+    </div>
+  </div>
+
+  <div style="display: flex; flex: 1; min-height: 0;">
+
+    <!-- SIDEBAR -->
+    <div style="width: 200px; flex-shrink: 0; background: var(--surface-sub); border-right: 1px solid var(--border); padding: 8px 8px 16px; display: flex; flex-direction: column; gap: 16px;">
+
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 11l8-7 8 7"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/></svg>
+          <span style="font-size: 13px; font-weight: 500; color: var(--text);">Accueil</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 8px; border-radius: 6px;">
+          <div style="display: flex; align-items: center; gap: 9px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+            <span style="font-size: 13px; font-weight: 500; color: var(--text);">Commandes</span>
+          </div>
+          <span style="font-size: 11px; font-weight: 600; color: var(--text-sub); background: #e4e5e7; border-radius: 10px; padding: 1px 7px; line-height: 1.5;">8</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 3h8l10 10-8 8L3 11z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+          <span style="font-size: 13px; font-weight: 500; color: var(--text);">Produits</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-dis)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2"/><circle cx="17" cy="9" r="2.6"/><path d="M15.8 13.6c2.4.4 4.2 2.3 4.2 5.1"/></svg>
+          <span style="font-size: 13px; font-weight: 500; color: var(--text-dis);">Clients</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 6px; background: var(--active);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 19V10M10 19V4M16 19v-7M22 19H2"/></svg>
+          <span style="font-size: 13px; font-weight: 600; color: var(--text);">Analyses</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px 7px 33px; border-radius: 6px;">
+          <span style="font-size: 13px; font-weight: 500; color: var(--text);">Rapports</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px 7px 33px; border-radius: 6px;">
+          <span style="font-size: 13px; font-weight: 500; color: var(--text);">Vue en direct</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 11l9-7 9 7"/><path d="M9 6.2L3 11l1.8 1.4M15 6.2L21 11l-1.8 1.4"/><rect x="7" y="12" width="10" height="8" rx="1"/></svg>
+          <span style="font-size: 13px; font-weight: 500; color: var(--text);">Marketing</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-dis)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20.6 12.6L12 21.2 2.8 12 2.8 3.4 12 2.8z"/><circle cx="7.6" cy="7.6" r="1.4"/></svg>
+          <span style="font-size: 13px; font-weight: 500; color: var(--text-dis);">Réductions</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span style="font-size: 13px; font-weight: 500; color: var(--text);">Applications</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px;">
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-sub);">Canaux de vente</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></svg>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 10l1-5h14l1 5"/><path d="M4 10a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M5 10v9h14v-9"/></svg>
+          <span style="font-size: 13px; font-weight: 500; color: var(--text); flex: 1;">Boutique en ligne</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="18" cy="5" r="2.2"/><circle cx="6" cy="12" r="2.2"/><circle cx="18" cy="19" r="2.2"/><path d="M8 10.8l8-4.4M8 13.2l8 4.4"/></svg>
+          <span style="font-size: 13px; font-weight: 500; color: var(--text);">Réseaux sociaux</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div style="flex: 1; min-width: 0; padding: 20px 24px 40px;">
+
+      <div style="font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 16px; letter-spacing: -0.01em;">Analyses</div>
+
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 8px; border: 1px solid #babec3; background: var(--surface); font-size: 13px; font-weight: 500; color: var(--text); box-shadow: 0 1px 0 rgba(0,0,0,0.05);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
+          <span>21 mai 2026–21 août 2026</span>
+        </div>
+        <span style="font-size: 13px; color: var(--text-sub);">comparé à 18 févr. 2026–20 mai 2026</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start;">
+
+        <!-- VENTES TOTALES -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 1px 0 rgba(22,29,37,0.05);">
+          <div style="font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">Ventes totales</div>
+          <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px;">
+            <span style="font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.01em;">4 812,40 €</span>
+            <span style="display: flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 600; color: var(--up);">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6"/><path d="M6 11l6-6 6 6"/></svg>
+              12,4 %
+            </span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 7px; padding-bottom: 14px; border-bottom: 1px solid var(--border-sub); margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 13px; color: var(--text-sub);">Boutique en ligne</span>
+              <div style="display: flex; align-items: center; gap: 22px;">
+                <span style="font-size: 13px; color: var(--text);">4 726,90 €</span>
+                <span style="font-size: 13px; color: var(--text-sub); width: 10px; text-align: right;">–</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 13px; color: var(--text-sub);">Point de vente</span>
+              <div style="display: flex; align-items: center; gap: 22px;">
+                <span style="font-size: 13px; color: var(--text);">85,50 €</span>
+                <span style="font-size: 13px; color: var(--text-sub); width: 10px; text-align: right;">–</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size: 11px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;">Ventes dans le temps</div>
+          <div style="display: flex; gap: 6px;">
+            <div style="display: flex; flex-direction: column; justify-content: space-between; height: 96px; flex-shrink: 0; padding-bottom: 16px;">
+              <span style="font-size: 10.5px; color: var(--text-sub);">1,5 K</span>
+              <span style="font-size: 10.5px; color: var(--text-sub);">1 K</span>
+              <span style="font-size: 10.5px; color: var(--text-sub);">500</span>
+              <span style="font-size: 10.5px; color: var(--text-sub);">0</span>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <svg width="100%" height="80" viewBox="0 0 250 80" preserveAspectRatio="none">
+                <line x1="0" y1="0.5" x2="250" y2="0.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <line x1="0" y1="26.5" x2="250" y2="26.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <line x1="0" y1="52.5" x2="250" y2="52.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <line x1="0" y1="79.5" x2="250" y2="79.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <polyline points="0,66 25,58 50,70 75,44 100,62 125,38 150,54 175,30 200,60 225,42 250,56" fill="none" stroke="var(--viz-compare)" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="0,52 25,24 50,40 75,50 100,18 125,34 150,12 175,42 200,26 225,50 250,32" fill="none" stroke="var(--viz-teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div style="display: flex; justify-content: space-between; padding-top: 4px;">
+                <span style="font-size: 10.5px; color: var(--text-sub);">Juin</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">Juil.</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">Août</span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 12px;">
+            <div style="display: flex; align-items: center; gap: 7px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: var(--viz-compare); flex-shrink: 0;"></span><span style="font-size: 11.5px; color: var(--text-sub);">18 févr. 2026–20 mai 2026</span></div>
+            <div style="display: flex; align-items: center; gap: 7px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: var(--viz-teal); flex-shrink: 0;"></span><span style="font-size: 11.5px; color: var(--text-sub);">21 mai 2026–21 août 2026</span></div>
+          </div>
+        </div>
+
+        <!-- SESSIONS -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 1px 0 rgba(22,29,37,0.05);">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 14px; font-weight: 600; color: var(--text);">Sessions de la boutique en ligne</span>
+            <a style="font-size: 13px; font-weight: 500; flex-shrink: 0; margin-left: 10px;">Voir le rapport</a>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px;">
+            <span style="font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.01em;">28 679</span>
+            <span style="display: flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 600; color: var(--up);">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6"/><path d="M6 11l6-6 6 6"/></svg>
+              37,1 %
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--border-sub); margin-bottom: 14px;">
+            <span style="font-size: 13px; color: var(--text-sub);">Visiteurs</span>
+            <div style="display: flex; align-items: center; gap: 22px;">
+              <span style="font-size: 13px; color: var(--text);">27 444</span>
+              <span style="display: flex; align-items: center; gap: 2px; font-size: 12.5px; font-weight: 600; color: var(--up);">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6"/><path d="M6 11l6-6 6 6"/></svg>
+                35,5 %
+              </span>
+            </div>
+          </div>
+
+          <div style="font-size: 11px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;">Sessions dans le temps</div>
+          <div style="display: flex; gap: 6px;">
+            <div style="display: flex; flex-direction: column; justify-content: space-between; height: 96px; flex-shrink: 0; padding-bottom: 16px;">
+              <span style="font-size: 10.5px; color: var(--text-sub);">4 K</span>
+              <span style="font-size: 10.5px; color: var(--text-sub);">3 K</span>
+              <span style="font-size: 10.5px; color: var(--text-sub);">2 K</span>
+              <span style="font-size: 10.5px; color: var(--text-sub);">0</span>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <svg width="100%" height="80" viewBox="0 0 250 80" preserveAspectRatio="none">
+                <line x1="0" y1="0.5" x2="250" y2="0.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <line x1="0" y1="26.5" x2="250" y2="26.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <line x1="0" y1="52.5" x2="250" y2="52.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <line x1="0" y1="79.5" x2="250" y2="79.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <polyline points="0,70 25,64 50,72 75,58 100,68 125,50 150,66 175,54 200,70 225,60 250,68" fill="none" stroke="var(--viz-compare)" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="0,62 25,20 50,44 75,14 100,48 125,10 150,38 175,22 200,52 225,16 250,46" fill="none" stroke="var(--viz-teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div style="display: flex; justify-content: space-between; padding-top: 4px;">
+                <span style="font-size: 10.5px; color: var(--text-sub);">Juin</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">Juil.</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">Août</span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 12px;">
+            <div style="display: flex; align-items: center; gap: 7px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: var(--viz-compare); flex-shrink: 0;"></span><span style="font-size: 11.5px; color: var(--text-sub);">18 févr. 2026–20 mai 2026</span></div>
+            <div style="display: flex; align-items: center; gap: 7px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: var(--viz-teal); flex-shrink: 0;"></span><span style="font-size: 11.5px; color: var(--text-sub);">21 mai 2026–21 août 2026</span></div>
+          </div>
+        </div>
+
+        <!-- COLONNE 3 -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+
+          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 1px 0 rgba(22,29,37,0.05);">
+            <div style="font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">Taux de clients récurrents</div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px;">
+              <span style="font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.01em;">3,95 %</span>
+              <span style="font-size: 13px; color: var(--text-sub);">–</span>
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;">Clients dans le temps</div>
+            <div style="display: flex; gap: 6px;">
+              <div style="display: flex; flex-direction: column; justify-content: space-between; height: 86px; flex-shrink: 0; padding-bottom: 16px;">
+                <span style="font-size: 10.5px; color: var(--text-sub);">400</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">300</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">200</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">100</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">0</span>
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <svg width="100%" height="70" viewBox="0 0 230 70" preserveAspectRatio="none">
+                  <line x1="0" y1="0.5" x2="230" y2="0.5" stroke="var(--border-sub)" stroke-width="1"/>
+                  <line x1="0" y1="35.5" x2="230" y2="35.5" stroke="var(--border-sub)" stroke-width="1"/>
+                  <line x1="0" y1="69.5" x2="230" y2="69.5" stroke="var(--border-sub)" stroke-width="1"/>
+                  <polygon points="0,68 20,6 45,30 70,44 95,36 120,46 145,40 170,44 200,42 230,40 230,70 0,70" fill="var(--viz-teal-fill)" stroke="none"/>
+                  <polyline points="0,68 20,6 45,30 70,44 95,36 120,46 145,40 170,44 200,42 230,40" fill="none" stroke="var(--viz-teal)" stroke-width="1.8" stroke-linejoin="round"/>
+                  <polyline points="0,70 20,69 45,68 70,69 95,68 120,69 145,68 170,68 200,67 230,68" fill="none" stroke="var(--viz-navy)" stroke-width="1.8" stroke-linejoin="round"/>
+                </svg>
+                <div style="display: flex; justify-content: space-between; padding-top: 4px;">
+                  <span style="font-size: 10.5px; color: var(--text-sub);">Juin</span>
+                  <span style="font-size: 10.5px; color: var(--text-sub);">Août</span>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 10px;">
+              <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: var(--viz-teal); flex-shrink: 0;"></span><span style="font-size: 11.5px; color: var(--text-sub);">Première fois</span></div>
+              <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: var(--viz-navy); flex-shrink: 0;"></span><span style="font-size: 11.5px; color: var(--text-sub);">Récurrents</span></div>
+            </div>
+          </div>
+
+          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 1px 0 rgba(22,29,37,0.05);">
+            <div style="font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">Commandes totales</div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px;">
+              <span style="font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.01em;">1 877</span>
+              <span style="font-size: 13px; color: var(--text-sub);">–</span>
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;">Commandes dans le temps</div>
+            <div style="display: flex; gap: 6px;">
+              <div style="display: flex; flex-direction: column; justify-content: space-between; height: 76px; flex-shrink: 0; padding-bottom: 16px;">
+                <span style="font-size: 10.5px; color: var(--text-sub);">400</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">300</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">200</span>
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <svg width="100%" height="60" viewBox="0 0 230 60" preserveAspectRatio="none">
+                  <line x1="0" y1="0.5" x2="230" y2="0.5" stroke="var(--border-sub)" stroke-width="1"/>
+                  <line x1="0" y1="30.5" x2="230" y2="30.5" stroke="var(--border-sub)" stroke-width="1"/>
+                  <line x1="0" y1="59.5" x2="230" y2="59.5" stroke="var(--border-sub)" stroke-width="1"/>
+                  <polyline points="0,58 20,4 45,34 70,46 95,38 120,48 145,42 170,46 200,44 230,42" fill="none" stroke="var(--viz-teal)" stroke-width="1.8" stroke-linejoin="round"/>
+                </svg>
+                <div style="display: flex; justify-content: space-between; padding-top: 4px;">
+                  <span style="font-size: 10.5px; color: var(--text-sub);">Juin</span>
+                  <span style="font-size: 10.5px; color: var(--text-sub);">Août</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAUX DE CONVERSION -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 1px 0 rgba(22,29,37,0.05);">
+          <div style="font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">Taux de conversion de la boutique en ligne</div>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px;">
+            <span style="font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.01em;">6,29 %</span>
+            <span style="font-size: 13px; color: var(--text-sub);">–</span>
+          </div>
+          <div style="font-size: 11px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px;">Entonnoir de conversion</div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px;">
+                <span style="font-size: 12.5px; color: var(--text-sub);">Sessions ajoutées au panier</span>
+                <span style="font-size: 12.5px; font-weight: 600; color: var(--text);">14,2 %</span>
+              </div>
+              <div style="height: 8px; border-radius: 4px; background: var(--app-bg);"><div style="width: 62%; height: 100%; border-radius: 4px; background: var(--viz-teal);"></div></div>
+            </div>
+            <div>
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px;">
+                <span style="font-size: 12.5px; color: var(--text-sub);">Sessions passées en caisse</span>
+                <span style="font-size: 12.5px; font-weight: 600; color: var(--text);">8,1 %</span>
+              </div>
+              <div style="height: 8px; border-radius: 4px; background: var(--app-bg);"><div style="width: 34%; height: 100%; border-radius: 4px; background: var(--viz-teal);"></div></div>
+            </div>
+            <div>
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px;">
+                <span style="font-size: 12.5px; color: var(--text-sub);">Sessions converties</span>
+                <span style="font-size: 12.5px; font-weight: 600; color: var(--text);">6,3 %</span>
+              </div>
+              <div style="height: 8px; border-radius: 4px; background: var(--app-bg);"><div style="width: 26%; height: 100%; border-radius: 4px; background: var(--viz-teal);"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VALEUR MOYENNE -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 1px 0 rgba(22,29,37,0.05);">
+          <div style="font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px;">Valeur moyenne des commandes</div>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px;">
+            <span style="font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.01em;">18,47 €</span>
+            <span style="font-size: 13px; color: var(--text-sub);">–</span>
+          </div>
+          <div style="font-size: 11px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;">Valeur des commandes dans le temps</div>
+          <div style="display: flex; gap: 6px;">
+            <div style="display: flex; flex-direction: column; justify-content: space-between; height: 76px; flex-shrink: 0; padding-bottom: 16px;">
+              <span style="font-size: 10.5px; color: var(--text-sub);">30</span>
+              <span style="font-size: 10.5px; color: var(--text-sub);">20</span>
+              <span style="font-size: 10.5px; color: var(--text-sub);">10</span>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <svg width="100%" height="60" viewBox="0 0 230 60" preserveAspectRatio="none">
+                <line x1="0" y1="0.5" x2="230" y2="0.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <line x1="0" y1="30.5" x2="230" y2="30.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <line x1="0" y1="59.5" x2="230" y2="59.5" stroke="var(--border-sub)" stroke-width="1"/>
+                <polyline points="0,34 25,42 50,16 75,30 100,10 125,26 150,20 175,38 200,24 230,32" fill="none" stroke="var(--viz-teal)" stroke-width="1.8" stroke-linejoin="round"/>
+              </svg>
+              <div style="display: flex; justify-content: space-between; padding-top: 4px;">
+                <span style="font-size: 10.5px; color: var(--text-sub);">Juin</span>
+                <span style="font-size: 10.5px; color: var(--text-sub);">Août</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRODUITS LES PLUS VENDUS -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 1px 0 rgba(22,29,37,0.05);">
+          <div style="font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 14px;">Produits les plus vendus</div>
+          <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 9px; border-bottom: 1px solid var(--border-sub); margin-bottom: 9px;">
+              <span style="font-size: 11px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.04em;">Produit</span>
+              <span style="font-size: 11px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.04em;">Ventes</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0;">
+              <span style="font-size: 13px; color: var(--text);">Sweat à capuche « Studio »</span>
+              <span style="font-size: 13px; font-weight: 500; color: var(--text);">1 284,00 €</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0;">
+              <span style="font-size: 13px; color: var(--text);">Mug édition limitée</span>
+              <span style="font-size: 13px; font-weight: 500; color: var(--text);">946,50 €</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0;">
+              <span style="font-size: 13px; color: var(--text);">T-shirt logo brodé</span>
+              <span style="font-size: 13px; font-weight: 500; color: var(--text);">812,30 €</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0;">
+              <span style="font-size: 13px; color: var(--text);">Tote bag toile</span>
+              <span style="font-size: 13px; font-weight: 500; color: var(--text);">524,90 €</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0;">
+              <span style="font-size: 13px; color: var(--text);">Casquette brodée</span>
+              <span style="font-size: 13px; font-weight: 500; color: var(--text);">318,70 €</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var KEY = 'analyses-boutique/v1';
+  var root = document.documentElement;
+  var bar = document.getElementById('topbar');
+
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn-edit';
+  btn.setAttribute('aria-pressed', 'false');
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>Modifier</span>';
+  bar.insertBefore(btn, bar.lastElementChild);
+
+  // Repérage déterministe des zones de texte modifiables.
+  var fields = [];
+  var all = document.querySelectorAll('span, div, h1, h2, h3, h4');
+  for (var i = 0; i < all.length; i++) {
+    var el = all[i];
+    if (el.closest('.btn-edit')) continue;
+    if (el.children.length) continue;
+    if (!el.textContent.trim()) continue;
+    el.classList.add('ed');
+    el.dataset.k = 'f' + fields.length;
+    fields.push(el);
+  }
+
+  // --- persistance locale (reste sur cet appareil) ---
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      for (var i = 0; i < fields.length; i++) {
+        var v = saved[fields[i].dataset.k];
+        if (typeof v === 'string') fields[i].textContent = v;
+      }
+    } catch (e) { /* stockage indisponible : on garde les valeurs par défaut */ }
+  }
+
+  function save() {
+    try {
+      var out = {};
+      for (var i = 0; i < fields.length; i++) out[fields[i].dataset.k] = fields[i].textContent;
+      localStorage.setItem(KEY, JSON.stringify(out));
+    } catch (e) { /* quota ou navigation privée : sans effet */ }
+  }
+
+  load();
+
+  var probe = document.createElement('div');
+  probe.setAttribute('contenteditable', 'plaintext-only');
+  var mode = probe.contentEditable === 'plaintext-only' ? 'plaintext-only' : 'true';
+
+  function setMode(on) {
+    root.setAttribute('data-editing', on ? 'on' : 'off');
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.lastChild.textContent = on ? 'Terminé' : 'Modifier';
+    for (var i = 0; i < fields.length; i++) {
+      if (on) fields[i].setAttribute('contenteditable', mode);
+      else fields[i].removeAttribute('contenteditable');
+    }
+    if (!on) save();
+  }
+
+  setMode(false);
+  btn.addEventListener('click', function () {
+    setMode(root.getAttribute('data-editing') !== 'on');
+  });
+
+  document.addEventListener('input', function (e) {
+    if (e.target.classList && e.target.classList.contains('ed')) save();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('ed')) {
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
+
+  // Appui long sur le bouton = remise à zéro des valeurs.
+  var timer = null;
+  btn.addEventListener('pointerdown', function () {
+    timer = setTimeout(function () {
+      if (confirm('Rétablir les chiffres d\'origine ?')) {
+        try { localStorage.removeItem(KEY); } catch (e) {}
+        location.reload();
+      }
+    }, 800);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
+    btn.addEventListener(ev, function () { clearTimeout(timer); });
+  });
+})();
+</script>
+</body>
+</html>
