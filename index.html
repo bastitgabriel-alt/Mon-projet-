@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gagne de l'argent en ouvrant un compte</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #0f0f1e;
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* HOME PAGE */
+    #homePage {
+      display: block;
+    }
+
+    #homePage.hidden {
+      display: none;
+    }
+
+    .hero {
+      padding: 4rem 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-decorations {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      background-color: #a855f7;
+      opacity: 0.3;
+    }
+
+    .dot-1 { top: 20px; right: 30px; width: 12px; height: 12px; background-color: #fff; opacity: 0.4; }
+    .dot-2 { top: 60px; right: 60px; width: 8px; height: 8px; opacity: 0.6; }
+    .dot-3 { top: 40px; left: 40px; width: 14px; height: 14px; background-color: #fff; opacity: 0.3; }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.15rem;
+      color: #a855f7;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 8vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-accent {
+      color: #a855f7;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #ccc;
+      margin-bottom: 2rem;
+      max-width: 550px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-subtitle {
+      font-size: 0.95rem;
+      color: #888;
+      font-weight: 500;
+    }
+
+    .cards {
+      display: grid;
+      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      padding: 2rem 0;
+    }
+
+    .card {
+      padding: 2rem;
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      border-radius: 12px;
+      background-color: rgba(168, 85, 247, 0.05);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      background-color: rgba(168, 85, 247, 0.15);
+      border-color: rgba(168, 85, 247, 0.5);
+      transform: translateY(-4px);
+    }
+
+    .card-logo {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 1.5rem;
+      object-fit: contain;
+    }
+
+    .card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .card-category {
+      font-size: 0.9rem;
+      color: #a855f7;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .card-gain {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #a855f7;
+      margin-bottom: 1.5rem;
+      flex-grow: 1;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      background-color: #a855f7;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #9333ea;
+    }
+
+    /* DETAILS PAGE */
+    #detailsPage {
+      display: none;
+    }
+
+    #detailsPage.active {
+      display: block;
+    }
+
+    .header-back {
+      padding: 1.5rem;
+      background-color: rgba(168, 85, 247, 0.05);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+    }
+
+    .btn-back {
+      padding: 0.6rem 1.2rem;
+      background-color: transparent;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: #a855f7;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+      background-color: rgba(168, 85, 247, 0.1);
+      border-color: #a855f7;
+    }
+
+    .main-details {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    .details-title {
+      margin-bottom: 2rem;
+    }
+
+    .details-logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 1.5rem;
+      object-fit: contain;
+    }
+
+    .details-title h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .details-gain {
+      font-size: 1.2rem;
+      color: #a855f7;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .section {
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+    }
+
+    .section-first {
+      padding: 0;
+    }
+
+    .section p {
+      font-size: 1rem;
+      color: #ccc;
+      line-height: 1.8;
+    }
+
+    .info-box {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background-color: rgba(168, 85, 247, 0.05);
+      border-radius: 8px;
+    }
+
+    .info-box h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 0.8rem 0;
+      color: #a855f7;
+    }
+
+    .info-box p {
+      font-size: 0.95rem;
+      color: #ccc;
+      margin: 0;
+      line-height: 1.8;
+    }
+
+    .warning-box {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background-color: rgba(255, 184, 100, 0.1);
+      border-left: 3px solid #ffb864;
+      border-radius: 8px;
+    }
+
+    .warning-box h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 0.8rem 0;
+      color: #ffb864;
+    }
+
+    .warning-box p {
+      font-size: 0.95rem;
+      color: #ccc;
+      margin: 0;
+      line-height: 1.8;
+    }
+
+    .code-box {
+      margin-bottom: 2rem;
+      padding: 2rem;
+      background-color: rgba(168, 85, 247, 0.1);
+      border: 2px solid rgba(168, 85, 247, 0.3);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .code-label {
+      font-size: 0.85rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.1rem;
+      margin-bottom: 0.8rem;
+      font-weight: 600;
+    }
+
+    .code-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #a855f7;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.2em;
+    }
+
+    .process-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .process-item {
+      padding-left: 2rem;
+      border-left: 2px solid rgba(168, 85, 247, 0.3);
+      position: relative;
+    }
+
+    .process-dot {
+      position: absolute;
+      left: -9px;
+      top: 0;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: #a855f7;
+    }
+
+    .process-item h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      color: #fff;
+    }
+
+    .process-item p {
+      font-size: 0.95rem;
+      color: #aaa;
+      margin: 0;
+    }
+
+    .cta-section {
+      text-align: center;
+      padding-top: 2rem;
+    }
+
+    .btn-cta {
+      display: inline-block;
+      padding: 1.5rem 3rem;
+      background-color: #a855f7;
+      color: #fff;
+      text-decoration: none;
+      font-size: 1.3rem;
+      border-radius: 8px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-cta:hover {
+      background-color: #9333ea;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+<!-- HOME PAGE -->
+<div id="homePage">
+  <header class="hero">
+    <div class="hero-decorations">
+      <div class="dot dot-1"></div>
+      <div class="dot dot-2"></div>
+      <div class="dot dot-3"></div>
+    </div>
+
+    <div class="hero-content">
+      <p class="hero-label">Gagne de l'argent en ouvrant un compte</p>
+
+      <h1>Dépense rien, gagne jusqu'à <span class="hero-accent">160€</span><br>en moins de 10 minutes</h1>
+
+      <p>Tu cherches un compte bancaire ? Tu vas en ouvrir un de toute façon. Avec mes liens, tu reçois un bonus d'ouverture garantis. C'est gratuit, c'est automatique, et ça arrive direct sur ton compte.</p>
+
+      <p class="hero-subtitle">Sélectionne une banque pour voir les détails et le processus</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="cards">
+      <!-- Fortuneo Card -->
+      <div class="card" onclick="showDetails('fortuneo')">
+        <svg class="card-logo" viewBox="0 0 200 200" style="width:60px;height:60px;">
+          <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="24" font-weight="bold" fill="#a855f7">F</text>
+        </svg>
+        <h3>Fortuneo</h3>
+        <p class="card-category">Banque en ligne</p>
+        <div class="card-gain">70€</div>
+        <button class="btn">Voir comment gagner →</button>
+      </div>
+
+      <!-- BoursoBank Card -->
+      <div class="card" onclick="showDetails('boursobank')">
+        <svg class="card-logo" viewBox="0 0 200 200" style="width:60px;height:60px;">
+          <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="24" font-weight="bold" fill="#a855f7">B</text>
+        </svg>
+        <h3>BoursoBank</h3>
+        <p class="card-category">Banque en ligne</p>
+        <div class="card-gain">Jusqu'à 160€</div>
+        <button class="btn">Voir comment gagner →</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- DETAILS PAGE -->
+<div id="detailsPage">
+  <div class="header-back">
+    <button class="btn-back" onclick="showHome()">← Retour</button>
+  </div>
+
+  <main class="main-details">
+    <div id="detailsContent"></div>
+  </main>
+</div>
+
+<script>
+const data = {
+  fortuneo: {
+    name: 'Fortuneo',
+    logo: 'F',
+    gain: '70€',
+    description: 'Fortuneo est une banque en ligne française créée en 2000, filiale du groupe Crédit Mutuel. Elle propose des comptes courants gratuits, des cartes sans frais, et des services bancaires simplifiés. Pas de frais de tenue de compte, pas de frais de virement. C\'est une vraie banque, reconnue et sécurisée.',
+    whyCarte: 'Fortuneo propose deux types de cartes : la Fosfo (gratuite) qui offre les paiements contactless et l\'accès aux distributeurs, et la Mastercard Gold (à partir de 2 200€ de revenus nets mensuels) qui offre plus de garanties et d\'avantages (assurances voyage, assistance). Le bonus dépend de la carte choisie : 70€ pour la Fosfo, 150€ pour la Mastercard Gold.',
+    minDeposit: 'Dépôt minimum requis : 300€. C\'est obligatoire pour ouvrir un compte courant chez Fortuneo.',
+    timing: 'Compte ouvert en 3-5 jours ouvrés. Carte reçue en 5-7 jours après ouverture. Bonus crédité automatiquement 2-4 semaines après l\'activation de la carte.',
+    important: 'Le bonus est automatique. Aucune action supplémentaire requise une fois la carte activée. Tu n\'as pas besoin d\'utiliser ta carte pour recevoir le bonus — il arrive tout seul sur ton compte.',
+    code: '14248993',
+    link: 'https://www.fortuneo.fr',
+    process: [
+      { step: 'Remplis le formulaire d\'ouverture', details: 'Identité, adresse, situation financière. C\'est simple et prend 5 minutes. 100% en ligne.' },
+      { step: 'Valide ton identité', details: 'Via vidéo selon la méthode de Fortuneo. C\'est rapide, aucune visite à faire.' },
+      { step: 'Effectue le versement minimum', details: 'Dépose 300€ minimum sur ton compte. Tu peux virer d\'une autre banque ou de n\'importe quelle source.' },
+      { step: 'Reçois ta carte postale', details: 'La carte physique arrive en 5-7 jours ouvrés après l\'ouverture du compte.' },
+      { step: 'Le bonus arrive automatiquement', details: 'Une fois la carte activée, le bonus (70€ ou 150€) se crédite sur ton compte sans aucune action. Aucune utilisation requise.' }
+    ]
+  },
+
+  boursobank: {
+    name: 'BoursoBank',
+    logo: 'B',
+    gain: 'Jusqu\'à 160€',
+    description: 'BoursoBank est la banque la moins chère de France depuis 18 ans. C\'est une vraie banque avec 8 millions de clients. Zéro frais de compte, zéro frais de virement. Compte courant gratuit, cartes gratuites, pas de frais cachés. C\'est un établissement fiable et régulé.',
+    bonusBreakdown: 'Le bonus total peut atteindre 160€, mais il est composé de plusieurs parties : jusqu\'à 40€ pour le premier versement, jusqu\'à 40€ pour 3 mois d\'utilisation (opérations par carte), et jusqu\'à 80€ si tu fais une mobilité bancaire (transfert de tes anciens virements de banque). Tu ne dois pas tout faire, mais c\'est possible.',
+    minDeposit: 'Versement minimum : 1€. Mais pour obtenir le bonus maximal (40€ sur le dépôt), il faut verser minimum 300€. Si tu verses entre 50€ et 299€, tu reçois 20€. Entre 1€ et 49€, tu reçois 10€.',
+    timing: 'Compte ouvert en 5-10 minutes. Primo, le dépôt crédite rapidement (1-2 jours). Bonus du dépôt en 7 jours. Bonus utilisation chaque mois après. Bonus mobilité en max 60 jours.',
+    important: 'Le bonus maximal (160€) demande un peu d\'organisation, mais aucune complication : un versement de 300€+, 3 paiements par mois pendant 3 mois, et un transfert de virements si tu veux les 80€ de plus. Si tu ne fais que le versement et 3 mois d\'utilisation, tu reçois 80€ minimum.',
+    link: 'https://bour.so/p/WotZJoR7TDa',
+    process: [
+      { step: 'Clique sur mon lien d\'invitation', details: 'Tu arrives sur la page d\'ouverture de BoursoBank. Mon code parrain est déjà intégré automatiquement.' },
+      { step: 'Ouvre ton compte courant individuel', details: 'Ça prend 5 minutes : identité, adresse, informations bancaires. C\'est 100% en ligne.' },
+      { step: 'Fais un premier versement', details: 'Minimum 1€, mais 300€ ou plus pour le bonus maximal (40€). Tu peux virer d\'une autre banque.' },
+      { step: 'Utilise ta carte 3 mois d\'affilée', details: 'Au moins une opération (paiement ou retrait) chaque mois pendant 3 mois = +40€. Ce n\'est pas compliqué.' },
+      { step: 'Optionnel : transfère tes anciens virements', details: 'Si tu fais une mobilité bancaire (EasyMove) dans les 30 jours = +80€. C\'est optionnel mais ça vaut le coup.' },
+      { step: 'Reçois tes bonus', details: 'Les bonus arrivent progressivement sur ton compte : 10-40€ après le dépôt, puis 10-20€ chaque mois, et 80€ après la mobilité.' }
+    ]
+  }
+};
+
+function showDetails(bankId) {
+  const bank = data[bankId];
+  const content = document.getElementById('detailsContent');
+
+  let html = `
+    <div class="details-title">
+      <svg viewBox="0 0 200 200" style="width:80px;height:80px;margin-bottom:1.5rem;">
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="64" font-weight="bold" fill="#a855f7">${bank.logo}</text>
+      </svg>
+      <h1>${bank.name}</h1>
+      <p class="details-gain">Tu peux gagner ${bank.gain}</p>
+    </div>
+
+    <section class="section section-first">
+      <p>${bank.description}</p>
+    </section>
+  `;
+
+  if (bank.whyCarte) {
+    html += `
+      <div class="info-box">
+        <h3>Quelle carte ?</h3>
+        <p>${bank.whyCarte}</p>
+      </div>
+    `;
+  }
+
+  if (bank.bonusBreakdown) {
+    html += `
+      <div class="info-box">
+        <h3>Comment tu gagnes ${bank.gain} ?</h3>
+        <p>${bank.bonusBreakdown}</p>
+      </div>
+    `;
+  }
+
+  html += `
+    <div class="info-box">
+      <h3>Combien tu dois déposer ?</h3>
+      <p>${bank.minDeposit}</p>
+    </div>
+
+    <div class="section">
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 1.5rem 0; color: #a855f7;">Les étapes (c'est simple)</h3>
+      <div class="process-list">
+  `;
+
+  bank.process.forEach((item, idx) => {
+    html += `
+      <div class="process-item">
+        <div class="process-dot"></div>
+        <h4>${idx + 1}. ${item.step}</h4>
+        <p>${item.details}</p>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  if (bank.code) {
+    html += `
+      <div class="code-box">
+        <div class="code-label">Code parrain</div>
+        <div class="code-value">${bank.code}</div>
+      </div>
+    `;
+  }
+
+  html += `
+    <div class="info-box">
+      <h3>Les délais</h3>
+      <p>${bank.timing}</p>
+    </div>
+
+    <div class="warning-box">
+      <h3>⚠️ À retenir</h3>
+      <p>${bank.important}</p>
+    </div>
+
+    <div class="cta-section">
+      <a href="${bank.link}" target="_blank" class="btn-cta">Reçois tes ${bank.gain} →</a>
+    </div>
+  `;
+
+  content.innerHTML = html;
+
+  document.getElementById('homePage').classList.add('hidden');
+  document.getElementById('detailsPage').classList.add('active');
+}
+
+function showHome() {
+  document.getElementById('homePage').classList.remove('hidden');
+  document.getElementById('detailsPage').classList.remove('active');
+}
+</script>
+
+</body>
+</html>
