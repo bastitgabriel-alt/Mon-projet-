@@ -247,6 +247,90 @@ encre-2 4,51 (AA), accent 7,12 (AAA). Aucune paire ne descend sous le seuil.
 
 ---
 
+## Étape 5 — Guide des tailles ✅
+
+### Aucune mensuration disponible
+
+Même situation que le grammage : le §6 réclame des « mensurations réelles »,
+la fiche produit n'en contient aucune. Le composant est donc bâti pour que
+l'absence soit tenable :
+
+- **le conseil de coupe s'affiche toujours** — c'est la seule information
+  certaine, et elle vient du marchand : « prenez votre taille habituelle,
+  entre deux tailles la plus grande » ;
+- **le tableau ne s'affiche que si au moins une mesure est renseignée.** Un
+  tableau aux cellules vides serait publié en l'état ; un tableau inventé
+  serait faux. Les deux sont pires que son absence.
+
+Les six intitulés de tailles (S → 3XL) sont pré-remplis car ils, eux, sont
+réels. Les 18 cellules de mesures sont vides.
+
+### `<dialog>` natif plutôt que le tiroir de Helio
+
+Helio expose `snippets/theme-drawer.liquid` et `assets/theme-drawer.js`.
+Écarté au profit de `<dialog>`, qui fournit **nativement** les quatre
+exigences du §8 pour les tiroirs : piège de focus, fermeture par Échap,
+restauration du focus sur le déclencheur, inertage de l'arrière-plan.
+Réimplémenter cela via le tiroir maison aurait ajouté du code pour un
+résultat inférieur, et créé une dépendance à l'interne du thème.
+
+Coût : 2,2 Ko de JavaScript, uniquement pour appeler `showModal()`.
+
+### Sans JavaScript
+
+`showModal()` n'étant jamais appelé, le panneau resterait masqué. La feuille
+de style le rétablit en flux normal via `@media (scripting: none)`. Le
+conseil de coupe figure de toute façon aussi dans l'accordéon « Taille &
+coupe » de la fiche produit : l'information n'est jamais perdue.
+
+### À vérifier
+
+L'accès par crochets `block.settings[cle]` — utilisé pour parcourir les six
+lignes — doit être confirmé au rendu. En cas d'échec, `a_tableau` reste faux
+et le tableau ne s'affiche simplement pas : la dégradation est sûre.
+
+---
+
+## Étape 6 — FAQ et balisage FAQPage ✅
+
+### Décidé
+
+Section `sections/epure-faq.liquid`, huit emplacements de questions dont sept
+pré-remplis à partir des seules informations de la fiche produit : invisibilité
+sous le vêtement, choix de taille, confort sur la journée, post-partum, délai
+de livraison, retours, entretien.
+
+**Accordéon en `<details>`/`<summary>` natif** : zéro JavaScript. Ouverture,
+fermeture, navigation clavier et annonce aux lecteurs d'écran sont assurées
+par le navigateur. La section fonctionne intégralement si le JS échoue.
+
+**Le JSON-LD est généré depuis les mêmes réglages que l'affichage.** Les deux
+ne peuvent donc pas diverger — or c'est exactement la divergence entre balisage
+et contenu visible que Google sanctionne.
+
+### Le balisage est désactivable, volontairement
+
+Une case `Publier le balisage FAQPage`, cochée par défaut mais accompagnée
+d'un avertissement. Publier un `FAQPage` dont les réponses sont inexactes
+expose à une pénalité manuelle : ce doit rester un choix conscient, pas un
+réglage subi.
+
+### Détail de mise en page
+
+Titre à gauche, questions à droite, en 4/6 — la même asymétrie que le bloc
+matière, pour que la page n'ait qu'une seule logique de grille. Le marqueur
+natif du `<summary>` est remplacé par un signe + / − dessiné en CSS, qui
+pivote à l'ouverture.
+
+### Nettoyage §10
+
+La fiche produit portait encore toute l'ancienne palette mastic. Balayée :
+`#F8F5F2 → #F7F4F0`, `#2A2523 → #221E1C`, `#EDE7E1 → #EFEAE4`,
+`#DDD4CC → #7C7671` (filet fonctionnel, seuil 3:1), `#C9A896 → palette color11`.
+Corrigé aussi « élastane » en « élasthanne », pour coller à la fiche du marchand.
+
+---
+
 ## À vérifier au premier rendu
 
 Sans accès réseau à la boutique, ces points ne sont pas confirmés :
@@ -292,8 +376,8 @@ body change. Il ne l'est pas si la silhouette a été affinée.
 - [x] Hero comparateur
 - [x] Preuve produit
 - [x] Bloc matière
-- [ ] Guide des tailles en tiroir
-- [ ] FAQ + JSON-LD `FAQPage`
+- [x] Guide des tailles en tiroir
+- [x] FAQ + JSON-LD `FAQPage`
 - [ ] Avis clients
 - [ ] Réassurance
 - [ ] Remplacer les visuels marketplace (allégations d'amincissement, contraires aux §5 et §10)

@@ -1,0 +1,491 @@
+{%- comment -%}
+  ÉPURE — Guide des tailles en tiroir latéral.
+
+  Le §6 en fait « le premier facteur de retours produit ». Deux partis pris :
+
+  — le conseil de coupe s'affiche toujours, car c'est la seule information dont
+    on dispose avec certitude ;
+  — le tableau de mensurations ne s'affiche que si au moins une mesure est
+    renseignée. Publier un tableau vide ou inventé serait pire qu'aucun
+    tableau : ce sont des données vérifiables, et le §11 proscrit le faux
+    contenu en ligne.
+
+  Le tiroir est un <dialog> natif : piège de focus, fermeture par Échap et
+  restauration du focus sont assurés par le navigateur (§8).
+{%- endcomment -%}
+
+<script src="{{ 'epure-guide-tailles.js' | asset_url }}" defer></script>
+
+{%- liquid
+  assign a_tableau = false
+  assign colonnes = 'a,b,c' | split: ','
+  for i in (1..6)
+    for c in colonnes
+      assign cle = 'l' | append: i | append: '_' | append: c
+      if block.settings[cle] != blank
+        assign a_tableau = true
+      endif
+    endfor
+  endfor
+
+  assign id_titre = 'guide-titre-' | append: block.id
+-%}
+
+<epure-guide-tailles class="epure-taille" {{ block.shopify_attributes }}>
+  <button
+    type="button"
+    class="epure-taille__lien"
+    data-guide-ouvrir
+  >
+    {{ block.settings.etiquette_declencheur }}
+  </button>
+
+  <dialog class="epure-taille__panneau" data-guide-panneau aria-labelledby="{{ id_titre }}">
+    <div class="epure-taille__entete">
+      <h2 class="epure-taille__titre" id="{{ id_titre }}">{{ block.settings.titre }}</h2>
+      <button type="button" class="epure-taille__fermer" data-guide-fermer aria-label="Fermer le guide des tailles">
+        {{- 'icon-close.svg' | inline_asset_content -}}
+      </button>
+    </div>
+
+    <div class="epure-taille__corps">
+      {%- if a_tableau -%}
+        <table class="epure-taille__tableau">
+          <thead>
+            <tr>
+              <th scope="col">Taille</th>
+              <th scope="col">{{ block.settings.entete_a }}</th>
+              <th scope="col">{{ block.settings.entete_b }}</th>
+              <th scope="col">{{ block.settings.entete_c }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {%- for i in (1..6) -%}
+              {%- liquid
+                assign cle_nom = 'l' | append: i | append: '_nom'
+                assign cle_a = 'l' | append: i | append: '_a'
+                assign cle_b = 'l' | append: i | append: '_b'
+                assign cle_c = 'l' | append: i | append: '_c'
+                assign nom = block.settings[cle_nom]
+              -%}
+              {%- if nom != blank -%}
+                <tr>
+                  <th scope="row">{{ nom }}</th>
+                  <td>{{ block.settings[cle_a] }}{% if block.settings[cle_a] != blank %} {{ block.settings.unite }}{% endif %}</td>
+                  <td>{{ block.settings[cle_b] }}{% if block.settings[cle_b] != blank %} {{ block.settings.unite }}{% endif %}</td>
+                  <td>{{ block.settings[cle_c] }}{% if block.settings[cle_c] != blank %} {{ block.settings.unite }}{% endif %}</td>
+                </tr>
+              {%- endif -%}
+            {%- endfor -%}
+          </tbody>
+        </table>
+
+        {%- if block.settings.note != blank -%}
+          <p class="epure-taille__note">{{ block.settings.note }}</p>
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- if block.settings.conseil != blank -%}
+        <div class="epure-taille__conseil">
+          <p class="epure-taille__conseil-titre">Entre deux tailles</p>
+          <p>{{ block.settings.conseil }}</p>
+        </div>
+      {%- endif -%}
+    </div>
+  </dialog>
+</epure-guide-tailles>
+
+{% stylesheet %}
+  .epure-taille {
+    display: block;
+  }
+
+  .epure-taille__lien {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: var(--e-police-texte);
+    font-size: var(--e-t6-corps);
+    font-weight: var(--e-t6-graisse);
+    letter-spacing: var(--e-t6-lettre);
+    text-transform: uppercase;
+    color: var(--e-encre-2);
+    cursor: pointer;
+    box-shadow: inset 0 -1px 0 var(--e-ligne-forte);
+    transition: color var(--e-duree-court) var(--e-courbe);
+  }
+
+  .epure-taille__lien:hover {
+    color: var(--e-encre);
+  }
+
+  /* Tiroir latéral. <dialog> occupe tout l'écran une fois ouvert : on le
+     repousse contre le bord droit et on laisse ::backdrop assombrir le fond. */
+  .epure-taille__panneau {
+    margin: 0 0 0 auto;
+    max-width: min(30rem, 100vw);
+    width: 100%;
+    height: 100%;
+    max-height: 100dvh;
+    padding: 0;
+    border: 0;
+    background-color: var(--e-surface);
+    color: var(--e-encre);
+  }
+
+  .epure-taille__panneau::backdrop {
+    background-color: rgb(34 30 28 / 0.4);
+  }
+
+  .epure-taille__entete {
+    position: sticky;
+    inset-block-start: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e-esp-4);
+    padding: var(--e-esp-5) var(--e-esp-6);
+    background-color: var(--e-surface);
+    border-bottom: var(--e-trait) solid var(--e-ligne);
+  }
+
+  .epure-taille__titre {
+    margin: 0;
+    font-size: var(--e-t3-corps);
+    line-height: var(--e-t3-ligne);
+    letter-spacing: var(--e-t3-lettre);
+  }
+
+  .epure-taille__fermer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--e-cible-tactile);
+    height: var(--e-cible-tactile);
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--e-encre);
+    cursor: pointer;
+  }
+
+  .epure-taille__fermer svg {
+    width: var(--e-esp-5);
+    height: var(--e-esp-5);
+  }
+
+  .epure-taille__corps {
+    padding: var(--e-esp-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-esp-6);
+  }
+
+  .epure-taille__tableau {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--e-t5-corps);
+  }
+
+  .epure-taille__tableau th,
+  .epure-taille__tableau td {
+    padding: var(--e-esp-3) var(--e-esp-2);
+    text-align: left;
+    border-bottom: var(--e-trait) solid var(--e-ligne);
+  }
+
+  .epure-taille__tableau thead th {
+    font-family: var(--e-police-texte);
+    font-size: var(--e-t6-corps);
+    font-weight: var(--e-t6-graisse);
+    letter-spacing: var(--e-t6-lettre);
+    text-transform: uppercase;
+    color: var(--e-encre-2);
+    border-bottom-color: var(--e-ligne-forte);
+  }
+
+  .epure-taille__tableau tbody th {
+    font-weight: var(--e-t6-graisse);
+  }
+
+  .epure-taille__note {
+    margin: 0;
+    font-size: var(--e-t6-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre-2);
+  }
+
+  .epure-taille__conseil {
+    padding: var(--e-esp-5);
+    background-color: var(--e-sable);
+  }
+
+  .epure-taille__conseil p {
+    margin: 0;
+    font-size: var(--e-t5-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre);
+  }
+
+  .epure-taille__conseil-titre {
+    margin-bottom: var(--e-esp-2);
+    font-size: var(--e-t6-corps);
+    font-weight: var(--e-t6-graisse);
+    letter-spacing: var(--e-t6-lettre);
+    text-transform: uppercase;
+    color: var(--e-accent);
+  }
+
+  /* Sans JavaScript, showModal() n'est jamais appelé et le panneau resterait
+     masqué. On le rétablit alors en flux normal plutôt que de perdre
+     l'information (§3 : ne jamais casser le rendu si le JS échoue). */
+  @media (scripting: none) {
+    .epure-taille__lien {
+      display: none;
+    }
+
+    .epure-taille__panneau {
+      display: block;
+      position: static;
+      max-width: none;
+      height: auto;
+      background: none;
+    }
+
+    .epure-taille__fermer {
+      display: none;
+    }
+
+    .epure-taille__corps,
+    .epure-taille__entete {
+      padding-inline: 0;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Guide des tailles Épure",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "etiquette_declencheur",
+      "label": "Libellé du lien",
+      "default": "Guide des tailles"
+    },
+    {
+      "type": "text",
+      "id": "titre",
+      "label": "Titre du tiroir",
+      "default": "Guide des tailles"
+    },
+    {
+      "type": "textarea",
+      "id": "conseil",
+      "label": "Conseil de coupe",
+      "default": "Prenez votre taille habituelle. Entre deux tailles, choisissez la plus grande : le maintien reste efficace et le confort est bien meilleur sur une journée entière.",
+      "info": "Toujours affiché, même si le tableau n'est pas rempli."
+    },
+    {
+      "type": "header",
+      "content": "Tableau des mensurations"
+    },
+    {
+      "type": "paragraph",
+      "content": "Le tableau ne s'affiche que si au moins une mesure est renseignée. Laissez vide tant que vous n'avez pas les valeurs réelles : mieux vaut aucun tableau qu'un tableau faux."
+    },
+    {
+      "type": "text",
+      "id": "entete_a",
+      "label": "Colonne 1",
+      "default": "Poitrine"
+    },
+    {
+      "type": "text",
+      "id": "entete_b",
+      "label": "Colonne 2",
+      "default": "Taille"
+    },
+    {
+      "type": "text",
+      "id": "entete_c",
+      "label": "Colonne 3",
+      "default": "Hanches"
+    },
+    {
+      "type": "text",
+      "id": "unite",
+      "label": "Unité",
+      "default": "cm"
+    },
+    {
+      "type": "header",
+      "content": "Taille S"
+    },
+    {
+      "type": "text",
+      "id": "l1_nom",
+      "label": "Intitulé",
+      "default": "S"
+    },
+    {
+      "type": "text",
+      "id": "l1_a",
+      "label": "Poitrine"
+    },
+    {
+      "type": "text",
+      "id": "l1_b",
+      "label": "Taille"
+    },
+    {
+      "type": "text",
+      "id": "l1_c",
+      "label": "Hanches"
+    },
+    {
+      "type": "header",
+      "content": "Taille M"
+    },
+    {
+      "type": "text",
+      "id": "l2_nom",
+      "label": "Intitulé",
+      "default": "M"
+    },
+    {
+      "type": "text",
+      "id": "l2_a",
+      "label": "Poitrine"
+    },
+    {
+      "type": "text",
+      "id": "l2_b",
+      "label": "Taille"
+    },
+    {
+      "type": "text",
+      "id": "l2_c",
+      "label": "Hanches"
+    },
+    {
+      "type": "header",
+      "content": "Taille L"
+    },
+    {
+      "type": "text",
+      "id": "l3_nom",
+      "label": "Intitulé",
+      "default": "L"
+    },
+    {
+      "type": "text",
+      "id": "l3_a",
+      "label": "Poitrine"
+    },
+    {
+      "type": "text",
+      "id": "l3_b",
+      "label": "Taille"
+    },
+    {
+      "type": "text",
+      "id": "l3_c",
+      "label": "Hanches"
+    },
+    {
+      "type": "header",
+      "content": "Taille XL"
+    },
+    {
+      "type": "text",
+      "id": "l4_nom",
+      "label": "Intitulé",
+      "default": "XL"
+    },
+    {
+      "type": "text",
+      "id": "l4_a",
+      "label": "Poitrine"
+    },
+    {
+      "type": "text",
+      "id": "l4_b",
+      "label": "Taille"
+    },
+    {
+      "type": "text",
+      "id": "l4_c",
+      "label": "Hanches"
+    },
+    {
+      "type": "header",
+      "content": "Taille 2XL"
+    },
+    {
+      "type": "text",
+      "id": "l5_nom",
+      "label": "Intitulé",
+      "default": "2XL"
+    },
+    {
+      "type": "text",
+      "id": "l5_a",
+      "label": "Poitrine"
+    },
+    {
+      "type": "text",
+      "id": "l5_b",
+      "label": "Taille"
+    },
+    {
+      "type": "text",
+      "id": "l5_c",
+      "label": "Hanches"
+    },
+    {
+      "type": "header",
+      "content": "Taille 3XL"
+    },
+    {
+      "type": "text",
+      "id": "l6_nom",
+      "label": "Intitulé",
+      "default": "3XL"
+    },
+    {
+      "type": "text",
+      "id": "l6_a",
+      "label": "Poitrine"
+    },
+    {
+      "type": "text",
+      "id": "l6_b",
+      "label": "Taille"
+    },
+    {
+      "type": "text",
+      "id": "l6_c",
+      "label": "Hanches"
+    },
+    {
+      "type": "header",
+      "content": "Mentions"
+    },
+    {
+      "type": "textarea",
+      "id": "note",
+      "label": "Note de bas de tableau",
+      "info": "Par exemple : mesures prises sur le corps, vêtement non étiré."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Guide des tailles Épure",
+      "category": "Épure"
+    }
+  ]
+}
+{% endschema %}

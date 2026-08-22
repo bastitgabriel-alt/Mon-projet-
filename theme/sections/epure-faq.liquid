@@ -1,0 +1,350 @@
+{%- comment -%}
+  ÉPURE — Foire aux questions.
+
+  Deux exigences du §6 tenues ici :
+
+  — accordéon en <details>/<summary> natif. Aucun JavaScript n'est nécessaire :
+    l'ouverture et la fermeture sont assurées par le navigateur, la navigation
+    au clavier et l'annonce aux lecteurs d'écran aussi. La section reste donc
+    entièrement fonctionnelle si le JS échoue (§3) ;
+  — balisage FAQPage en JSON-LD, généré à partir des mêmes réglages que
+    l'affichage. Les deux ne peuvent pas diverger, ce qui est précisément ce
+    que Google sanctionne.
+
+  Le balisage est désactivable : publier un FAQPage dont les réponses sont
+  fausses expose à une pénalité, la case doit donc rester un choix conscient.
+{%- endcomment -%}
+
+{%- liquid
+  assign questions = ''
+  for i in (1..8)
+    assign cle_q = 'q' | append: i
+    assign cle_r = 'r' | append: i
+    if section.settings[cle_q] != blank and section.settings[cle_r] != blank
+      assign questions = questions | append: i | append: ','
+    endif
+  endfor
+  assign indices = questions | split: ','
+-%}
+
+{%- if indices.size > 0 -%}
+  <div class="epure-faq">
+    <div class="epure-faq__entete">
+      {%- if section.settings.sur_titre != blank -%}
+        <p class="epure-faq__sur-titre">{{ section.settings.sur_titre }}</p>
+      {%- endif -%}
+      {%- if section.settings.titre != blank -%}
+        <h2 class="epure-faq__titre">{{ section.settings.titre }}</h2>
+      {%- endif -%}
+    </div>
+
+    <div class="epure-faq__liste">
+      {%- for i in indices -%}
+        {%- liquid
+          assign cle_q = 'q' | append: i
+          assign cle_r = 'r' | append: i
+        -%}
+        <details class="epure-faq__item">
+          <summary class="epure-faq__question">
+            <span>{{ section.settings[cle_q] }}</span>
+            <span class="epure-faq__signe" aria-hidden="true"></span>
+          </summary>
+          <div class="epure-faq__reponse">{{ section.settings[cle_r] }}</div>
+        </details>
+      {%- endfor -%}
+    </div>
+  </div>
+
+  {%- if section.settings.jsonld -%}
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {%- for i in indices -%}
+            {%- liquid
+              assign cle_q = 'q' | append: i
+              assign cle_r = 'r' | append: i
+            -%}
+            {
+              "@type": "Question",
+              "name": {{ section.settings[cle_q] | strip_html | json }},
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": {{ section.settings[cle_r] | json }}
+              }
+            }{%- unless forloop.last -%},{%- endunless -%}
+          {%- endfor -%}
+        ]
+      }
+    </script>
+  {%- endif -%}
+{%- endif -%}
+
+{% stylesheet %}
+  .epure-faq {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--e-esp-6);
+    padding-block: var(--e-esp-9);
+    padding-inline: var(--e-gouttiere);
+    max-width: var(--page-width, 100%);
+    margin-inline: auto;
+  }
+
+  .epure-faq__sur-titre {
+    margin: 0 0 var(--e-esp-2);
+    font-size: var(--e-t6-corps);
+    font-weight: var(--e-t6-graisse);
+    letter-spacing: var(--e-t6-lettre);
+    text-transform: uppercase;
+    color: var(--e-accent);
+  }
+
+  .epure-faq__titre {
+    margin: 0;
+    font-size: var(--e-t2-corps);
+    line-height: var(--e-t2-ligne);
+    letter-spacing: var(--e-t2-lettre);
+  }
+
+  .epure-faq__item {
+    border-top: var(--e-trait) solid var(--e-ligne);
+  }
+
+  .epure-faq__item:last-child {
+    border-bottom: var(--e-trait) solid var(--e-ligne);
+  }
+
+  .epure-faq__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e-esp-4);
+    min-height: var(--e-cible-tactile);
+    padding-block: var(--e-esp-4);
+    font-size: var(--e-t4-corps);
+    line-height: var(--e-t4-ligne);
+    color: var(--e-encre);
+    cursor: pointer;
+    list-style: none;
+    transition: color var(--e-duree-court) var(--e-courbe);
+  }
+
+  /* Le marqueur natif est retire au profit du signe + / - dessine en CSS. */
+  .epure-faq__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .epure-faq__question:hover {
+    color: var(--e-accent);
+  }
+
+  .epure-faq__signe {
+    position: relative;
+    flex: 0 0 auto;
+    width: var(--e-esp-4);
+    height: var(--e-esp-4);
+  }
+
+  .epure-faq__signe::before,
+  .epure-faq__signe::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 0;
+    width: 100%;
+    height: var(--e-trait);
+    background-color: currentcolor;
+    transition: transform var(--e-duree-court) var(--e-courbe);
+  }
+
+  .epure-faq__signe::after {
+    transform: rotate(90deg);
+  }
+
+  .epure-faq__item[open] .epure-faq__signe::after {
+    transform: rotate(0deg);
+  }
+
+  .epure-faq__reponse {
+    padding-block-end: var(--e-esp-5);
+    max-width: 60ch;
+  }
+
+  .epure-faq__reponse p {
+    margin: 0;
+    font-size: var(--e-t5-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre-2);
+  }
+
+  @media screen and (min-width: 750px) {
+    /* Titre a gauche, questions a droite : meme asymetrie que le bloc matiere,
+       pour que la page garde une seule logique de grille. */
+    .epure-faq {
+      grid-template-columns: 4fr 6fr;
+      gap: var(--e-esp-7);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "FAQ Épure",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "sur_titre",
+      "label": "Sur-titre",
+      "default": "Questions fréquentes"
+    },
+    {
+      "type": "text",
+      "id": "titre",
+      "label": "Titre",
+      "default": "Ce qu’on nous demande le plus"
+    },
+    {
+      "type": "checkbox",
+      "id": "jsonld",
+      "label": "Publier le balisage FAQPage",
+      "default": true,
+      "info": "Permet à Google d'afficher les questions dans les résultats de recherche. Ne l'activez que si les réponses affichées sont exactes."
+    },
+    {
+      "type": "header",
+      "content": "Question 1"
+    },
+    {
+      "type": "text",
+      "id": "q1",
+      "label": "Question",
+      "default": "Est-ce que ça se voit sous les vêtements ?"
+    },
+    {
+      "type": "richtext",
+      "id": "r1",
+      "label": "Réponse",
+      "default": "<p>Les bords sont découpés au laser, sans ourlet ni couture. Il n’y a donc aucune démarcation, même sous une robe près du corps.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Question 2"
+    },
+    {
+      "type": "text",
+      "id": "q2",
+      "label": "Question",
+      "default": "Comment choisir ma taille ?"
+    },
+    {
+      "type": "richtext",
+      "id": "r2",
+      "label": "Réponse",
+      "default": "<p>Prenez votre taille habituelle. Entre deux tailles, choisissez la plus grande : le maintien reste efficace et le confort est bien meilleur sur une journée entière.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Question 3"
+    },
+    {
+      "type": "text",
+      "id": "q3",
+      "label": "Question",
+      "default": "Est-ce confortable sur toute une journée ?"
+    },
+    {
+      "type": "richtext",
+      "id": "r3",
+      "label": "Réponse",
+      "default": "<p>La compression est ferme sur l’abdomen et se relâche vers la cage thoracique. Il n’y a ni baleine ni armature : rien ne pique et rien ne marque en fin de journée.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Question 4"
+    },
+    {
+      "type": "text",
+      "id": "q4",
+      "label": "Question",
+      "default": "Convient-il en post-partum ?"
+    },
+    {
+      "type": "richtext",
+      "id": "r4",
+      "label": "Réponse",
+      "default": "<p>Oui. Le maintien est progressif et réparti, sans point de compression localisé.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Question 5"
+    },
+    {
+      "type": "text",
+      "id": "q5",
+      "label": "Question",
+      "default": "Quel est le délai de livraison ?"
+    },
+    {
+      "type": "richtext",
+      "id": "r5",
+      "label": "Réponse",
+      "default": "<p>La livraison est offerte. L’expédition se fait depuis notre entrepôt partenaire : comptez 10 à 20 jours ouvrés.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Question 6"
+    },
+    {
+      "type": "text",
+      "id": "q6",
+      "label": "Question",
+      "default": "Puis-je le retourner ?"
+    },
+    {
+      "type": "richtext",
+      "id": "r6",
+      "label": "Réponse",
+      "default": "<p>Les retours sont acceptés sous 14 jours à réception.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Question 7"
+    },
+    {
+      "type": "text",
+      "id": "q7",
+      "label": "Question",
+      "default": "Comment l’entretenir ?"
+    },
+    {
+      "type": "richtext",
+      "id": "r7",
+      "label": "Réponse",
+      "default": "<p>Lavage à la main ou en machine à 30 °C en filet. Pas de sèche-linge, pas de javel : la maille garde ainsi son élasticité.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Question 8"
+    },
+    {
+      "type": "text",
+      "id": "q8",
+      "label": "Question"
+    },
+    {
+      "type": "richtext",
+      "id": "r8",
+      "label": "Réponse"
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ Épure",
+      "category": "Épure"
+    }
+  ]
+}
+{% endschema %}
