@@ -331,6 +331,35 @@ Corrigé aussi « élastane » en « élasthanne », pour coller à la fiche du 
 
 ---
 
+## Comparateur — retiré de la page d'accueil
+
+Les quatre visuels Higgsfield importés le 22 août ont été inspectés via
+l'historique de génération. Leurs prompts :
+
+- « genere moi cette image en plus professionel pour ma boutique e commerce
+  et plus epuree » (retouche de photos produit)
+- « genere le body en marron » / « genere le moi en noir » (déclinaisons)
+
+**Aucune image « sans le body » n'existe dans ce lot.** Toutes montrent le
+produit porté. Le commanditaire avait donné carte blanche sur le choix des
+images, mais cette confiance supposait qu'une paire valable existe : ce n'est
+pas le cas. Deux images du produit porté, étiquetées « Sans le body » et
+« Avec le body », auraient été absurdes à l'écran et trompeuses sur le fond.
+
+Le hero repasse donc sur `epure-01-accroche.png` en pleine largeur. Le bloc
+`epure-comparateur` reste installé dans le thème et disponible dans le
+personnalisateur : il suffira de le rajouter le jour où la paire existera.
+
+Ce qu'il faut photographier : **même personne, même pose, même lumière, même
+cadrage, même objectif** — une prise sans le body, une avec. C'est la seule
+configuration à la fois lisible à l'écran et défendable juridiquement.
+
+Note technique : ni le CDN Shopify ni celui de Higgsfield ne sont joignables
+depuis cette session (403 sur le CONNECT). Les images n'ont jamais pu être
+regardées ; seuls leurs prompts de génération étaient accessibles.
+
+---
+
 ## À vérifier au premier rendu
 
 Sans accès réseau à la boutique, ces points ne sont pas confirmés :
@@ -373,7 +402,7 @@ body change. Il ne l'est pas si la silhouette a été affinée.
 
 ## Reste à faire
 
-- [x] Hero comparateur
+- [~] Hero comparateur — composant livré, en attente d'une vraie paire de photos
 - [x] Preuve produit
 - [x] Bloc matière
 - [x] Guide des tailles en tiroir
