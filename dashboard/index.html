@@ -420,8 +420,74 @@
   .step-text { font-size: 12.5px; }
   .step-when { font-size: 11.5px; color: var(--text-sub); }
 
+  /* ================ ACCUEIL — copie de l'app mobile ================ */
+  .mhome {
+    max-width: 430px; margin: 0 auto; background: #fff;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  @media (max-width: 900px) {
+    .mhome { max-width: none; border: 0; border-radius: 0; margin: -16px -14px; }
+  }
+
+  .m-pad { padding: 16px; }
+
+  .m-search {
+    display: flex; align-items: center; gap: 12px;
+    background: #f1f1f1; border-radius: 10px; padding: 13px 14px;
+    font-size: 16px; color: #5c5f62; margin-bottom: 18px;
+  }
+
+  .m-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; }
+  .m-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid #d0d3d6; background: #fff; border-radius: 9px;
+    padding: 8px 12px; font-size: 14px; font-weight: 600; color: #303030;
+    cursor: pointer; white-space: nowrap;
+  }
+  .m-pill:hover { background: #fafbfb; }
+  .m-visitors {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid #d0d3d6; border-radius: 9px; padding: 8px 12px;
+    font-size: 14px; color: #303030; white-space: nowrap;
+  }
+  .m-dot { width: 8px; height: 8px; border-radius: 50%; background: #2fa36b; animation: pulse 2.4s ease-in-out infinite; }
+  .m-spacer { flex: 1; }
+
+  .m-stats { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 20px; }
+  .m-main { flex-shrink: 0; }
+  .m-label { font-size: 15px; color: #616568; margin-bottom: 4px; }
+  .m-big { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: #1a1c1d; }
+  .m-side { display: flex; gap: 22px; flex: 1; }
+  .m-side .m-label { font-size: 13.5px; }
+  .m-val { font-size: 20px; font-weight: 600; color: #4a4f52; line-height: 1.2; }
+  .m-delta { display: inline-flex; align-items: center; gap: 3px; font-size: 15px; font-weight: 600; margin-top: 5px; }
+  .m-side .m-delta { font-size: 13px; margin-top: 3px; }
+  .m-delta.up { color: #2fa36b; }
+  .m-delta.down { color: #8a8f93; }
+
+  .m-chart { position: relative; padding: 0 16px 8px; }
+  .m-chart svg { display: block; width: 100%; }
+  .m-ylab { position: absolute; left: 16px; font-size: 12.5px; color: #6b6f72; transform: translateY(-50%); background: #fff; padding-right: 4px; }
+  .m-xaxis { display: flex; justify-content: space-between; font-size: 13px; color: #4a4f52; padding-top: 6px; }
+
+  .m-tasks { background: #f0f1f2; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .m-task {
+    display: flex; align-items: center; gap: 12px;
+    background: #fff; border: 1px solid #e3e3e3; border-radius: 10px; padding: 14px;
+    cursor: pointer; transition: border-color .12s;
+  }
+  .m-task:hover { border-color: #b5b9bc; }
+  .m-task-icon { color: #5c5f62; flex-shrink: 0; }
+  .m-task-n { font-size: 17px; font-weight: 700; color: #1a1c1d; line-height: 1.2; }
+  .m-task-t { font-size: 14px; color: #4a4f52; }
+
   /* ---------------- barre d'onglets mobile ---------------- */
   .tabbar { display: none; }
+  @media (max-width: 900px) {
+    /* l'app mobile ouvre directement sur la recherche : pas de barre de compte */
+    [data-route-active="accueil"] .topbar { display: none; }
+  }
 
   /* ---------------- téléphone ---------------- */
   @media (max-width: 900px) {
@@ -714,6 +780,77 @@
       </div>
      </div>
 
+     <!-- ================= ACCUEIL (app mobile) ================= -->
+     <div class="view" id="view-accueil">
+      <div class="mhome">
+        <div class="m-pad">
+          <div class="m-search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/></svg>
+            <span>Aller à…</span>
+          </div>
+
+          <div class="m-controls">
+            <button class="m-pill" id="mRange" type="button">
+              <span id="mRangeLabel">Hier</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <span class="m-visitors">
+              <span class="m-dot" aria-hidden="true"></span>
+              <span><span class="num" id="mLive">8</span> visiteurs</span>
+            </span>
+            <span class="m-spacer"></span>
+            <button class="m-pill" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 14l3-3 2.5 2.5L17 9"/></svg>
+              Rapport
+            </button>
+          </div>
+
+          <div class="m-stats">
+            <div class="m-main">
+              <div class="m-label">Ventes totales</div>
+              <div class="m-big num" id="mSales">—</div>
+              <div class="m-delta up" id="mSalesDelta"></div>
+            </div>
+            <div class="m-side">
+              <div>
+                <div class="m-label">Commandes</div>
+                <div class="m-val num" id="mOrders">—</div>
+                <div class="m-delta up" id="mOrdersDelta"></div>
+              </div>
+              <div>
+                <div class="m-label">Conversion</div>
+                <div class="m-val num" id="mConv">—</div>
+                <div class="m-delta down" id="mConvDelta"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="m-chart" id="mChart"></div>
+
+        <div class="m-tasks">
+          <div class="m-task">
+            <span class="m-task-icon">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h5l2 3h4l2-3h5"/><path d="M4.5 6h15l1.5 6v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/></svg>
+            </span>
+            <span>
+              <span class="m-task-n num">50+</span>
+              <span class="m-task-t" style="display:block">Commandes à traiter</span>
+            </span>
+          </div>
+          <div class="m-task">
+            <span class="m-task-icon">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.4.7-4.8 4.3 1.3 6.4L12 16.8 6.5 20l1.3-6.4L3 9.3l6.4-.7z"/></svg>
+            </span>
+            <span>
+              <span class="m-task-n num">3</span>
+              <span class="m-task-t" style="display:block">Produits en rupture proche</span>
+            </span>
+          </div>
+        </div>
+      </div>
+     </div>
+
      <!-- ================= COMMANDES ================= -->
      <div class="view" id="view-commandes">
       <h1>Commandes</h1>
@@ -843,7 +980,8 @@
     if (v <= 0) return 1;
     var mag = Math.pow(10, Math.floor(Math.log10(v)));
     var f = v / mag;
-    var step = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10;
+    var step = f <= 1 ? 1 : f <= 1.5 ? 1.5 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 3 ? 3
+            : f <= 4 ? 4 : f <= 5 ? 5 : f <= 7.5 ? 7.5 : 10;
     return step * mag;
   }
   // graduations sur des paliers ronds : 0 / 500 / 1 K / 1,5 K plutot que 0 / 667 / 1,3 K
@@ -874,6 +1012,8 @@
 
   // Chiffres cohérents entre eux : commandes x panier moyen = ventes.
   var PERIODS = {
+    yesterday: { label: 'Hier', compare: 'avant-hier', days: 1, points: 24, sessions: 386, conv: 5.44, aov: 19.20,
+             deltas: { sales: 57, sessions: 12.4, visitors: 11.8, orders: 70, aov: -7.6, conversion: -20, returning: 0 }, returning: 3.05, seed: 17 },
     today: { label: "Aujourd'hui", compare: 'hier', days: 1, points: 24, sessions: 412, conv: 5.83, aov: 18.90,
              deltas: { sales: 4.2, sessions: 6.1, visitors: 5.4, orders: 3.8, aov: 0.4, conversion: -1.1, returning: 0 }, returning: 3.10, seed: 11 },
     d7:    { label: '7 derniers jours', compare: '7 jours précédents', days: 7, points: 7, sessions: 2940, conv: 6.09, aov: 18.55,
@@ -937,7 +1077,7 @@
     // étiquettes de l'axe X
     d.labels = [];
     for (var i = 0; i < n; i++) {
-      if (key === 'today') {
+      if (key === 'today' || key === 'yesterday') {
         d.labels.push(String(Math.round(i * 23 / (n - 1))).padStart(2, '0') + ':00');
       } else {
         var back = Math.round((n - 1 - i) * (p.days - 1) / (n - 1));
@@ -945,7 +1085,7 @@
         d.labels.push(key === 'd7' ? DAYS[dt.getDay()] + ' ' + dt.getDate() : fmtDay(dt));
       }
     }
-    d.ticks = key === 'today' ? ['00:00', '06:00', '12:00', '18:00'] : (function () {
+    d.ticks = (key === 'today' || key === 'yesterday') ? ['00:00', '06:00', '12:00', '18:00'] : (function () {
       var out = [], k = key === 'd7' ? 7 : 3;
       for (var j = 0; j < k; j++) {
         out.push(d.labels[Math.round(j * (n - 1) / (k - 1))]);
@@ -1541,9 +1681,113 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   });
 
+  // ================================================ ACCUEIL (app mobile)
+  var mPeriod = 'yesterday';
+  var mData = build(mPeriod);
+
+  // courbe lissée : l'app mobile trace des ondulations, pas des segments droits
+  function smooth(pts) {
+    if (pts.length < 3) return 'M' + pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' L');
+    var d = 'M' + pts[0][0] + ',' + pts[0][1];
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[i === 0 ? 0 : i - 1], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      var c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      var c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += ' C' + c1x.toFixed(1) + ',' + c1y.toFixed(1) + ' ' + c2x.toFixed(1) + ',' + c2y.toFixed(1) + ' ' + p2[0].toFixed(1) + ',' + p2[1].toFixed(1);
+    }
+    return d;
+  }
+
+  function renderHome() {
+    var d = mData;
+    document.getElementById('mRangeLabel').textContent = d.label;
+    document.getElementById('mSales').textContent = eur(d.sales);
+    document.getElementById('mOrders').textContent = int(d.orders);
+    document.getElementById('mConv').textContent = pct(d.conversion);
+
+    function arrow(up) {
+      return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        (up ? '<path d="M7 17L17 7"/><path d="M8 7h9v9"/>' : '<path d="M7 7l10 10"/><path d="M17 8v9h-9"/>') + '</svg>';
+    }
+    function fill(id, v) {
+      var el = document.getElementById(id);
+      el.className = 'm-delta ' + (v >= 0 ? 'up' : 'down');
+      el.innerHTML = arrow(v >= 0) + '<span class="num">' + pct(Math.abs(v), 0) + '</span>';
+    }
+    fill('mSalesDelta', d.deltas.sales);
+    fill('mOrdersDelta', d.deltas.orders);
+    fill('mConvDelta', d.deltas.conversion);
+
+    // graphique : trait plein pour la période, pointillés pour la précédente
+    var W = 330, H = 168, padT = 10, padB = 26;
+    var cur = d.salesSeries, prev = d.prevSales;
+    var ax = axis(Math.max.apply(null, cur.concat(prev)) * 1.04, 3);
+    function pts(arr) {
+      return arr.map(function (v, i) {
+        return [i * W / (arr.length - 1), H - padB - (v / ax.max) * (H - padT - padB)];
+      });
+    }
+    var grid = '', ylab = '';
+    for (var t = 0; t < 3; t++) {
+      var v = ax.step * t;
+      var y = H - padB - (v / ax.max) * (H - padT - padB);
+      grid += '<line x1="0" y1="' + y.toFixed(1) + '" x2="' + W + '" y2="' + y.toFixed(1) + '" stroke="#e6e6e6" stroke-width="1"/>';
+      ylab += '<span class="m-ylab" style="top:' + (y / H * 100).toFixed(2) + '%">' + eur(v).replace(',00 €', ' €') + '</span>';
+    }
+
+    document.getElementById('mChart').innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" height="' + H + '" preserveAspectRatio="none" role="img" aria-label="Ventes de la période">' +
+        grid +
+        '<path d="' + smooth(pts(prev)) + '" fill="none" stroke="#9dc0ee" stroke-width="2.2" stroke-dasharray="4 4" stroke-linecap="round"/>' +
+        '<path d="' + smooth(pts(cur)) + '" fill="none" stroke="#2b6fd4" stroke-width="2.6" stroke-linecap="round"/>' +
+      '</svg>' + ylab +
+      '<div class="m-xaxis">' + d.ticks.map(function (l) { return '<span>' + l + '</span>'; }).join('') + '</div>';
+  }
+
+  (function wireHomePicker() {
+    var btn = document.getElementById('mRange');
+    var box = document.createElement('div');
+    box.className = 'menu';
+    box.style.cssText = 'top:calc(100% + 6px);left:0';
+    var wrap = document.createElement('span');
+    wrap.className = 'picker';
+    btn.parentNode.insertBefore(wrap, btn);
+    wrap.appendChild(btn);
+    wrap.appendChild(box);
+
+    box.innerHTML = Object.keys(PERIODS).map(function (k) {
+      return '<button class="menu-item" type="button" data-mp="' + k + '"><span>' + PERIODS[k].label + '</span>' +
+        '<svg class="menu-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--viz-teal)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></button>';
+    }).join('');
+
+    function mark() {
+      box.querySelectorAll('.menu-item').forEach(function (b) { b.classList.toggle('is-on', b.dataset.mp === mPeriod); });
+    }
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      box.classList.toggle('is-open');
+      mark();
+    });
+    document.addEventListener('click', function (e) { if (!box.contains(e.target)) box.classList.remove('is-open'); });
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-mp]');
+      if (!b) return;
+      mPeriod = b.dataset.mp;
+      mData = build(mPeriod);
+      box.classList.remove('is-open');
+      renderHome();
+    });
+  })();
+
+  var mLiveEl = document.getElementById('mLive');
+  setInterval(function () {
+    var v = Math.max(3, Math.min(19, +mLiveEl.textContent + Math.round((Math.random() - 0.45) * 3)));
+    mLiveEl.textContent = v;
+  }, 5000);
+
   // ================================================================ ROUTAGE
-  var VIEWS = { analyses: 'view-analyses', commandes: 'view-commandes' };
-  var TITLES = { accueil: 'Accueil', produits: 'Produits', plus: 'Plus' };
+  var VIEWS = { accueil: 'view-accueil', analyses: 'view-analyses', commandes: 'view-commandes' };
+  var TITLES = { produits: 'Produits', plus: 'Plus' };
 
   function go(route, push) {
     if (!VIEWS[route] && !TITLES[route]) route = 'analyses';
@@ -1579,6 +1823,7 @@
       }
     });
 
+    root.setAttribute('data-route-active', route);
     if (!drawer.hidden) closeDrawer();
     if (push && location.hash !== '#/' + route) location.hash = '#/' + route;
     window.scrollTo(0, 0);
@@ -1596,6 +1841,7 @@
   setEditing(false);
   renderTabs();
   renderOrderList();
+  renderHome();
   go((location.hash || '').replace('#/', '') || 'analyses', false);
   skeleton(620);
 })();
