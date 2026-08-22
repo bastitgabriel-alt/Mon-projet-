@@ -538,6 +538,8 @@
     -webkit-touch-callout: none;   /* pas de menu copier/coller sur appui long */
   }
   .ip[contenteditable] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+  /* filet de sécurité : un champ vidé affiche un tiret, sinon il n'y a plus rien à viser */
+  .ip:empty::before { content: '—'; opacity: .5; }
   .ip:focus {
     outline: 2px solid #0a84ff; outline-offset: 1px;
     background: rgba(10, 132, 255, .16); color: #fff;
@@ -1177,7 +1179,13 @@
   var current = 'd90';
   var data = build(current);
   var overrides = {};
-  try { overrides = JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch (e) { overrides = {}; }
+  // ouvrir la page avec ?reset efface toutes les valeurs saisies
+  if (/(^|[?&])reset\b/.test(location.search)) {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+  } else {
+    try { overrides = JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch (e) { overrides = {}; }
+  }
 
   function ovIn(period, k, fallback) {
     var per = overrides[period];
