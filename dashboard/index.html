@@ -1199,8 +1199,23 @@
     overrides[period][k] = v;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(overrides)); } catch (e) {}
   }
+  // Une valeur saisie doit repiloter les series, sinon le chiffre affiche et
+  // la courbe racontent deux histoires differentes apres un rechargement.
+  function applyOverridesTo(d, period, prefix) {
+    function num(k) { return parseNum(ovIn(period, prefix + k, '')); }
+    var v;
+    v = num('sales');       if (v > 0) { d.sales = v; d.salesSeries = scaleTo(d.salesSeries, v); }
+    v = num('orders');      if (v > 0) { d.orders = v; d.ordersSeries = scaleTo(d.ordersSeries, v); }
+    v = num('sessions');    if (v > 0) { d.sessions = v; d.sessionsSeries = scaleTo(d.sessionsSeries, v); }
+    v = num('conversion');  if (v > 0) { d.conversion = v; }
+    v = num('aov');         if (v > 0) { var f = v / d.aov; d.aov = v; d.aovSeries = d.aovSeries.map(function (x) { return x * f; }); }
+    return d;
+  }
+
   function ov(k, fallback) { return ovIn(current, k, fallback); }
   function setOv(k, v) { setOvIn(current, k, v); }
+
+  data = applyOverridesTo(data, current, '');
 
   // ---------------------------------------------------------------- graphiques
   var W = 250;
@@ -1492,7 +1507,7 @@
     var b = e.target.closest('[data-period]');
     if (!b) return;
     current = b.dataset.period;
-    data = build(current);
+    data = applyOverridesTo(build(current), current, '');
     markMenu();
     closeMenu();
     skeleton(420);
@@ -1773,7 +1788,7 @@
 
   // ================================================ ACCUEIL (app mobile)
   var mPeriod = 'today';
-  var mData = build(mPeriod);
+  var mData = applyOverridesTo(build(mPeriod), mPeriod, 'h.');
 
   // courbe lissée : l'app mobile trace des ondulations, pas des segments droits
   function smooth(pts) {
@@ -1993,7 +2008,7 @@
       var b = e.target.closest('[data-mp]');
       if (!b) return;
       mPeriod = b.dataset.mp;
-      mData = build(mPeriod);
+      mData = applyOverridesTo(build(mPeriod), mPeriod, 'h.');
       box.classList.remove('is-open');
       renderHome();
     });
