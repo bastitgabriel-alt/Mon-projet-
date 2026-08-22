@@ -532,6 +532,25 @@
   .m-nav-item:hover { color: #3c3c43; }
   .m-nav-item.is-on { background: #ececf0; color: #000; }
 
+  /* édition en place, sans bouton : appui long ou double-clic */
+  .ip {
+    border-radius: 5px; padding: 0 2px; margin: 0 -2px;
+    -webkit-touch-callout: none;   /* pas de menu copier/coller sur appui long */
+  }
+  .ip[contenteditable] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+  .ip:focus {
+    outline: 2px solid #0a84ff; outline-offset: 1px;
+    background: rgba(10, 132, 255, .16); color: #fff;
+  }
+  .m-sheet .ip:focus, .mhome .m-store-name.ip:focus { color: inherit; }
+  .ip-hint {
+    position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%);
+    background: rgba(28, 28, 30, .95); color: #fff; border-radius: 10px;
+    padding: 9px 15px; font-size: 13px; z-index: 60; pointer-events: none;
+    opacity: 0; transition: opacity .18s;
+  }
+  .ip-hint.is-on { opacity: 1; }
+
   /* ---------------- barre d'onglets mobile ---------------- */
   .tabbar { display: none; }
   @media (max-width: 900px) {
@@ -838,7 +857,7 @@
             <span class="m-avatar" aria-hidden="true">CM</span>
             <span class="m-store">
               <span class="m-store-mark" aria-hidden="true">Ma</span>
-              <span class="m-store-name">Ma boutique</span>
+              <span class="m-store-name ip" data-hk="store">Ma boutique</span>
             </span>
             <span style="width:42px;flex-shrink:0"></span>
           </div>
@@ -1160,15 +1179,17 @@
   var overrides = {};
   try { overrides = JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch (e) { overrides = {}; }
 
-  function ov(k, fallback) {
-    var per = overrides[current];
+  function ovIn(period, k, fallback) {
+    var per = overrides[period];
     return (per && typeof per[k] === 'string') ? per[k] : fallback;
   }
-  function setOv(k, v) {
-    if (!overrides[current]) overrides[current] = {};
-    overrides[current][k] = v;
+  function setOvIn(period, k, v) {
+    if (!overrides[period]) overrides[period] = {};
+    overrides[period][k] = v;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(overrides)); } catch (e) {}
   }
+  function ov(k, fallback) { return ovIn(current, k, fallback); }
+  function setOv(k, v) { setOvIn(current, k, v); }
 
   // ---------------------------------------------------------------- graphiques
   var W = 250;
@@ -1772,11 +1793,14 @@
     var d = mData;
     var live = document.getElementById('mLiveVal');
     var n = live ? live.textContent : '9';
+    function cell(key, text) {
+      return '<span class="num ip" data-hk="' + key + '">' + ovIn(mPeriod, 'h.' + key, text) + '</span>';
+    }
     var defs = [
-      { k: 'live', label: 'En direct', val: '<span class="m-livering"></span><span id="mLiveVal" class="num">' + n + '</span>' },
-      { k: 'sales', label: 'Ventes totales', val: '<span class="num">' + eur(d.sales) + '</span>', delta: d.deltas.sales },
-      { k: 'orders', label: 'Commandes', val: '<span class="num">' + int(d.orders) + '</span>', delta: d.deltas.orders },
-      { k: 'conversion', label: 'Taux de conversion', val: '<span class="num">' + pct(d.conversion) + '</span>', delta: d.deltas.conversion }
+      { k: 'live', label: 'En direct', val: '<span class="m-livering"></span><span id="mLiveVal" class="num ip" data-hk="live">' + n + '</span>' },
+      { k: 'sales', label: 'Ventes totales', val: cell('sales', eur(d.sales)), delta: d.deltas.sales },
+      { k: 'orders', label: 'Commandes', val: cell('orders', int(d.orders)), delta: d.deltas.orders },
+      { k: 'conversion', label: 'Taux de conversion', val: cell('conversion', pct(d.conversion)), delta: d.deltas.conversion }
     ];
     document.getElementById('mKpis').innerHTML = defs.map(function (x) {
       var tail = '<span class="m-kpi-flat"></span>';
@@ -1794,6 +1818,8 @@
   function renderHome() {
     var d = mData;
     document.getElementById('mRangeLabel').textContent = d.label;
+    var store = document.querySelector('.m-store-name');
+    store.textContent = ovIn('*', 'h.store', 'Ma boutique');
     var h = new Date().getHours();
     document.getElementById('mGreet').textContent = h < 18 ? 'Bonjour !' : 'Bonsoir !';
     renderKpis();
@@ -1830,7 +1856,87 @@
       '<div class="m-gx">' + d.ticks.map(function (l) { return '<span>' + l + '</span>'; }).join('') + '</div>';
   }
 
+  // ---- édition en place : appui long (mobile) ou double-clic (ordinateur)
+  var ipActive = null;
+  var hint = document.createElement('div');
+  hint.className = 'ip-hint';
+  document.body.appendChild(hint);
+
+  function flash(msg) {
+    hint.textContent = msg;
+    hint.classList.add('is-on');
+    clearTimeout(flash.t);
+    flash.t = setTimeout(function () { hint.classList.remove('is-on'); }, 1600);
+  }
+
+  function startInline(el) {
+    if (ipActive) return;
+    ipActive = el;
+    el.setAttribute('contenteditable', ceMode);
+    el.focus();
+    var r = document.createRange();
+    r.selectNodeContents(el);
+    var sel = getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+    flash('Modifiez la valeur, puis Entrée');
+  }
+
+  function endInline(commit) {
+    if (!ipActive) return;
+    var el = ipActive, key = el.dataset.hk;
+    ipActive = null;
+    el.removeAttribute('contenteditable');
+    if (!commit) { renderHome(); return; }
+
+    var text = el.textContent.trim();
+    if (key === 'store') {
+      setOvIn('*', 'h.store', text);
+    } else {
+      setOvIn(mPeriod, 'h.' + key, text);
+      var v = parseNum(text);
+      if (v !== null && v > 0) {
+        if (key === 'sales') { mData.sales = v; mData.salesSeries = scaleTo(mData.salesSeries, v); }
+        if (key === 'orders') { mData.orders = v; mData.ordersSeries = scaleTo(mData.ordersSeries, v); }
+        if (key === 'conversion') mData.conversion = v;
+      }
+    }
+    renderHome();
+  }
+
+  (function wireInline() {
+    var timer = null, moved = false;
+    var home = document.getElementById('view-accueil');
+
+    home.addEventListener('pointerdown', function (e) {
+      var el = e.target.closest('.ip');
+      if (!el || ipActive) return;
+      moved = false;
+      timer = setTimeout(function () { if (!moved) startInline(el); }, 550);
+    });
+    home.addEventListener('pointermove', function () { moved = true; clearTimeout(timer); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) {
+      home.addEventListener(ev, function () { clearTimeout(timer); });
+    });
+    home.addEventListener('dblclick', function (e) {
+      var el = e.target.closest('.ip');
+      if (el) startInline(el);
+    });
+    home.addEventListener('contextmenu', function (e) {
+      if (e.target.closest('.ip')) e.preventDefault();
+    });
+    home.addEventListener('keydown', function (e) {
+      if (!ipActive) return;
+      if (e.key === 'Enter') { e.preventDefault(); endInline(true); }
+      if (e.key === 'Escape') { e.preventDefault(); endInline(false); }
+    });
+    home.addEventListener('focusout', function (e) {
+      if (ipActive && e.target === ipActive) endInline(true);
+    });
+  })();
+
   document.getElementById('mKpis').addEventListener('click', function (e) {
+    if (ipActive) return;
     var b = e.target.closest('[data-kpi]');
     if (!b) return;
     mKpi = b.dataset.kpi;
@@ -1874,7 +1980,7 @@
 
   setInterval(function () {
     var el = document.getElementById('mLiveVal');
-    if (!el) return;
+    if (!el || ipActive) return;
     el.textContent = Math.max(2, Math.min(19, +el.textContent + Math.round((Math.random() - 0.45) * 3)));
   }, 5000);
 
