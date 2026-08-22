@@ -136,12 +136,58 @@ proches des nouvelles et seront reprises au fil des sections. L'ancien accent
 `#C9A896`, lui, jurait franchement avec le vert-de-gris : il est déjà basculé
 sur `{{ settings.color_palette.color11 }}`.
 
-### À vérifier au premier rendu
+### À vérifier au premier rendu — comparateur
 
 1. Le bloc `epure-comparateur` apparaît-il bien dans le personnalisateur ?
    Il dépend de `sections/section.liquid` acceptant `@theme`.
 2. Le focus clavier est-il visible sur la poignée ? Tester à la tabulation.
 3. Le format mobile bascule-t-il bien en portrait sous 750 px ?
+
+---
+
+## Étape 3 — Preuve produit ✅
+
+### Le problème
+
+La section `stats` alignait trois colonnes `01 / 02 / 03`. Deux griefs :
+
+1. Le §6 veut les trois raisons d'acheter « traitées comme du contenu
+   (bénéfice concret + justification technique) », pas comme une grille.
+2. La numérotation a été explicitement écartée par le commanditaire, sauf
+   séquence réelle. Or trois arguments **parallèles** n'en constituent pas
+   une : les numéroter suggérait un ordre qui n'existe pas.
+
+### Décidé
+
+Section `preuve` : une **fiche technique en lignes**, pas une grille de
+colonnes. Chaque ligne oppose la promesse à sa preuve :
+
+| Étiquette technique (accent) | Bénéfice (h3) | Justification |
+|---|---|---|
+| Compression dégressive | Il lisse le ventre. | Ferme sur l'abdomen, relâchée vers la cage thoracique. Respiration libre, y compris assise. |
+| Tricot renforcé, zéro baleine | Il soutient sans armature. | Le maintien vient de la densité du tricot. Rien ne pique, rien ne marque en fin de journée. |
+| Bords laser, maille continue | Il ne se voit pas. | Bords découpés au laser, sans ourlet. Aucune ligne sous une robe près du corps. |
+
+Filets pleine largeur entre les lignes — c'est la rigueur de l'Atelier qui
+porte la structure, maintenant que la numérotation est partie.
+
+Répartition 40 / 60 : la promesse tient en une ligne, la preuve a besoin de
+place. L'inverse aurait produit une colonne de droite étranglée.
+
+### Écarté
+
+- **Garder trois colonnes en supprimant seulement les numéros.** Aurait
+  respecté la lettre de la consigne, pas son intention : trois colonnes de
+  texte court restent une grille de fonctionnalités.
+- **Des icônes.** Explicitement proscrites par le §6.
+- **Un intitulé de section vendeur** (« Trois bonnes raisons »). Le §7 interdit
+  les superlatifs creux. Le sur-titre retenu, « Pourquoi ça tient », est une
+  question que la cliente se pose réellement.
+
+### À vérifier
+
+Les lignes basculent-elles proprement en colonne sous 750 px ? Le repli
+mobile est celui de Helio (`vertical_on_mobile`), non surchargé.
 
 ---
 
@@ -188,7 +234,7 @@ body change. Il ne l'est pas si la silhouette a été affinée.
 ## Reste à faire
 
 - [x] Hero comparateur
-- [ ] Preuve produit
+- [x] Preuve produit
 - [ ] Bloc matière
 - [ ] Guide des tailles en tiroir
 - [ ] FAQ + JSON-LD `FAQPage`
