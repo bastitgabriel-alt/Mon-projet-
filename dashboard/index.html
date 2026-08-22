@@ -553,6 +553,45 @@
   }
   .ip-hint.is-on { opacity: 1; }
 
+  /* ---------------- notifications simulees ---------------- */
+  .notif {
+    position: fixed; top: calc(10px + env(safe-area-inset-top, 0px));
+    left: 10px; right: 10px; z-index: 70; max-width: 410px; margin: 0 auto;
+    display: flex; align-items: flex-start; gap: 11px;
+    padding: 13px 14px; border-radius: 18px;
+    background: rgba(248, 248, 250, .94);
+    -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+    box-shadow: 0 6px 22px rgba(0, 0, 0, .28);
+    color: #1a1c1d; cursor: pointer;
+    transform: translateY(-140%); opacity: 0;
+    transition: transform .32s cubic-bezier(.22,.9,.3,1), opacity .22s;
+  }
+  .notif.is-on { transform: none; opacity: 1; }
+  .notif-icon {
+    width: 34px; height: 34px; border-radius: 9px; background: #95bf47; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .notif-body { flex: 1; min-width: 0; display: block; }
+  .notif-top { display: flex; align-items: baseline; gap: 8px; }
+  .notif-title, .notif-text { display: block; }
+  .notif-app { font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: #57595c; flex: 1; }
+  .notif-when { font-size: 12.5px; color: #8a8d90; flex-shrink: 0; }
+  .notif-title { font-size: 14.5px; font-weight: 700; margin-top: 2px; }
+  .notif-text { font-size: 14px; color: #3c3f42; margin-top: 1px; }
+
+  .badge-dot {
+    position: absolute; top: 4px; right: 7px;
+    min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+    background: #ff3b30; color: #fff; font-size: 10.5px; font-weight: 700;
+    display: none; align-items: center; justify-content: center; line-height: 1;
+  }
+  .badge-dot.is-on { display: flex; }
+  .m-nav-item, .tabbar-item { position: relative; }
+
+  .sim-chip { display: inline-flex; align-items: center; gap: 7px; }
+  .sim-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--up); animation: pulse 2.4s ease-in-out infinite; }
+  .sim-chip.is-off .sim-dot { background: var(--text-dis); animation: none; }
+
   /* ---------------- barre d'onglets mobile ---------------- */
   .tabbar { display: none; }
   @media (max-width: 900px) {
@@ -709,6 +748,11 @@
           <span class="live-dot" aria-hidden="true"></span>
           <span><span class="num" id="liveCount">12</span> visiteurs en ce moment</span>
         </span>
+
+        <button class="chip sim-chip" id="simToggle" type="button" aria-pressed="true">
+          <span class="sim-dot" aria-hidden="true"></span>
+          <span id="simLabel">Commandes en direct</span>
+        </button>
 
         <span class="updated">Mis à jour à <span class="num" id="updatedAt">—</span></span>
       </div>
@@ -912,6 +956,7 @@
             </button>
             <button class="m-nav-item" type="button" data-route="commandes" aria-label="Commandes">
               <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h5l2 3h4l2-3h5"/><path d="M4.5 6h15l1.5 6v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/></svg>
+              <span class="badge-dot num" data-badge></span>
             </button>
             <button class="m-nav-item" type="button" data-route="produits" aria-label="Produits">
               <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h8l10 10-8 8L3 11z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
@@ -991,6 +1036,7 @@
   <button class="tabbar-item" type="button" data-route="commandes">
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg>
     Commandes
+    <span class="badge-dot num" data-badge></span>
   </button>
   <button class="tabbar-item" type="button" data-route="produits">
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h8l10 10-8 8L3 11z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
@@ -1005,6 +1051,20 @@
     Plus
   </button>
 </nav>
+
+<div class="notif" id="notif" role="status" aria-live="polite">
+  <span class="notif-icon" aria-hidden="true">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l1-5h14l1 5"/><path d="M4 10a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M5 10v9h14v-9"/></svg>
+  </span>
+  <span class="notif-body">
+    <span class="notif-top">
+      <span class="notif-app" id="notifApp">Ma boutique</span>
+      <span class="notif-when">maintenant</span>
+    </span>
+    <span class="notif-title" id="notifTitle"></span>
+    <span class="notif-text" id="notifText"></span>
+  </span>
+</div>
 
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" hidden>
@@ -2024,6 +2084,87 @@
     el.textContent = Math.max(2, Math.min(19, +el.textContent + Math.round((Math.random() - 0.45) * 3)));
   }, 5000);
 
+  // ============================================ COMMANDES SIMULEES
+  // Aucune vente reelle n'arrive sur la boutique : ces commandes sont
+  // fabriquees pour que l'ecran vive. Rien ne sort du telephone.
+  var simOn = true, simTimer = null, unseen = 0;
+  var notif = document.getElementById('notif');
+  var notifHide = null;
+
+  function showNotif(title, text) {
+    document.getElementById('notifApp').textContent = ovIn('*', 'h.store', 'Ma boutique');
+    document.getElementById('notifTitle').textContent = title;
+    document.getElementById('notifText').textContent = text;
+    notif.classList.add('is-on');
+    clearTimeout(notifHide);
+    notifHide = setTimeout(function () { notif.classList.remove('is-on'); }, 5200);
+    if (navigator.vibrate) { try { navigator.vibrate(18); } catch (e) {} }
+  }
+
+  notif.addEventListener('click', function () {
+    notif.classList.remove('is-on');
+    go('commandes', true);
+  });
+
+  function setBadge(n) {
+    document.querySelectorAll('[data-badge]').forEach(function (el) {
+      el.textContent = n > 99 ? '99+' : n;
+      el.classList.toggle('is-on', n > 0);
+    });
+  }
+
+  function simulateOrder() {
+    var r = rng(Date.now() & 0xffff);
+    var who = FIRST[Math.floor(r() * FIRST.length)] + ' ' + LAST[Math.floor(r() * LAST.length)];
+    var qty = 1 + Math.floor(r() * 2);
+    var unit = [54.90, 54.90, 39.90, 74.50][Math.floor(r() * 4)];
+    var sub = qty * unit;
+    var ship = sub > 90 ? 0 : 4.90;
+    var no = ALL_ORDERS.length ? ALL_ORDERS[0].no + 1 : 10483;
+
+    ALL_ORDERS.unshift({
+      no: no, who: who, date: new Date(),
+      items: [{ name: 'Body sculptant sans couture', qty: qty, unit: unit }],
+      sub: sub, ship: ship,
+      pay: 'Payée', payCls: 'ok', ful: 'Non traitée', fulCls: 'warn'
+    });
+
+    // les compteurs de l'accueil suivent la vente
+    mData.sales += sub + ship;
+    mData.orders += 1;
+    mData.salesSeries = scaleTo(mData.salesSeries, mData.sales);
+    mData.ordersSeries = scaleTo(mData.ordersSeries, mData.orders);
+    setOvIn(mPeriod, 'h.sales', eur(mData.sales));
+    setOvIn(mPeriod, 'h.orders', int(mData.orders));
+
+    unseen += 1;
+    setBadge(unseen);
+    renderHome();
+    renderTabs();
+    renderOrderList();
+    showNotif('Nouvelle commande #' + no, who + ' · ' + eur(sub + ship));
+  }
+
+  function scheduleSim() {
+    clearTimeout(simTimer);
+    if (!simOn) return;
+    simTimer = setTimeout(function () {
+      if (simOn) simulateOrder();
+      scheduleSim();
+    }, 18000 + Math.random() * 22000);
+  }
+
+  (function wireSim() {
+    var btn = document.getElementById('simToggle');
+    btn.addEventListener('click', function () {
+      simOn = !simOn;
+      btn.classList.toggle('is-off', !simOn);
+      btn.setAttribute('aria-pressed', simOn ? 'true' : 'false');
+      document.getElementById('simLabel').textContent = simOn ? 'Commandes en direct' : 'Simulation en pause';
+      if (simOn) scheduleSim(); else clearTimeout(simTimer);
+    });
+  })();
+
   // ================================================================ ROUTAGE
   var VIEWS = { accueil: 'view-accueil', analyses: 'view-analyses', commandes: 'view-commandes' };
   var TITLES = { produits: 'Produits', plus: 'Plus' };
@@ -2064,6 +2205,7 @@
     });
 
     root.setAttribute('data-route-active', route);
+    if (route === 'commandes') { unseen = 0; setBadge(0); }
     if (!drawer.hidden) closeDrawer();
     if (push && location.hash !== '#/' + route) location.hash = '#/' + route;
     window.scrollTo(0, 0);
@@ -2083,6 +2225,8 @@
   renderOrderList();
   renderHome();
   go((location.hash || '').replace('#/', '') || 'analyses', false);
+  setBadge(0);
+  scheduleSim();
   skeleton(620);
 })();
 </script>
