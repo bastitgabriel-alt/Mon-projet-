@@ -420,67 +420,117 @@
   .step-text { font-size: 12.5px; }
   .step-when { font-size: 11.5px; color: var(--text-sub); }
 
-  /* ================ ACCUEIL — copie de l'app mobile ================ */
+  /* ================ ACCUEIL — copie de l'app mobile (thème sombre) ================ */
   .mhome {
-    max-width: 430px; margin: 0 auto; background: #fff;
-    border-radius: 12px; overflow: hidden;
-    border: 1px solid var(--border);
+    max-width: 430px; margin: 0 auto; background: #000;
+    border-radius: 14px; overflow: hidden; color: #fff;
+    display: flex; flex-direction: column; min-height: 760px;
   }
   @media (max-width: 900px) {
-    .mhome { max-width: none; border: 0; border-radius: 0; margin: -16px -14px; }
+    .mhome { max-width: none; border-radius: 0; margin: -16px -14px; min-height: 100vh; }
   }
 
-  .m-pad { padding: 16px; }
+  .m-top { padding: 18px 16px 0; }
 
-  .m-search {
-    display: flex; align-items: center; gap: 12px;
-    background: #f1f1f1; border-radius: 10px; padding: 13px 14px;
-    font-size: 16px; color: #5c5f62; margin-bottom: 18px;
+  .m-head { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .m-avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(140deg, #c026d3, #a21caf);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: #fff;
+  }
+  .m-store { display: flex; align-items: center; gap: 9px; margin: 0 auto; }
+  .m-store-mark {
+    width: 28px; height: 28px; border-radius: 8px; background: #ff4f7b;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .m-store-name { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+
+  .m-kpis { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .m-kpis::-webkit-scrollbar { display: none; }
+  .m-kpi {
+    border: 0; background: none; color: #fff; cursor: pointer; text-align: left;
+    padding: 10px 12px; border-radius: 12px; flex-shrink: 0; transition: background .12s;
+  }
+  .m-kpi:hover { background: #141416; }
+  .m-kpi.is-on { background: #1c1c1e; }
+  .m-kpi-label { font-size: 15px; font-weight: 600; color: #fff; white-space: nowrap; margin-bottom: 3px; }
+  .m-kpi-val { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; gap: 7px; }
+  .m-kpi-flat { display: inline-block; width: 17px; height: 5px; border-radius: 3px; background: #48484a; }
+  .m-kpi-delta { font-size: 14px; font-weight: 600; }
+  .m-kpi-delta.up { color: #30d158; }
+  .m-kpi-delta.down { color: #ff6b5e; }
+  .m-livering {
+    width: 15px; height: 15px; border-radius: 50%; border: 2.5px dotted #30d158;
+    animation: spin 5s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .m-graph { position: relative; padding: 14px 16px 0; }
+  .m-graph svg { display: block; width: 100%; }
+  .m-gy { position: absolute; left: 16px; font-size: 14px; color: #e5e5ea; transform: translateY(-50%); }
+  .m-gx { display: flex; justify-content: space-between; font-size: 14px; color: #d1d1d6; padding: 8px 0 0 44px; }
+
+  .m-actions { display: flex; justify-content: center; gap: 12px; padding: 18px 16px 22px; }
+  .m-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #1c1c1e; border: 0; border-radius: 22px;
+    padding: 12px 20px; font-size: 16px; font-weight: 600; color: #fff; cursor: pointer;
+    transition: background .12s;
+  }
+  .m-btn:hover { background: #2c2c2e; }
+
+  .m-sheet {
+    background: #fff; color: #1a1c1d; border-radius: 26px 26px 0 0;
+    padding: 26px 20px 0; flex: 1;
+  }
+  .m-greet { font-size: 25px; line-height: 1.28; letter-spacing: -0.01em; margin: 0 0 26px; }
+  .m-greet b { display: block; font-weight: 400; color: #6e6e73; }
+  .m-greet span { display: block; font-weight: 400; color: #1a1c1d; }
+
+  .m-guide-head { display: flex; align-items: flex-start; gap: 10px; }
+  .m-guide-title { font-size: 22px; font-weight: 700; flex: 1; letter-spacing: -0.01em; }
+  .m-guide-btn { border: 0; background: none; color: #1a1c1d; cursor: pointer; padding: 4px; line-height: 0; }
+  .m-guide-desc { font-size: 17px; color: #4a4a4e; line-height: 1.45; margin: 8px 0 14px; }
+  .m-badge {
+    display: inline-block; border: 1px solid #d5d5da; border-radius: 20px;
+    padding: 7px 15px; font-size: 15px; font-weight: 500;
   }
 
-  .m-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; }
-  .m-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    border: 1px solid #d0d3d6; background: #fff; border-radius: 9px;
-    padding: 8px 12px; font-size: 14px; font-weight: 600; color: #303030;
-    cursor: pointer; white-space: nowrap;
-  }
-  .m-pill:hover { background: #fafbfb; }
-  .m-visitors {
-    display: inline-flex; align-items: center; gap: 7px;
-    border: 1px solid #d0d3d6; border-radius: 9px; padding: 8px 12px;
-    font-size: 14px; color: #303030; white-space: nowrap;
-  }
-  .m-dot { width: 8px; height: 8px; border-radius: 50%; background: #2fa36b; animation: pulse 2.4s ease-in-out infinite; }
-  .m-spacer { flex: 1; }
+  .m-tray { background: #f2f2f7; margin: 22px -20px 0; padding: 18px 20px 116px; }
+  .m-promo { background: #fff; border: 1px solid #e3e3e8; border-radius: 14px; padding: 18px; }
+  .m-promo-title { font-size: 19px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+  .m-promo-text { font-size: 15px; color: #4a4a4e; line-height: 1.5; }
 
-  .m-stats { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 20px; }
-  .m-main { flex-shrink: 0; }
-  .m-label { font-size: 15px; color: #616568; margin-bottom: 4px; }
-  .m-big { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: #1a1c1d; }
-  .m-side { display: flex; gap: 22px; flex: 1; }
-  .m-side .m-label { font-size: 13.5px; }
-  .m-val { font-size: 20px; font-weight: 600; color: #4a4f52; line-height: 1.2; }
-  .m-delta { display: inline-flex; align-items: center; gap: 3px; font-size: 15px; font-weight: 600; margin-top: 5px; }
-  .m-side .m-delta { font-size: 13px; margin-top: 3px; }
-  .m-delta.up { color: #2fa36b; }
-  .m-delta.down { color: #8a8f93; }
-
-  .m-chart { position: relative; padding: 0 16px 8px; }
-  .m-chart svg { display: block; width: 100%; }
-  .m-ylab { position: absolute; left: 16px; font-size: 12.5px; color: #6b6f72; transform: translateY(-50%); background: #fff; padding-right: 4px; }
-  .m-xaxis { display: flex; justify-content: space-between; font-size: 13px; color: #4a4f52; padding-top: 6px; }
-
-  .m-tasks { background: #f0f1f2; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-  .m-task {
-    display: flex; align-items: center; gap: 12px;
-    background: #fff; border: 1px solid #e3e3e3; border-radius: 10px; padding: 14px;
-    cursor: pointer; transition: border-color .12s;
+  .m-nav {
+    position: absolute; left: 0; right: 0; bottom: 14px; z-index: 40;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 0 12px;
   }
-  .m-task:hover { border-color: #b5b9bc; }
-  .m-task-icon { color: #5c5f62; flex-shrink: 0; }
-  .m-task-n { font-size: 17px; font-weight: 700; color: #1a1c1d; line-height: 1.2; }
-  .m-task-t { font-size: 14px; color: #4a4f52; }
+  .mhome { position: relative; }
+  @media (max-width: 900px) {
+    .m-nav { position: fixed; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+    /* l'accueil a sa propre navigation flottante : on masque la barre plate */
+    [data-route-active="accueil"] .tabbar { display: none; }
+    [data-route-active="accueil"] body { padding-bottom: 0; }
+  }
+  .m-nav-circle, .m-nav-pill {
+    background: #fff; box-shadow: 0 4px 14px rgba(0, 0, 0, .16); display: flex; align-items: center;
+  }
+  .m-nav-circle {
+    width: 50px; height: 50px; border-radius: 50%; justify-content: center;
+    border: 0; cursor: pointer; color: #3c3c43; flex-shrink: 0;
+  }
+  .m-nav-pill { border-radius: 30px; padding: 5px; gap: 1px; }
+  .m-nav-item {
+    border: 0; background: none; cursor: pointer; color: #8e8e93;
+    width: 44px; height: 40px; border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .12s, color .12s;
+  }
+  .m-nav-item:hover { color: #3c3c43; }
+  .m-nav-item.is-on { background: #ececf0; color: #000; }
 
   /* ---------------- barre d'onglets mobile ---------------- */
   .tabbar { display: none; }
@@ -783,70 +833,78 @@
      <!-- ================= ACCUEIL (app mobile) ================= -->
      <div class="view" id="view-accueil">
       <div class="mhome">
-        <div class="m-pad">
-          <div class="m-search">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/></svg>
-            <span>Aller à…</span>
-          </div>
-
-          <div class="m-controls">
-            <button class="m-pill" id="mRange" type="button">
-              <span id="mRangeLabel">Hier</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-            <span class="m-visitors">
-              <span class="m-dot" aria-hidden="true"></span>
-              <span><span class="num" id="mLive">8</span> visiteurs</span>
+        <div class="m-top">
+          <div class="m-head">
+            <span class="m-avatar" aria-hidden="true">CM</span>
+            <span class="m-store">
+              <span class="m-store-mark" aria-hidden="true">Ma</span>
+              <span class="m-store-name">Ma boutique</span>
             </span>
-            <span class="m-spacer"></span>
-            <button class="m-pill" type="button">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 14l3-3 2.5 2.5L17 9"/></svg>
-              Rapport
+            <span style="width:42px;flex-shrink:0"></span>
+          </div>
+          <div class="m-kpis" id="mKpis" role="tablist"></div>
+        </div>
+
+        <div class="m-graph" id="mGraph"></div>
+
+        <div class="m-actions">
+          <button class="m-btn" id="mRange" type="button">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="3"/><path d="M3 9.5h18"/></svg>
+            <span id="mRangeLabel">Aujourd'hui</span>
+          </button>
+          <button class="m-btn" type="button">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="11" cy="12" r="3.2"/><path d="M15.5 16.5L18 19"/></svg>
+            Voir le rapport
+          </button>
+        </div>
+
+        <div class="m-sheet">
+          <p class="m-greet"><b id="mGreet">Bonjour !</b><span>Voici votre activité</span></p>
+
+          <div class="m-guide-head">
+            <span class="m-guide-title">Prêt à vendre</span>
+            <button class="m-guide-btn" type="button" aria-label="Réduire">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <button class="m-guide-btn" type="button" aria-label="Options">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
             </button>
           </div>
+          <p class="m-guide-desc">Suivez ce guide pour lancer votre boutique</p>
+          <span class="m-badge num">3 / 6 terminé</span>
 
-          <div class="m-stats">
-            <div class="m-main">
-              <div class="m-label">Ventes totales</div>
-              <div class="m-big num" id="mSales">—</div>
-              <div class="m-delta up" id="mSalesDelta"></div>
-            </div>
-            <div class="m-side">
-              <div>
-                <div class="m-label">Commandes</div>
-                <div class="m-val num" id="mOrders">—</div>
-                <div class="m-delta up" id="mOrdersDelta"></div>
-              </div>
-              <div>
-                <div class="m-label">Conversion</div>
-                <div class="m-val num" id="mConv">—</div>
-                <div class="m-delta down" id="mConvDelta"></div>
-              </div>
+          <div class="m-tray">
+            <div class="m-promo">
+              <p class="m-promo-title" style="margin:0">Automatisez votre marketing pour vous concentrer sur la croissance</p>
+              <p class="m-promo-text" style="margin:8px 0 0">Relances de panier abandonné, réponses automatiques et campagnes de bienvenue qui convertissent vos nouveaux visiteurs.</p>
             </div>
           </div>
         </div>
 
-        <div class="m-chart" id="mChart"></div>
-
-        <div class="m-tasks">
-          <div class="m-task">
-            <span class="m-task-icon">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h5l2 3h4l2-3h5"/><path d="M4.5 6h15l1.5 6v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/></svg>
-            </span>
-            <span>
-              <span class="m-task-n num">50+</span>
-              <span class="m-task-t" style="display:block">Commandes à traiter</span>
-            </span>
+        <div class="m-nav">
+          <button class="m-nav-circle" type="button" aria-label="Rechercher">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/></svg>
+          </button>
+          <div class="m-nav-pill">
+            <button class="m-nav-item is-on" type="button" data-route="accueil" aria-label="Accueil">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/></svg>
+            </button>
+            <button class="m-nav-item" type="button" data-route="commandes" aria-label="Commandes">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h5l2 3h4l2-3h5"/><path d="M4.5 6h15l1.5 6v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/></svg>
+            </button>
+            <button class="m-nav-item" type="button" data-route="produits" aria-label="Produits">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h8l10 10-8 8L3 11z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+            </button>
+            <button class="m-nav-item" type="button" data-route="analyses" aria-label="Analyses">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V10M10 19V4M16 19v-7M22 19H2"/></svg>
+            </button>
+            <button class="m-nav-item" type="button" data-route="plus" aria-label="Plus">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
           </div>
-          <div class="m-task">
-            <span class="m-task-icon">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.4.7-4.8 4.3 1.3 6.4L12 16.8 6.5 20l1.3-6.4L3 9.3l6.4-.7z"/></svg>
-            </span>
-            <span>
-              <span class="m-task-n num">3</span>
-              <span class="m-task-t" style="display:block">Produits en rupture proche</span>
-            </span>
-          </div>
+          <button class="m-nav-circle" type="button" aria-label="Compte">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="11" r="1.1"/><circle cx="15" cy="11" r="1.1"/><path d="M8.5 15.5c1 .9 5 .9 7 0"/></svg>
+          </button>
         </div>
       </div>
      </div>
@@ -1682,7 +1740,7 @@
   });
 
   // ================================================ ACCUEIL (app mobile)
-  var mPeriod = 'yesterday';
+  var mPeriod = 'today';
   var mData = build(mPeriod);
 
   // courbe lissée : l'app mobile trace des ondulations, pas des segments droits
@@ -1698,51 +1756,86 @@
     return d;
   }
 
+  var mKpi = 'sales';
+
+  function homeSeries() {
+    var d = mData;
+    if (mKpi === 'orders') return { vals: d.ordersSeries, fmt: int };
+    if (mKpi === 'conversion') return { vals: d.sessionsSeries.map(function (v, i) {
+      return d.conversion * (0.7 + 0.6 * v / (d.sessions / d.points));
+    }), fmt: function (v) { return pct(v); } };
+    if (mKpi === 'live') return { vals: d.sessionsSeries, fmt: int };
+    return { vals: d.salesSeries, fmt: eur };
+  }
+
+  function renderKpis() {
+    var d = mData;
+    var live = document.getElementById('mLiveVal');
+    var n = live ? live.textContent : '9';
+    var defs = [
+      { k: 'live', label: 'En direct', val: '<span class="m-livering"></span><span id="mLiveVal" class="num">' + n + '</span>' },
+      { k: 'sales', label: 'Ventes totales', val: '<span class="num">' + eur(d.sales) + '</span>', delta: d.deltas.sales },
+      { k: 'orders', label: 'Commandes', val: '<span class="num">' + int(d.orders) + '</span>', delta: d.deltas.orders },
+      { k: 'conversion', label: 'Taux de conversion', val: '<span class="num">' + pct(d.conversion) + '</span>', delta: d.deltas.conversion }
+    ];
+    document.getElementById('mKpis').innerHTML = defs.map(function (x) {
+      var tail = '<span class="m-kpi-flat"></span>';
+      if (x.delta) {
+        tail = '<span class="m-kpi-delta ' + (x.delta > 0 ? 'up' : 'down') + '">' +
+          (x.delta > 0 ? '↗' : '↘') + ' ' + pct(Math.abs(x.delta), 0) + '</span>';
+      }
+      return '<button class="m-kpi' + (x.k === mKpi ? ' is-on' : '') + '" type="button" role="tab" data-kpi="' + x.k + '">' +
+        '<span class="m-kpi-label">' + x.label + '</span>' +
+        '<span class="m-kpi-val">' + x.val + (x.k === 'live' ? '' : tail) + '</span></button>';
+    }).join('');
+    document.getElementById('mKpis').scrollLeft = 0;
+  }
+
   function renderHome() {
     var d = mData;
     document.getElementById('mRangeLabel').textContent = d.label;
-    document.getElementById('mSales').textContent = eur(d.sales);
-    document.getElementById('mOrders').textContent = int(d.orders);
-    document.getElementById('mConv').textContent = pct(d.conversion);
+    var h = new Date().getHours();
+    document.getElementById('mGreet').textContent = h < 18 ? 'Bonjour !' : 'Bonsoir !';
+    renderKpis();
 
-    function arrow(up) {
-      return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-        (up ? '<path d="M7 17L17 7"/><path d="M8 7h9v9"/>' : '<path d="M7 7l10 10"/><path d="M17 8v9h-9"/>') + '</svg>';
-    }
-    function fill(id, v) {
-      var el = document.getElementById(id);
-      el.className = 'm-delta ' + (v >= 0 ? 'up' : 'down');
-      el.innerHTML = arrow(v >= 0) + '<span class="num">' + pct(Math.abs(v), 0) + '</span>';
-    }
-    fill('mSalesDelta', d.deltas.sales);
-    fill('mOrdersDelta', d.deltas.orders);
-    fill('mConvDelta', d.deltas.conversion);
+    var ser = homeSeries(), vals = ser.vals;
+    var W = 330, H = 205, padT = 12, padB = 14, padL = 44;
+    var ax = axis(Math.max.apply(null, vals) * 1.08, 3);
 
-    // graphique : trait plein pour la période, pointillés pour la précédente
-    var W = 330, H = 168, padT = 10, padB = 26;
-    var cur = d.salesSeries, prev = d.prevSales;
-    var ax = axis(Math.max.apply(null, cur.concat(prev)) * 1.04, 3);
-    function pts(arr) {
-      return arr.map(function (v, i) {
-        return [i * W / (arr.length - 1), H - padB - (v / ax.max) * (H - padT - padB)];
-      });
+    function pt(i) {
+      return [padL + i * (W - padL) / (vals.length - 1),
+              H - padB - (vals[i] / ax.max) * (H - padT - padB)];
     }
+    var pts = vals.map(function (_, i) { return pt(i); });
+
+    // sur la journée en cours, le tracé devient pointillé au-delà de l'heure actuelle
+    var cut = (mPeriod === 'today') ? Math.max(1, Math.round(h / 23 * (vals.length - 1))) : vals.length - 1;
+
     var grid = '', ylab = '';
     for (var t = 0; t < 3; t++) {
       var v = ax.step * t;
       var y = H - padB - (v / ax.max) * (H - padT - padB);
-      grid += '<line x1="0" y1="' + y.toFixed(1) + '" x2="' + W + '" y2="' + y.toFixed(1) + '" stroke="#e6e6e6" stroke-width="1"/>';
-      ylab += '<span class="m-ylab" style="top:' + (y / H * 100).toFixed(2) + '%">' + eur(v).replace(',00 €', ' €') + '</span>';
+      grid += '<line x1="' + padL + '" y1="' + y.toFixed(1) + '" x2="' + W + '" y2="' + y.toFixed(1) + '" stroke="#38383a" stroke-width="1"/>';
+      ylab += '<span class="m-gy" style="top:' + (y / H * 100).toFixed(2) + '%">' + ser.fmt(v).replace(',00 €', ' €') + '</span>';
     }
 
-    document.getElementById('mChart').innerHTML =
-      '<svg viewBox="0 0 ' + W + ' ' + H + '" height="' + H + '" preserveAspectRatio="none" role="img" aria-label="Ventes de la période">' +
+    document.getElementById('mGraph').innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" height="' + H + '" preserveAspectRatio="none" role="img" aria-label="Évolution">' +
         grid +
-        '<path d="' + smooth(pts(prev)) + '" fill="none" stroke="#9dc0ee" stroke-width="2.2" stroke-dasharray="4 4" stroke-linecap="round"/>' +
-        '<path d="' + smooth(pts(cur)) + '" fill="none" stroke="#2b6fd4" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<path d="' + smooth(pts.slice(0, cut + 1)) + '" fill="none" stroke="#0a84ff" stroke-width="2.6" stroke-linecap="round"/>' +
+        (cut < vals.length - 1
+          ? '<path d="' + smooth(pts.slice(cut)) + '" fill="none" stroke="#5aa9f5" stroke-width="2.6" stroke-dasharray="1 6" stroke-linecap="round" opacity="0.75"/>'
+          : '') +
       '</svg>' + ylab +
-      '<div class="m-xaxis">' + d.ticks.map(function (l) { return '<span>' + l + '</span>'; }).join('') + '</div>';
+      '<div class="m-gx">' + d.ticks.map(function (l) { return '<span>' + l + '</span>'; }).join('') + '</div>';
   }
+
+  document.getElementById('mKpis').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-kpi]');
+    if (!b) return;
+    mKpi = b.dataset.kpi;
+    renderHome();
+  });
 
   (function wireHomePicker() {
     var btn = document.getElementById('mRange');
@@ -1779,10 +1872,10 @@
     });
   })();
 
-  var mLiveEl = document.getElementById('mLive');
   setInterval(function () {
-    var v = Math.max(3, Math.min(19, +mLiveEl.textContent + Math.round((Math.random() - 0.45) * 3)));
-    mLiveEl.textContent = v;
+    var el = document.getElementById('mLiveVal');
+    if (!el) return;
+    el.textContent = Math.max(2, Math.min(19, +el.textContent + Math.round((Math.random() - 0.45) * 3)));
   }, 5000);
 
   // ================================================================ ROUTAGE
@@ -1816,7 +1909,8 @@
 
     document.querySelectorAll('[data-route]').forEach(function (el) {
       var on = el.dataset.route === route;
-      el.classList.toggle('is-on', on && el.classList.contains('tabbar-item'));
+      var isNav = el.classList.contains('tabbar-item') || el.classList.contains('m-nav-item');
+      el.classList.toggle('is-on', on && isNav);
       if (el.classList.contains('nav-item')) {
         el.classList.toggle('is-active', on);
         if (on) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current');
