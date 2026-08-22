@@ -1202,13 +1202,17 @@
   // Une valeur saisie doit repiloter les series, sinon le chiffre affiche et
   // la courbe racontent deux histoires differentes apres un rechargement.
   function applyOverridesTo(d, period, prefix) {
-    function num(k) { return parseNum(ovIn(period, prefix + k, '')); }
+    // attention : null >= 0 vaut vrai en JS, d'où le test explicite sur null
+    function num(k) {
+      var v = parseNum(ovIn(period, prefix + k, ''));
+      return (v === null || !isFinite(v) || v < 0) ? null : v;
+    }
     var v;
-    v = num('sales');       if (v > 0) { d.sales = v; d.salesSeries = scaleTo(d.salesSeries, v); }
-    v = num('orders');      if (v > 0) { d.orders = v; d.ordersSeries = scaleTo(d.ordersSeries, v); }
-    v = num('sessions');    if (v > 0) { d.sessions = v; d.sessionsSeries = scaleTo(d.sessionsSeries, v); }
-    v = num('conversion');  if (v > 0) { d.conversion = v; }
-    v = num('aov');         if (v > 0) { var f = v / d.aov; d.aov = v; d.aovSeries = d.aovSeries.map(function (x) { return x * f; }); }
+    v = num('sales');       if (v !== null) { d.sales = v; d.salesSeries = scaleTo(d.salesSeries, v); }
+    v = num('orders');      if (v !== null) { d.orders = v; d.ordersSeries = scaleTo(d.ordersSeries, v); }
+    v = num('sessions');    if (v !== null) { d.sessions = v; d.sessionsSeries = scaleTo(d.sessionsSeries, v); }
+    v = num('conversion');  if (v !== null) { d.conversion = v; }
+    v = num('aov');         if (v !== null && v > 0) { var f = v / d.aov; d.aov = v; d.aovSeries = d.aovSeries.map(function (x) { return x * f; }); }
     return d;
   }
 
