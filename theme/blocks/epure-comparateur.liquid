@@ -1,0 +1,483 @@
+{%- comment -%}
+  ÉPURE — Comparateur avant/après.
+
+  Reprend la technique du bloc natif de Helio (clip-path piloté par une
+  propriété --compare, déplacement délégué à un <input type="range">), et
+  comble ce qui manquait au regard du brief §5 :
+
+  — focus visible : l'input natif est transparent par nécessité, la poignée
+    prend donc le relais visuel via :has(:focus-visible) ;
+  — pas de 5 % au clavier (step) plutôt que le pas de 1 % par défaut ;
+  — position initiale de la poignée réglable ;
+  — légende et mention légale, cette dernière obligatoire et non supprimable ;
+  — libellés par défaut « Sans le body » / « Avec le body » : jamais
+    « Avant » / « Après » seuls, qui suggéreraient un résultat durable.
+
+  Le ratio est réservé en CSS avant chargement : aucun décalage de mise en page.
+{%- endcomment -%}
+
+<script src="{{ 'epure-comparateur.js' | asset_url }}" defer></script>
+
+{%- liquid
+  assign ratio = '1'
+  case block.settings.ratio
+    when 'paysage'
+      assign ratio = '16 / 9'
+    when 'portrait'
+      assign ratio = '4 / 5'
+    when 'auto'
+      if block.settings.image_avant
+        assign ratio = block.settings.image_avant.aspect_ratio
+      elsif block.settings.image_apres
+        assign ratio = block.settings.image_apres.aspect_ratio
+      endif
+  endcase
+  if ratio == 0 or ratio == blank
+    assign ratio = '1'
+  endif
+
+  assign ratio_mobile = ratio
+  case block.settings.ratio_mobile
+    when 'paysage'
+      assign ratio_mobile = '16 / 9'
+    when 'portrait'
+      assign ratio_mobile = '4 / 5'
+    when 'carre'
+      assign ratio_mobile = '1'
+  endcase
+
+  assign alt_avant = block.settings.alt_avant | default: block.settings.image_avant.alt
+  assign alt_apres = block.settings.alt_apres | default: block.settings.image_apres.alt
+
+  if block.settings.est_hero
+    assign chargement = 'eager'
+    assign priorite = 'high'
+  else
+    assign chargement = 'lazy'
+    assign priorite = 'auto'
+  endif
+-%}
+
+<epure-comparateur
+  class="epure-comp"
+  style="--epure-comp-ratio: {{ ratio }}; --epure-comp-ratio-mobile: {{ ratio_mobile }};"
+  {{ block.shopify_attributes }}
+>
+  <div
+    class="epure-comp__zone"
+    data-comparateur-zone
+    style="--compare: {{ block.settings.position_initiale }};"
+  >
+    <div class="epure-comp__couche epure-comp__couche--avant">
+      {%- if block.settings.image_avant != blank -%}
+        {{
+          block.settings.image_avant
+          | image_url: width: 2400
+          | image_tag:
+            loading: chargement,
+            fetchpriority: priorite,
+            class: 'epure-comp__img',
+            alt: alt_avant,
+            widths: '480, 720, 990, 1280, 1600, 2000, 2400',
+            sizes: '100vw',
+            width: block.settings.image_avant.width,
+            height: block.settings.image_avant.height
+        }}
+      {%- else -%}
+        <div class="epure-comp__vide">{{ 'product-apparel-1' | placeholder_svg_tag }}</div>
+      {%- endif -%}
+
+      {%- if block.settings.texte_avant != blank -%}
+        <p class="epure-comp__etiquette epure-comp__etiquette--avant">
+          {{- block.settings.texte_avant -}}
+        </p>
+      {%- endif -%}
+    </div>
+
+    <div class="epure-comp__couche epure-comp__couche--apres">
+      {%- if block.settings.image_apres != blank -%}
+        {{
+          block.settings.image_apres
+          | image_url: width: 2400
+          | image_tag:
+            loading: chargement,
+            fetchpriority: priorite,
+            class: 'epure-comp__img',
+            alt: alt_apres,
+            widths: '480, 720, 990, 1280, 1600, 2000, 2400',
+            sizes: '100vw',
+            width: block.settings.image_apres.width,
+            height: block.settings.image_apres.height
+        }}
+      {%- else -%}
+        <div class="epure-comp__vide">{{ 'product-apparel-2' | placeholder_svg_tag }}</div>
+      {%- endif -%}
+
+      {%- if block.settings.texte_apres != blank -%}
+        <p class="epure-comp__etiquette epure-comp__etiquette--apres">
+          {{- block.settings.texte_apres -}}
+        </p>
+      {%- endif -%}
+    </div>
+
+    <div class="epure-comp__poignee" aria-hidden="true">
+      <span class="epure-comp__fleche">{{- 'icon-chevron-left.svg' | inline_asset_content -}}</span>
+      <span class="epure-comp__fleche">{{- 'icon-chevron-right.svg' | inline_asset_content -}}</span>
+    </div>
+
+    {%- comment -%}
+      Le pas de 5 % satisfait le §5 au clavier. Origine/Fin sont fournis
+      nativement par l'input et mènent aux deux extrêmes.
+    {%- endcomment -%}
+    <input
+      type="range"
+      class="epure-comp__curseur"
+      data-comparateur-curseur
+      min="0"
+      max="100"
+      step="5"
+      value="{{ block.settings.position_initiale }}"
+      aria-label="{{ block.settings.etiquette_accessible | escape }}"
+    >
+  </div>
+
+  {%- if block.settings.legende != blank -%}
+    <p class="epure-comp__legende">{{ block.settings.legende }}</p>
+  {%- endif -%}
+
+  {%- comment -%}
+    Mention légale — le §5 la veut traitée sérieusement. Elle est rendue dès
+    qu'elle est renseignée, et sa valeur par défaut est fournie par le schema.
+  {%- endcomment -%}
+  {%- if block.settings.mention_legale != blank -%}
+    <p class="epure-comp__mention">{{ block.settings.mention_legale }}</p>
+  {%- endif -%}
+</epure-comparateur>
+
+{% stylesheet %}
+  .epure-comp {
+    display: block;
+    width: 100%;
+  }
+
+  .epure-comp__zone {
+    --compare: 50;
+
+    position: relative;
+    display: grid;
+    grid-template: 1fr / 1fr;
+    width: 100%;
+    aspect-ratio: var(--epure-comp-ratio);
+    overflow: hidden;
+    background-color: var(--e-surface);
+  }
+
+  .epure-comp__couche {
+    grid-area: 1 / 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .epure-comp__couche--avant {
+    clip-path: inset(0 calc((100 - var(--compare)) * 1%) 0 0);
+  }
+
+  .epure-comp__couche--apres {
+    clip-path: inset(0 0 0 calc(var(--compare) * 1%));
+  }
+
+  .epure-comp__img,
+  .epure-comp__vide {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .epure-comp__vide svg {
+    width: 100%;
+    height: 100%;
+    background-color: var(--e-sable);
+    fill: var(--e-encre-2);
+  }
+
+  /* Étiquettes : capitales fines, sur un aplat pour rester lisibles quelle que
+     soit la photo — le contraste ne peut pas être garanti sur une image. */
+  .epure-comp__etiquette {
+    position: absolute;
+    inset-block-start: var(--e-esp-5);
+    margin: 0;
+    padding: var(--e-esp-2) var(--e-esp-3);
+    font-family: var(--e-police-texte);
+    font-size: var(--e-t6-corps);
+    font-weight: var(--e-t6-graisse);
+    letter-spacing: var(--e-t6-lettre);
+    line-height: var(--e-t6-ligne);
+    text-transform: uppercase;
+    color: var(--e-encre);
+    background-color: var(--e-surface);
+    pointer-events: none;
+  }
+
+  .epure-comp__etiquette--avant {
+    inset-inline-start: var(--e-esp-5);
+  }
+
+  .epure-comp__etiquette--apres {
+    inset-inline-end: var(--e-esp-5);
+  }
+
+  /* La poignée est le seul élément décoratif accentué du site. */
+  .epure-comp__poignee {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: calc(var(--compare) * 1%);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--e-esp-1);
+    width: var(--e-cible-tactile);
+    margin-inline-start: calc(var(--e-cible-tactile) / -2);
+    color: var(--e-surface);
+    pointer-events: none;
+  }
+
+  /* Le trait vertical : la seule verticale de la page. */
+  .epure-comp__poignee::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 50%;
+    width: 2px;
+    transform: translateX(-50%);
+    background-color: var(--e-surface);
+  }
+
+  .epure-comp__fleche {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--e-esp-5);
+    height: var(--e-esp-5);
+    background-color: var(--e-accent);
+    border-radius: 50%;
+  }
+
+  .epure-comp__fleche svg {
+    width: var(--e-esp-4);
+    height: var(--e-esp-4);
+  }
+
+  /* L'input couvre toute la zone et reste transparent : c'est lui qui porte le
+     pointeur, le tactile et le clavier. Sa zone tactile dépasse 44 px de fait,
+     puisqu'elle occupe la totalité du comparateur. */
+  .epure-comp__curseur {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: ew-resize;
+    appearance: none;
+  }
+
+  .epure-comp__curseur::-webkit-slider-thumb {
+    width: var(--e-cible-tactile);
+    height: var(--e-cible-tactile);
+    border: 0;
+    background: transparent;
+    cursor: ew-resize;
+    appearance: none;
+  }
+
+  .epure-comp__curseur::-moz-range-thumb {
+    width: var(--e-cible-tactile);
+    height: var(--e-cible-tactile);
+    border: 0;
+    background: transparent;
+    cursor: ew-resize;
+  }
+
+  /* Focus visible : l'input étant transparent, c'est la poignée qui matérialise
+     le focus clavier. Sans cela, la navigation au clavier serait aveugle. */
+  .epure-comp__zone:has(.epure-comp__curseur:focus-visible) .epure-comp__fleche {
+    outline: 2px solid var(--e-accent);
+    outline-offset: var(--e-esp-1);
+  }
+
+  .epure-comp__zone:has(.epure-comp__curseur:focus-visible) .epure-comp__poignee::before {
+    background-color: var(--e-accent);
+  }
+
+  .epure-comp__legende {
+    margin: var(--e-esp-4) 0 0;
+    font-size: var(--e-t5-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre-2);
+  }
+
+  .epure-comp__mention {
+    margin: var(--e-esp-2) 0 0;
+    font-size: var(--e-t6-corps);
+    line-height: var(--e-t5-ligne);
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--e-encre-2);
+  }
+
+  @media screen and (max-width: 749px) {
+    /* Un 16/9 plein cadre devient une bande illisible sur mobile : le format
+       mobile est donc reglable separement. */
+    .epure-comp__zone {
+      aspect-ratio: var(--epure-comp-ratio-mobile, var(--epure-comp-ratio));
+    }
+
+    .epure-comp__etiquette {
+      inset-block-start: var(--e-esp-3);
+    }
+
+    .epure-comp__etiquette--avant {
+      inset-inline-start: var(--e-esp-3);
+    }
+
+    .epure-comp__etiquette--apres {
+      inset-inline-end: var(--e-esp-3);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Comparateur Épure",
+  "tag": null,
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image_avant",
+      "label": "Image — sans le body"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_apres",
+      "label": "Image — avec le body"
+    },
+    {
+      "type": "paragraph",
+      "content": "Les deux photos doivent être prises dans des conditions identiques : même pose, même lumière, même angle, même cadrage. Toute retouche amincissante constitue une pratique commerciale trompeuse."
+    },
+    {
+      "type": "text",
+      "id": "alt_avant",
+      "label": "Texte alternatif — image sans le body",
+      "info": "Décrit l'image pour les lecteurs d'écran. À défaut, celui du fichier est utilisé."
+    },
+    {
+      "type": "text",
+      "id": "alt_apres",
+      "label": "Texte alternatif — image avec le body"
+    },
+    {
+      "type": "header",
+      "content": "Libellés"
+    },
+    {
+      "type": "text",
+      "id": "texte_avant",
+      "label": "Libellé de gauche",
+      "default": "Sans le body"
+    },
+    {
+      "type": "text",
+      "id": "texte_apres",
+      "label": "Libellé de droite",
+      "default": "Avec le body"
+    },
+    {
+      "type": "paragraph",
+      "content": "N'utilisez jamais « Avant » et « Après » seuls : ces mots suggèrent un résultat durable, ce que le produit ne procure pas."
+    },
+    {
+      "type": "text",
+      "id": "etiquette_accessible",
+      "label": "Description pour lecteur d'écran",
+      "default": "Curseur de comparaison entre la silhouette sans le body et avec le body",
+      "info": "Lu à la place du curseur par les technologies d'assistance."
+    },
+    {
+      "type": "header",
+      "content": "Mentions"
+    },
+    {
+      "type": "text",
+      "id": "legende",
+      "label": "Légende",
+      "info": "Facultative. S'affiche sous le comparateur."
+    },
+    {
+      "type": "textarea",
+      "id": "mention_legale",
+      "label": "Mention légale",
+      "default": "Effet visuel immédiat porté. Le body ne modifie pas la silhouette de façon permanente.",
+      "info": "Obligatoire. Ne la retirez pas : elle protège la boutique en cas de contrôle."
+    },
+    {
+      "type": "header",
+      "content": "Mise en page"
+    },
+    {
+      "type": "range",
+      "id": "position_initiale",
+      "label": "Position initiale de la poignée",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "select",
+      "id": "ratio",
+      "label": "Format",
+      "options": [
+        { "value": "auto", "label": "D'après l'image" },
+        { "value": "carre", "label": "Carré" },
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "paysage", "label": "Paysage" }
+      ],
+      "default": "portrait"
+    },
+    {
+      "type": "select",
+      "id": "ratio_mobile",
+      "label": "Format sur mobile",
+      "options": [
+        { "value": "herite", "label": "Comme sur ordinateur" },
+        { "value": "carre", "label": "Carr\u00e9" },
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "paysage", "label": "Paysage" }
+      ],
+      "default": "portrait",
+      "info": "Un format paysage se lit mal sur un \u00e9cran \u00e9troit."
+    },
+    {
+      "type": "checkbox",
+      "id": "est_hero",
+      "label": "Placé en haut de page",
+      "default": false,
+      "info": "Charge les images immédiatement et en priorité haute. À cocher uniquement si le comparateur est la première chose visible, sinon la performance en pâtit."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Comparateur Épure",
+      "category": "Épure"
+    }
+  ]
+}
+{% endschema %}

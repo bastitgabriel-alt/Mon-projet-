@@ -1,0 +1,386 @@
+/* ==========================================================================
+   ÉPURE — Habillage
+   Consomme exclusivement les tokens de epure-tokens.css, chargé juste avant
+   dans layout/theme.liquid. Aucune couleur, taille ou espacement en dur ici.
+
+   Deux règles que ce fichier s'impose (brief §3) :
+   — aucun @import : les polices sont auto-hébergées via snippets/epure-fonts.liquid ;
+   — aucun !important : les surcharges passent par la spécificité et l'ordre de
+     chargement, ce fichier venant après base.css.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Échelle typographique
+   Helio dérive ses tailles de titres des réglages du personnalisateur. On les
+   réaligne sur l'échelle de tokens pour que le fichier de tokens reste la
+   source unique (§10). Les sélecteurs sont préfixés par .page-wrapper afin de
+   dépasser la spécificité de base.css sans recourir à !important.
+   -------------------------------------------------------------------------- */
+
+body {
+  font-family: var(--e-police-texte);
+  font-size: var(--e-t5-corps);
+  font-weight: var(--e-t5-graisse);
+  line-height: var(--e-t5-ligne);
+  letter-spacing: var(--e-t5-lettre);
+  color: var(--e-encre);
+  -webkit-font-smoothing: antialiased;
+}
+
+.page-wrapper h1,
+.page-wrapper .h1 {
+  font-family: var(--e-police-display);
+  font-size: var(--e-t1-corps);
+  font-weight: var(--e-t1-graisse);
+  line-height: var(--e-t1-ligne);
+  letter-spacing: var(--e-t1-lettre);
+  text-transform: none;
+}
+
+.page-wrapper h2,
+.page-wrapper .h2 {
+  font-family: var(--e-police-display);
+  font-size: var(--e-t2-corps);
+  font-weight: var(--e-t2-graisse);
+  line-height: var(--e-t2-ligne);
+  letter-spacing: var(--e-t2-lettre);
+  text-transform: none;
+}
+
+.page-wrapper h3,
+.page-wrapper .h3 {
+  font-family: var(--e-police-display);
+  font-size: var(--e-t3-corps);
+  font-weight: var(--e-t3-graisse);
+  line-height: var(--e-t3-ligne);
+  letter-spacing: var(--e-t3-lettre);
+  text-transform: none;
+}
+
+.page-wrapper h4,
+.page-wrapper .h4 {
+  font-family: var(--e-police-display);
+  font-size: var(--e-t4-corps);
+  font-weight: var(--e-t3-graisse);
+  line-height: var(--e-t3-ligne);
+  letter-spacing: var(--e-t4-lettre);
+}
+
+/* Sur-titre : le seul emploi des capitales dans le système. */
+.page-wrapper .text-block.h6,
+.page-wrapper .text-block.h6 > * {
+  font-family: var(--e-police-texte);
+  font-size: var(--e-t6-corps);
+  font-weight: var(--e-t6-graisse);
+  line-height: var(--e-t6-ligne);
+  letter-spacing: var(--e-t6-lettre);
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   Filets
+   Le décoratif reste ténu ; dès qu'un filet délimite un composant, il bascule
+   sur --e-ligne-forte pour tenir le seuil 3:1 (WCAG 1.4.11).
+   -------------------------------------------------------------------------- */
+
+.page-wrapper .divider__line,
+.page-wrapper hr {
+  border: 0;
+  height: var(--e-trait);
+  background-color: var(--e-ligne);
+}
+
+/* --------------------------------------------------------------------------
+   En-tête
+   -------------------------------------------------------------------------- */
+
+header-component,
+.header-section {
+  background-color: var(--e-fond);
+  border-bottom: 0;
+  box-shadow: none;
+}
+
+.header__column .jumbo-text-line,
+.logo-section .jumbo-text-line {
+  font-family: var(--e-police-display);
+  font-weight: var(--e-t1-graisse);
+  letter-spacing: var(--e-t6-lettre);
+  text-transform: uppercase;
+  color: var(--e-encre);
+}
+
+.header__column a {
+  font-family: var(--e-police-texte);
+  font-weight: var(--e-t6-graisse);
+  font-size: var(--e-t6-corps);
+  letter-spacing: var(--e-t6-lettre);
+  text-transform: uppercase;
+  color: var(--e-encre-2);
+  transition: color var(--e-duree-moyen) var(--e-courbe);
+}
+
+.header__column a:hover {
+  color: var(--e-encre);
+}
+
+/* --------------------------------------------------------------------------
+   Boutons
+   L'accent ne sert qu'ici et sur le comparateur : un seul accent, employé avec
+   parcimonie (§4).
+   -------------------------------------------------------------------------- */
+
+.page-wrapper .button,
+.page-wrapper .button-primary,
+.page-wrapper .button-secondary,
+.page-wrapper .button-custom,
+.page-wrapper .add-to-cart-button {
+  font-family: var(--e-police-texte);
+  font-size: var(--e-t6-corps);
+  font-weight: var(--e-t6-graisse);
+  letter-spacing: var(--e-t6-lettre);
+  text-transform: uppercase;
+  border-radius: var(--e-rayon);
+  transition:
+    background-color var(--e-duree-moyen) var(--e-courbe),
+    color var(--e-duree-moyen) var(--e-courbe);
+}
+
+.page-wrapper .button:hover,
+.page-wrapper .button-primary:hover,
+.page-wrapper .button-custom:hover,
+.page-wrapper .add-to-cart-button:hover {
+  background-color: var(--e-accent);
+  color: var(--e-surface);
+}
+
+/* --------------------------------------------------------------------------
+   Prix
+   -------------------------------------------------------------------------- */
+
+.page-wrapper .price,
+.page-wrapper .price-item__group {
+  font-family: var(--e-police-texte);
+  font-weight: var(--e-t6-graisse);
+  color: var(--e-encre);
+}
+
+.page-wrapper .compare-at-price {
+  color: var(--e-encre-2);
+}
+
+/* --------------------------------------------------------------------------
+   Sélecteurs de taille et de couleur
+   Pas de pilule ni de cadre : la sélection se signale par un soulignement.
+   -------------------------------------------------------------------------- */
+
+.page-wrapper .variant-option--buttons legend {
+  font-family: var(--e-police-texte);
+  font-size: var(--e-t6-corps);
+  font-weight: var(--e-t6-graisse);
+  letter-spacing: var(--e-t6-lettre);
+  text-transform: uppercase;
+  color: var(--e-encre);
+}
+
+.page-wrapper .variant-option__button-label {
+  font-family: var(--e-police-texte);
+  font-size: var(--e-t5-corps);
+  font-weight: var(--e-t5-graisse);
+  letter-spacing: var(--e-t5-lettre);
+  text-transform: none;
+  color: var(--e-encre-2);
+  background-color: transparent;
+  border: 0;
+  border-radius: var(--e-rayon);
+  min-height: var(--e-cible-tactile);
+  box-shadow: inset 0 -1px 0 transparent;
+  transition:
+    color var(--e-duree-court) var(--e-courbe),
+    box-shadow var(--e-duree-court) var(--e-courbe);
+}
+
+.page-wrapper .variant-option__button-label__pill {
+  display: none;
+}
+
+.page-wrapper .variant-option__button-label:has(:checked) {
+  color: var(--e-encre);
+  box-shadow: inset 0 -1px 0 var(--e-encre);
+}
+
+.page-wrapper .variant-option__button-label:has(:focus-visible) {
+  outline: 2px solid var(--e-accent);
+  outline-offset: var(--e-esp-1);
+}
+
+/* --------------------------------------------------------------------------
+   Fiche produit — colonne de droite
+   -------------------------------------------------------------------------- */
+
+#shopify-section-main .product-details .text-block.h6,
+#shopify-section-main .product-details .text-block.h6 > * {
+  color: var(--e-encre-2);
+}
+
+#shopify-section-main .product-details h1 {
+  font-size: var(--e-t2-corps);
+  line-height: var(--e-t2-ligne);
+  letter-spacing: var(--e-t2-lettre);
+}
+
+#shopify-section-main .product-details .variant-picker {
+  position: relative;
+  padding-top: var(--e-esp-5);
+}
+
+#shopify-section-main .product-details .variant-picker::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: var(--e-trait);
+  background-color: var(--e-ligne);
+}
+
+#shopify-section-main .quantity {
+  border-color: var(--e-ligne-forte);
+}
+
+/* --------------------------------------------------------------------------
+   Accordéons
+   -------------------------------------------------------------------------- */
+
+.accordion .details__header {
+  font-family: var(--e-police-texte);
+  font-size: var(--e-t6-corps);
+  font-weight: var(--e-t6-graisse);
+  letter-spacing: var(--e-t6-lettre);
+  text-transform: uppercase;
+  color: var(--e-encre);
+  padding-block: var(--e-esp-5);
+  min-height: var(--e-cible-tactile);
+  cursor: pointer;
+  transition: color var(--e-duree-court) var(--e-courbe);
+}
+
+.accordion .details__header:hover {
+  color: var(--e-accent);
+}
+
+.accordion .details-content {
+  padding-bottom: var(--e-esp-5);
+}
+
+.accordion .details-content p {
+  font-size: var(--e-t5-corps);
+  line-height: var(--e-t5-ligne);
+  color: var(--e-encre-2);
+}
+
+.accordion .details-content p + p {
+  margin-top: var(--e-esp-3);
+}
+
+/* Liste d'atouts : tiret fin, jamais de puce. */
+.accordion .details-content ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-esp-3);
+}
+
+.accordion .details-content li {
+  position: relative;
+  padding-left: var(--e-esp-5);
+  font-size: var(--e-t5-corps);
+  line-height: var(--e-t5-ligne);
+  color: var(--e-encre-2);
+}
+
+.accordion .details-content li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: var(--e-esp-2);
+  height: var(--e-trait);
+  background-color: var(--e-accent);
+}
+
+.accordion .details-content strong {
+  font-weight: var(--e-t6-graisse);
+  color: var(--e-encre);
+}
+
+/* --------------------------------------------------------------------------
+   Grille de caractéristiques
+   -------------------------------------------------------------------------- */
+
+#shopify-section-specs .text-block.h6,
+#shopify-section-specs .text-block.h6 > * {
+  color: var(--e-encre-2);
+}
+
+/* --------------------------------------------------------------------------
+   Cartes produit
+   -------------------------------------------------------------------------- */
+
+.product-card__content,
+.product-grid__card {
+  border: 0;
+  border-radius: var(--e-rayon);
+  background-color: var(--e-surface);
+}
+
+.product-card__link {
+  text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+   Pied de page
+   -------------------------------------------------------------------------- */
+
+.footer-content {
+  background-color: var(--e-surface);
+  border-top: 0;
+  color: var(--e-encre-2);
+}
+
+.footer-content .menu__heading__default {
+  font-family: var(--e-police-texte);
+  font-size: var(--e-t6-corps);
+  font-weight: var(--e-t6-graisse);
+  letter-spacing: var(--e-t6-lettre);
+  text-transform: uppercase;
+  color: var(--e-encre);
+}
+
+/* --------------------------------------------------------------------------
+   Plancher d'accessibilité
+   Le focus reste visible partout, sur l'accent qui tient AAA sur les trois fonds.
+   -------------------------------------------------------------------------- */
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--e-accent);
+  outline-offset: var(--e-esp-1);
+  border-radius: var(--e-rayon);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms;
+    animation-iteration-count: 1;
+    transition-duration: 1ms;
+    scroll-behavior: auto;
+  }
+}

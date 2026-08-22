@@ -1,0 +1,137 @@
+/* ==========================================================================
+   ÉPURE — Fichier de tokens
+   Source unique de vérité : couleurs, typographie, espacement, mouvement.
+   Aucune de ces valeurs ne doit être réécrite en dur ailleurs (brief §10).
+
+   Direction « Atelier » : sans-serif intégral, accent vert-de-gris, rigueur
+   des alignements, filets fins, beaucoup de vide. La valeur chaude (sable)
+   évite que la palette bascule dans le clinique.
+
+   Les tokens --font-*, --color-* en fin de fichier reconnectent ce système
+   aux variables natives du thème Helio (snippets/theme-styles-variables.liquid),
+   afin que titres, boutons, menus et pied de page en héritent sans surcharge.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------- Couleur
+     Contrastes vérifiés WCAG 2.1 niveau AA sur les trois fonds.
+     encre       sur fond/surface/sable : 13.82 / 15.08 / 11.24  (AAA)
+     encre-2     sur fond/surface/sable :  5.55 /  6.05 /  4.51  (AA)
+     accent      sur fond/surface/sable :  8.76 /  9.55 /  7.12  (AAA)
+     fond        sur accent             :  8.76                  (AAA)
+     ligne-forte sur fond/surface/sable :  3.75 /  4.09 /  3.05  (AA non-texte)
+     -------------------------------------------------------------------- */
+
+  --e-fond: #EFEAE4;
+  --e-surface: #F7F4F0;
+  --e-sable: #E0D3C4;
+  --e-encre: #221E1C;
+  --e-encre-2: #645B54;
+  --e-accent: #2F4438;
+
+  /* Deux filets distincts : le décoratif peut rester ténu (exempté par
+     WCAG 1.4.11), le fonctionnel délimite un composant et doit tenir 3:1. */
+  --e-ligne: #D5CCC2;
+  --e-ligne-forte: #7C7671;
+
+  /* --------------------------------------------------------------- Typographie
+     Six niveaux. Graisse et interlettrage définis pour chacun : plus le corps
+     est grand, plus l'interlettrage se resserre. Fluide via clamp(), sans
+     palier de rupture. */
+
+  --e-police-display: 'Epure Display', ui-sans-serif, system-ui, sans-serif;
+  --e-police-texte: 'Epure Texte', ui-sans-serif, system-ui, sans-serif;
+
+  --e-t1-corps: clamp(2.75rem, 1.35rem + 5.6vw, 6rem);
+  --e-t1-graisse: 600;
+  --e-t1-lettre: -0.035em;
+  --e-t1-ligne: 0.96;
+
+  --e-t2-corps: clamp(2rem, 1.3rem + 2.8vw, 3.5rem);
+  --e-t2-graisse: 600;
+  --e-t2-lettre: -0.025em;
+  --e-t2-ligne: 1.05;
+
+  --e-t3-corps: clamp(1.5rem, 1.24rem + 1.05vw, 2.125rem);
+  --e-t3-graisse: 600;
+  --e-t3-lettre: -0.015em;
+  --e-t3-ligne: 1.15;
+
+  --e-t4-corps: clamp(1.0625rem, 1rem + 0.32vw, 1.3125rem);
+  --e-t4-graisse: 400;
+  --e-t4-lettre: -0.005em;
+  --e-t4-ligne: 1.5;
+
+  --e-t5-corps: 1rem;
+  --e-t5-graisse: 400;
+  --e-t5-lettre: 0em;
+  --e-t5-ligne: 1.6;
+
+  --e-t6-corps: 0.75rem;
+  --e-t6-graisse: 600;
+  --e-t6-lettre: 0.18em;
+  --e-t6-ligne: 1.2;
+
+  /* ------------------------------------------------------------- Espacement
+     Échelle unique. Toute marge ou tout rembourrage doit s'y rattacher :
+     aucune valeur arbitraire dans les feuilles de style de composant. */
+
+  --e-esp-1: 0.25rem;
+  --e-esp-2: 0.5rem;
+  --e-esp-3: 0.75rem;
+  --e-esp-4: 1rem;
+  --e-esp-5: 1.5rem;
+  --e-esp-6: 2rem;
+  --e-esp-7: 3rem;
+  --e-esp-8: 4.5rem;
+  --e-esp-9: 7rem;
+
+  /* Rythme vertical des sections, dérivé de la même échelle. */
+  --e-section-y: clamp(var(--e-esp-8), 6vw, var(--e-esp-9));
+  --e-gouttiere: clamp(var(--e-esp-4), 4vw, var(--e-esp-7));
+
+  /* ------------------------------------------------------------------ Trait
+     L'Atelier ne s'appuie pas sur les ombres portées : la hiérarchie se joue
+     par le vide et l'alignement. Rayon nul, hairline à 1px. */
+
+  --e-rayon: 0px;
+  --e-trait: 1px;
+
+  /* --------------------------------------------------------------- Mouvement
+     Trois moments animés sur tout le site, pas trente (§11). */
+
+  --e-duree-court: 180ms;
+  --e-duree-moyen: 320ms;
+  --e-duree-long: 560ms;
+  --e-courbe: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Cible tactile minimale (§5 : poignée du comparateur au pouce). */
+  --e-cible-tactile: 44px;
+
+  /* ---------------------------------------------------- Raccord au thème Helio
+     Ces variables sont celles que Helio consomme partout. En les redéfinissant
+     ici, l'ensemble du thème adopte le système sans qu'aucun sélecteur de
+     composant n'ait à être surchargé. */
+
+  --font-heading--family: var(--e-police-display);
+  --font-subheading--family: var(--e-police-texte);
+  --font-body--family: var(--e-police-texte);
+  --font-accent--family: var(--e-police-texte);
+
+  --font-heading--weight: var(--e-t2-graisse);
+  --font-subheading--weight: var(--e-t6-graisse);
+  --font-accent--weight: var(--e-t6-graisse);
+
+  --color-border: var(--e-ligne);
+  --border-color: var(--e-ligne);
+}
+
+/* Le mouvement est un agrément, jamais un support d'information.
+   Neutralisation globale — non négociable (§3). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --e-duree-court: 1ms;
+    --e-duree-moyen: 1ms;
+    --e-duree-long: 1ms;
+  }
+}

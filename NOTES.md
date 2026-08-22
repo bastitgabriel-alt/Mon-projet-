@@ -62,6 +62,89 @@ Les surcharges passent par la spécificité et l'ordre de chargement.
 
 ---
 
+## Étape 2 — Hero comparateur ✅
+
+### Ce qui existait déjà
+
+`blocks/comparison-slider.liquid` (21 Ko) et `assets/comparison-slider.js`
+étaient présents dans Helio. La technique est bonne et a été **reprise, pas
+réinventée** : `clip-path: inset()` piloté par une propriété `--compare`, et
+déplacement délégué à un `<input type="range">` natif.
+
+Ce dernier choix est le bon : le navigateur fournit alors le pointeur, le
+tactile, le clavier (flèches, Origine/Fin), le rôle « slider » et
+`aria-valuenow` sans une ligne de code.
+
+### Les six manques du natif au regard du §5
+
+| Point | État natif |
+|---|---|
+| Focus visible | `.cs-slider { opacity: 0 }` — focus **invisible**, échec WCAG 2.4.7 |
+| Pas clavier de 5 % | pas de `step` → pas de 1 % |
+| `prefers-reduced-motion` | animation en chaîne de `setTimeout`, non gardée |
+| Position initiale réglable | `value="50"` en dur |
+| Légende | absente |
+| Mention légale | absente |
+
+À quoi s'ajoutait un schema en clés `t:`, alors que le §3 impose des libellés
+en français.
+
+### Décidé
+
+Composant autonome `blocks/epure-comparateur.liquid` + `assets/epure-comparateur.js`
+(3,4 Ko). Le §5 demande explicitement « un composant autonome, réutilisable,
+avec schema éditable » : cela prime ici sur le §11, et c'est signalé comme tel.
+
+- **Focus** : l'input reste transparent par nécessité, c'est la poignée qui
+  matérialise le focus clavier via `:has(:focus-visible)`.
+- **Animation** : `requestAnimationFrame` avec une sinusoïde 50 → 65 → 50,
+  plutôt qu'une chaîne de quatre `setTimeout`. Une seule poignée à annuler au
+  démontage, et aucune écriture sur un élément détaché.
+- **Mouvement réduit** : l'observateur n'est même pas créé si
+  `prefers-reduced-motion` est actif — l'animation ne peut pas se déclencher.
+- **Format mobile distinct** : un 16/9 plein cadre devient une bande illisible
+  sur un écran étroit. Le hero est donc en paysage sur ordinateur, en portrait
+  sur mobile.
+- **`est_hero`** : bascule les images en `eager` + `fetchpriority="high"`.
+  Décoché par défaut, avec un avertissement dans le schema.
+
+### Écarté
+
+- **Modifier `blocks/comparison-slider.liquid` en place.** Plus court, mais
+  écrasé à la première mise à jour du thème.
+- **Réutiliser la classe `Component` de Helio.** Aurait créé une dépendance à
+  l'interne du thème. L'élément personnalisé est autonome.
+- **Superposer le titre sur le comparateur.** Le texte masquerait précisément
+  ce que l'image doit démontrer, et le contraste serait ingouvernable sur une
+  photo. Le titre est donc **sous** le comparateur, dans la section `accroche`.
+
+### Page d'accueil
+
+Le comparateur ouvre la page en pleine largeur, l'accroche suit. Les images
+sont **volontairement vides** : le §11 interdit de laisser du faux contenu en
+ligne, le bloc affiche donc ses gabarits jusqu'à ce que les vraies photos
+soient choisies dans le personnalisateur.
+
+L'ancien hero est supprimé — et il le fallait : le CSS refondu ne contient plus
+le dégradé sombre qui rendait son texte lisible sur l'image.
+
+### Reste en dur sur l'accueil
+
+Les sections héritées portent encore des couleurs de l'ancienne palette mastic
+(`#2A2523`, `#EDE7E1`, `#6B625C`, `#F8F5F2`). Elles sont visuellement très
+proches des nouvelles et seront reprises au fil des sections. L'ancien accent
+`#C9A896`, lui, jurait franchement avec le vert-de-gris : il est déjà basculé
+sur `{{ settings.color_palette.color11 }}`.
+
+### À vérifier au premier rendu
+
+1. Le bloc `epure-comparateur` apparaît-il bien dans le personnalisateur ?
+   Il dépend de `sections/section.liquid` acceptant `@theme`.
+2. Le focus clavier est-il visible sur la poignée ? Tester à la tabulation.
+3. Le format mobile bascule-t-il bien en portrait sous 750 px ?
+
+---
+
 ## À vérifier au premier rendu
 
 Sans accès réseau à la boutique, ces points ne sont pas confirmés :
@@ -104,7 +187,7 @@ body change. Il ne l'est pas si la silhouette a été affinée.
 
 ## Reste à faire
 
-- [ ] Hero comparateur (étendre le bloc natif, ne pas le réécrire)
+- [x] Hero comparateur
 - [ ] Preuve produit
 - [ ] Bloc matière
 - [ ] Guide des tailles en tiroir
