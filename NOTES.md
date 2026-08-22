@@ -191,6 +191,62 @@ mobile est celui de Helio (`vertical_on_mobile`), non surchargé.
 
 ---
 
+## Étape 4 — Bloc matière ✅
+
+### Le grammage manque, et je ne l'invente pas
+
+Le §6 demande « grammage, composition, élasticité ». La composition
+(85 % polyamide, 15 % élasthanne) et l'extensibilité figurent dans la fiche
+produit du marchand. **Le grammage n'apparaît nulle part.**
+
+Le §11 interdit de laisser du faux contenu en ligne. Un grammage inventé
+serait pire qu'une absence : c'est une donnée technique vérifiable, et un
+chiffre faux sur une fiche produit engage le vendeur. La ligne est donc
+**omise**, à ajouter dès que la valeur réelle sera connue.
+
+### Décidé
+
+Section `matiere` en deux colonnes asymétriques : la prose à gauche (44 %),
+la fiche technique à droite (56 %), filets entre chaque entrée.
+
+| Intitulé | Donnée | Source |
+|---|---|---|
+| Composition | 85 % polyamide, 15 % élasthanne | fiche produit |
+| Extensibilité | Bi-extensible, dans les deux sens | fiche produit |
+| Finition | Bords découpés au laser, sans ourlet | fiche produit |
+| Entretien | 30 °C en filet, séchage à l'air libre | fiche produit |
+| ~~Grammage~~ | *inconnu* | — |
+
+C'est la première section à utiliser le **fond sable** (`color2`) : la valeur
+chaude réclamée pour éviter l'effet clinique. Elle reste unique sur la page,
+sinon elle cesse d'être un accent de rythme.
+
+### Rythme de la page
+
+L'ordre est désormais : comparateur → accroche → preuve → macro maille →
+matière → diptyque → pause → éditorial → teintes → produit → quotidien →
+clôture.
+
+Trois registres alternent : plein cadre photographique, fiche technique,
+bloc centré. Le grief de monotonie portait sur la répétition d'un même
+gabarit texte/image : il n'y en a plus deux consécutifs du même type.
+
+### Nettoyage §10 effectué au passage
+
+Les boutons portaient encore des couleurs mastic en dur
+(`custom_button_background`, `link_text_color`…). Tous basculés sur
+`button-primary`, qui hérite de la palette. Idem pour le sélecteur de
+variantes et les champs de la fiche produit intégrée. Restent onze `#645B54`
+(encre secondaire) : la palette Shopify n'a pas d'emplacement pour cette
+valeur — à corriger en ajoutant `color5` lors d'une passe ultérieure.
+
+### Contrôle
+
+Le fond sable a été vérifié au contraste dès l'étape 1 : encre 11,24 (AAA),
+encre-2 4,51 (AA), accent 7,12 (AAA). Aucune paire ne descend sous le seuil.
+
+---
+
 ## À vérifier au premier rendu
 
 Sans accès réseau à la boutique, ces points ne sont pas confirmés :
@@ -235,7 +291,7 @@ body change. Il ne l'est pas si la silhouette a été affinée.
 
 - [x] Hero comparateur
 - [x] Preuve produit
-- [ ] Bloc matière
+- [x] Bloc matière
 - [ ] Guide des tailles en tiroir
 - [ ] FAQ + JSON-LD `FAQPage`
 - [ ] Avis clients
