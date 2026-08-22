@@ -297,12 +297,154 @@
   @keyframes shimmer { to { background-position: -200% 0; } }
   .sk svg, .sk .fill { visibility: hidden; }
 
+  /* ---------------- vues ---------------- */
+  .view { display: none; }
+  .view.is-on { display: block; }
+
+  /* ---------------- onglets de statut ---------------- */
+  .tabs {
+    display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none;
+    border-bottom: 1px solid var(--border); margin-bottom: 14px;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+    padding: 9px 12px; border: 0; background: none; cursor: pointer;
+    font-size: 13px; font-weight: 500; color: var(--text-sub);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color .12s, border-color .12s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.is-on { color: var(--text); font-weight: 600; border-bottom-color: var(--text); }
+  .tab-count {
+    font-size: 11px; font-weight: 600; background: #e4e5e7; color: var(--text-sub);
+    border-radius: 10px; padding: 1px 7px; line-height: 1.5;
+  }
+  .tab.is-on .tab-count { background: var(--text); color: #fff; }
+
+  /* ---------------- barre d'outils liste ---------------- */
+  .listbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .field {
+    display: flex; align-items: center; gap: 8px; flex: 1; min-width: 180px;
+    padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
+  }
+  .field:focus-within { border-color: var(--link); box-shadow: 0 0 0 2px rgba(44, 110, 203, .18); }
+  .field input {
+    border: 0; outline: 0; background: none; font: inherit; font-size: 13px;
+    width: 100%; color: var(--text); padding: 0;
+  }
+  .field input::placeholder { color: var(--text-sub); }
+
+  /* ---------------- tableau des commandes ---------------- */
+  .sheet {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; box-shadow: var(--card-shadow); overflow: hidden;
+  }
+  .sheet-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
+  thead th {
+    text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--text-sub);
+    padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap;
+    background: var(--surface-sub);
+  }
+  thead th.sortable { cursor: pointer; user-select: none; }
+  thead th.sortable:hover { color: var(--text); }
+  thead th .arrow { opacity: 0; margin-left: 3px; }
+  thead th.is-sorted .arrow { opacity: 1; }
+  tbody td { padding: 11px 12px; border-bottom: 1px solid var(--border-sub); white-space: nowrap; }
+  tbody tr { cursor: pointer; transition: background .1s; }
+  tbody tr:hover { background: var(--surface-sub); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.no { font-weight: 600; }
+  td.amount { text-align: right; font-weight: 500; }
+  th.amount { text-align: right; }
+
+  .pager {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 12px; border-top: 1px solid var(--border); background: var(--surface-sub);
+    font-size: 12.5px; color: var(--text-sub);
+  }
+  .pager-btns { display: flex; gap: 6px; }
+  .pager button {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 6px;
+    padding: 5px 10px; cursor: pointer; font-size: 12.5px;
+  }
+  .pager button:hover:not(:disabled) { background: var(--active); }
+  .pager button:disabled { opacity: .45; cursor: default; }
+
+  .empty { padding: 44px 16px; text-align: center; color: var(--text-sub); }
+  .empty-title { font-size: 14px; font-weight: 600; color: var(--text); margin: 10px 0 4px; }
+
+  /* ---------------- panneau de détail ---------------- */
+  .scrim {
+    position: fixed; inset: 0; z-index: 50; background: rgba(26, 28, 29, .35);
+    opacity: 0; pointer-events: none; transition: opacity .18s;
+  }
+  .scrim.is-on { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; z-index: 51; width: 420px; max-width: 100%;
+    background: var(--surface); border-left: 1px solid var(--border);
+    box-shadow: -8px 0 24px rgba(22, 29, 37, .12);
+    transform: translateX(100%); transition: transform .22s cubic-bezier(.4, 0, .2, 1);
+    display: flex; flex-direction: column;
+  }
+  .drawer.is-on { transform: none; }
+  .drawer-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .drawer-title { font-size: 15px; font-weight: 600; flex: 1; }
+  .icon-btn {
+    border: 0; background: none; cursor: pointer; padding: 6px; border-radius: 6px;
+    display: inline-flex; color: var(--text-sub);
+  }
+  .icon-btn:hover { background: var(--active); color: var(--text); }
+  .drawer-body { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
+  .block-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-sub); margin: 0 0 8px; }
+  .line { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 13px; }
+  .line.total { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 10px; font-weight: 600; }
+  .item { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+  .thumb {
+    width: 34px; height: 34px; border-radius: 6px; background: var(--app-bg);
+    border: 1px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; color: var(--text-dis);
+  }
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .step { display: flex; gap: 10px; padding-bottom: 14px; position: relative; }
+  .step:not(:last-child)::before {
+    content: ""; position: absolute; left: 4px; top: 14px; bottom: 0; width: 1px; background: var(--border);
+  }
+  .step-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--viz-teal); margin-top: 4px; flex-shrink: 0; position: relative; }
+  .step-dot.pale { background: var(--border); }
+  .step-text { font-size: 12.5px; }
+  .step-when { font-size: 11.5px; color: var(--text-sub); }
+
+  /* ---------------- barre d'onglets mobile ---------------- */
+  .tabbar { display: none; }
+
   /* ---------------- téléphone ---------------- */
   @media (max-width: 900px) {
     .sidebar { display: none; }
     .grid { grid-template-columns: 1fr; }
     .main { padding: 16px 14px 32px; }
     .updated { margin-left: 0; width: 100%; }
+    body { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+
+    .tabbar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+      display: flex; justify-content: space-around;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 7px 4px calc(7px + env(safe-area-inset-bottom, 0px));
+    }
+    .tabbar-item {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      border: 0; background: none; cursor: pointer; padding: 3px 6px; width: 72px;
+      font-size: 10.5px; font-weight: 500; color: var(--text-dis);
+    }
+    .tabbar-item svg { stroke: currentColor; }
+    .tabbar-item.is-on { color: var(--text); font-weight: 600; }
+    .drawer { width: 100%; }
   }
   @media (max-width: 700px) {
     .search-wrap { display: none; }
@@ -355,16 +497,16 @@
     <!-- ================= SIDEBAR ================= -->
     <nav class="sidebar" aria-label="Navigation">
       <div class="nav">
-        <button class="nav-item" type="button">
+        <button class="nav-item" type="button" data-route="accueil">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/></svg>
           <span class="nav-label">Accueil</span>
         </button>
-        <button class="nav-item" type="button">
+        <button class="nav-item" type="button" data-route="commandes">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
           <span class="nav-label">Commandes</span>
           <span class="nav-badge num" id="navPending">8</span>
         </button>
-        <button class="nav-item" type="button">
+        <button class="nav-item" type="button" data-route="produits">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h8l10 10-8 8L3 11z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
           <span class="nav-label">Produits</span>
         </button>
@@ -372,7 +514,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2"/><circle cx="17" cy="9" r="2.6"/><path d="M15.8 13.6c2.4.4 4.2 2.3 4.2 5.1"/></svg>
           <span class="nav-label">Clients</span>
         </button>
-        <button class="nav-item is-active" type="button" aria-current="page">
+        <button class="nav-item is-active" type="button" data-route="analyses" aria-current="page">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V10M10 19V4M16 19v-7M22 19H2"/></svg>
           <span class="nav-label">Analyses</span>
         </button>
@@ -411,6 +553,7 @@
 
     <!-- ================= MAIN ================= -->
     <main class="main">
+     <div class="view is-on" id="view-analyses">
       <h1>Analyses</h1>
 
       <div class="toolbar">
@@ -569,9 +712,94 @@
         </section>
 
       </div>
+     </div>
+
+     <!-- ================= COMMANDES ================= -->
+     <div class="view" id="view-commandes">
+      <h1>Commandes</h1>
+
+      <div class="tabs" id="orderTabs" role="tablist"></div>
+
+      <div class="listbar">
+        <label class="field">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/></svg>
+          <input id="orderSearch" type="search" placeholder="Rechercher une commande ou un client" aria-label="Rechercher">
+        </label>
+        <button class="chip" id="exportBtn" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>
+          Exporter
+        </button>
+      </div>
+
+      <div class="sheet">
+        <div class="sheet-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="no">Commande <span class="arrow">↓</span></th>
+                <th class="sortable" data-sort="date">Date <span class="arrow">↓</span></th>
+                <th class="sortable" data-sort="who">Client <span class="arrow">↓</span></th>
+                <th>Paiement</th>
+                <th>Traitement</th>
+                <th>Articles</th>
+                <th class="amount sortable" data-sort="total">Total <span class="arrow">↓</span></th>
+              </tr>
+            </thead>
+            <tbody id="orderRows"></tbody>
+          </table>
+        </div>
+        <div id="orderEmpty" class="empty" hidden>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--text-dis)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/></svg>
+          <p class="empty-title">Aucune commande trouvée</p>
+          <p style="margin:0;font-size:13px">Essayez un autre terme ou changez d'onglet.</p>
+        </div>
+        <div class="pager">
+          <span id="pagerInfo">—</span>
+          <span class="pager-btns">
+            <button id="prevPage" type="button">Précédent</button>
+            <button id="nextPage" type="button">Suivant</button>
+          </span>
+        </div>
+      </div>
+     </div>
     </main>
   </div>
 </div>
+
+<!-- ================= BARRE D'ONGLETS MOBILE ================= -->
+<nav class="tabbar" aria-label="Navigation mobile">
+  <button class="tabbar-item" type="button" data-route="accueil">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/></svg>
+    Accueil
+  </button>
+  <button class="tabbar-item" type="button" data-route="commandes">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg>
+    Commandes
+  </button>
+  <button class="tabbar-item" type="button" data-route="produits">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h8l10 10-8 8L3 11z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+    Produits
+  </button>
+  <button class="tabbar-item is-on" type="button" data-route="analyses">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V10M10 19V4M16 19v-7M22 19H2"/></svg>
+    Analyses
+  </button>
+  <button class="tabbar-item" type="button" data-route="plus">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    Plus
+  </button>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" hidden>
+  <div class="drawer-head">
+    <span class="drawer-title" id="drawerTitle">Commande</span>
+    <button class="icon-btn" id="drawerClose" type="button" aria-label="Fermer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
 
 <script>
 (function () {
@@ -1067,9 +1295,308 @@
 
   setInterval(function () { touchUpdated(); renderOrders(); }, 60000);
 
+  // ================================================================ COMMANDES
+  var FIRST = ['Léa', 'Yanis', 'Chloé', 'Hugo', 'Camille', 'Noah', 'Jade', 'Lucas', 'Manon', 'Adam',
+               'Inès', 'Raphaël', 'Louise', 'Gabriel', 'Alice', 'Nathan', 'Sarah', 'Enzo', 'Emma', 'Théo'];
+  var LAST = ['M.', 'B.', 'R.', 'T.', 'D.', 'L.', 'P.', 'G.', 'F.', 'S.', 'C.', 'V.'];
+  var PAY = [['Payée', 'ok', .66], ['En attente', 'warn', .22], ['Remboursée', 'info', .12]];
+  var FUL = [['Livrée', 'ok', .38], ['Expédiée', 'info', .34], ['Non traitée', 'warn', .28]];
+
+  function pick(r, table) {
+    var x = r(), acc = 0;
+    for (var i = 0; i < table.length; i++) {
+      acc += table[i][2];
+      if (x <= acc) return table[i];
+    }
+    return table[table.length - 1];
+  }
+
+  var ALL_ORDERS = (function () {
+    var r = rng(7331), out = [];
+    for (var i = 0; i < 64; i++) {
+      var items = [], count = 1 + Math.floor(r() * 3), total = 0;
+      for (var j = 0; j < count; j++) {
+        var prod = PRODUCTS[Math.floor(r() * PRODUCTS.length)];
+        var qty = 1 + Math.floor(r() * 2);
+        var unit = 18 + Math.round(r() * 62);
+        items.push({ name: prod.name, qty: qty, unit: unit });
+        total += qty * unit;
+      }
+      var pay = pick(r, PAY);
+      // écarts croissants : dense sur les dernières heures, plus espacé en remontant,
+      // ce qui étale les 64 commandes sur environ un mois comme dans une vraie boutique
+      var d = new Date(now);
+      d.setMinutes(d.getMinutes() - Math.round(40 * i + 9 * i * i + r() * 200));
+
+      // le traitement découle de l'ancienneté : une commande d'il y a une heure
+      // ne peut pas être livrée, sinon le suivi afficherait des dates futures
+      var ageH = (now - d) / 36e5, ful;
+      if (ageH < 14) ful = r() < 0.75 ? FUL[2] : FUL[1];
+      else if (ageH < 52) ful = r() < 0.72 ? FUL[1] : FUL[2];
+      else ful = r() < 0.78 ? FUL[0] : FUL[1];
+      if (pay[0] === 'En attente') ful = FUL[2];
+      out.push({
+        no: 10482 - i, who: FIRST[Math.floor(r() * FIRST.length)] + ' ' + LAST[Math.floor(r() * LAST.length)],
+        date: d, items: items, sub: total,
+        ship: total > 90 ? 0 : 4.90,
+        pay: pay[0], payCls: pay[1], ful: ful[0], fulCls: ful[1]
+      });
+    }
+    return out;
+  })();
+
+  var TABS = [
+    { id: 'all', label: 'Toutes', test: function () { return true; } },
+    { id: 'unfulfilled', label: 'Non traitées', test: function (o) { return o.ful === 'Non traitée'; } },
+    { id: 'unpaid', label: 'Non payées', test: function (o) { return o.pay === 'En attente'; } },
+    { id: 'shipped', label: 'Expédiées', test: function (o) { return o.ful === 'Expédiée'; } },
+    { id: 'done', label: 'Terminées', test: function (o) { return o.ful === 'Livrée' && o.pay === 'Payée'; } }
+  ];
+
+  var oTab = 'all', oSort = 'no', oDir = -1, oPage = 0, oQuery = '';
+  var PER = 12;
+
+  function orderTotal(o) { return o.sub + o.ship; }
+
+  function filtered() {
+    var tab = TABS.filter(function (t) { return t.id === oTab; })[0];
+    var q = oQuery.trim().toLowerCase();
+    var list = ALL_ORDERS.filter(function (o) {
+      if (!tab.test(o)) return false;
+      if (!q) return true;
+      return ('#' + o.no).indexOf(q) >= 0 || o.who.toLowerCase().indexOf(q) >= 0;
+    });
+    list.sort(function (a, b) {
+      var x, y;
+      if (oSort === 'no') { x = a.no; y = b.no; }
+      else if (oSort === 'date') { x = a.date.getTime(); y = b.date.getTime(); }
+      else if (oSort === 'who') { return a.who.localeCompare(b.who) * oDir; }
+      else { x = orderTotal(a); y = orderTotal(b); }
+      return (x - y) * oDir;
+    });
+    return list;
+  }
+
+  function fmtDate(d) {
+    return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' à ' +
+      String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  function renderTabs() {
+    document.getElementById('orderTabs').innerHTML = TABS.map(function (t) {
+      var n = ALL_ORDERS.filter(t.test).length;
+      return '<button class="tab' + (t.id === oTab ? ' is-on' : '') + '" type="button" role="tab" data-tab="' + t.id + '">' +
+        t.label + '<span class="tab-count num">' + n + '</span></button>';
+    }).join('');
+  }
+
+  function renderOrderList() {
+    var list = filtered();
+    var pages = Math.max(1, Math.ceil(list.length / PER));
+    if (oPage >= pages) oPage = pages - 1;
+    var slice = list.slice(oPage * PER, oPage * PER + PER);
+
+    document.getElementById('orderRows').innerHTML = slice.map(function (o) {
+      return '<tr data-no="' + o.no + '">' +
+        '<td class="no num">#' + o.no + '</td>' +
+        '<td class="num" style="color:var(--text-sub)">' + fmtDate(o.date) + '</td>' +
+        '<td>' + o.who + '</td>' +
+        '<td><span class="pill ' + o.payCls + '">' + o.pay + '</span></td>' +
+        '<td><span class="pill ' + o.fulCls + '">' + o.ful + '</span></td>' +
+        '<td style="color:var(--text-sub)">' + o.items.reduce(function (a, i) { return a + i.qty; }, 0) + '</td>' +
+        '<td class="amount num">' + eur(orderTotal(o)) + '</td>' +
+        '</tr>';
+    }).join('');
+
+    document.getElementById('orderEmpty').hidden = list.length > 0;
+    document.querySelector('.sheet-scroll').style.display = list.length ? '' : 'none';
+
+    document.getElementById('pagerInfo').textContent = list.length
+      ? (oPage * PER + 1) + '–' + Math.min(list.length, oPage * PER + PER) + ' sur ' + list.length
+      : '0 commande';
+    document.getElementById('prevPage').disabled = oPage === 0;
+    document.getElementById('nextPage').disabled = oPage >= pages - 1;
+
+    document.querySelectorAll('thead th.sortable').forEach(function (th) {
+      var on = th.dataset.sort === oSort;
+      th.classList.toggle('is-sorted', on);
+      th.querySelector('.arrow').textContent = oDir === 1 ? '↑' : '↓';
+    });
+  }
+
+  // ---- panneau de détail
+  var drawer = document.getElementById('drawer');
+  var scrim = document.getElementById('scrim');
+  var lastFocus = null;
+
+  function openOrder(no) {
+    var o = ALL_ORDERS.filter(function (x) { return x.no === no; })[0];
+    if (!o) return;
+    lastFocus = document.activeElement;
+    document.getElementById('drawerTitle').textContent = '#' + o.no;
+
+    // les jalons se calent sur l'âge réel de la commande : jamais de date future
+    var age = now - o.date.getTime();
+    function at(frac, cap) { return fmtDate(new Date(o.date.getTime() + Math.min(cap, age * frac))); }
+
+    var steps = [{ t: 'Commande passée', w: fmtDate(o.date), on: true }];
+    if (o.pay === 'Payée' || o.pay === 'Remboursée') steps.push({ t: 'Paiement accepté', w: at(0.02, 18e4), on: true });
+    if (o.ful === 'Expédiée' || o.ful === 'Livrée') steps.push({ t: 'Colis expédié', w: at(0.40, 864e5), on: true });
+    if (o.ful === 'Livrée') steps.push({ t: 'Colis livré', w: at(0.80, 3 * 864e5), on: true });
+    if (o.pay === 'Remboursée') steps.push({ t: 'Commande remboursée', w: at(0.92, 5 * 864e5), on: true });
+    if (o.ful === 'Non traitée') steps.push({ t: 'En attente de traitement', w: '—', on: false });
+
+    document.getElementById('drawerBody').innerHTML =
+      '<div style="display:flex;gap:8px"><span class="pill ' + o.payCls + '">' + o.pay + '</span>' +
+        '<span class="pill ' + o.fulCls + '">' + o.ful + '</span></div>' +
+
+      '<div><p class="block-title">Articles</p>' +
+      o.items.map(function (i) {
+        return '<div class="item"><span class="thumb">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h8l10 10-8 8L3 11z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>' +
+          '</span><span style="flex:1;min-width:0"><span style="display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + i.name + '</span>' +
+          '<span style="font-size:11.5px;color:var(--text-sub)" class="num">' + i.qty + ' × ' + eur(i.unit) + '</span></span>' +
+          '<span class="num" style="font-size:13px;font-weight:500">' + eur(i.qty * i.unit) + '</span></div>';
+      }).join('') + '</div>' +
+
+      '<div><p class="block-title">Total</p>' +
+      '<div class="line"><span style="color:var(--text-sub)">Sous-total</span><span class="num">' + eur(o.sub) + '</span></div>' +
+      '<div class="line"><span style="color:var(--text-sub)">Livraison</span><span class="num">' + (o.ship ? eur(o.ship) : 'Offerte') + '</span></div>' +
+      '<div class="line total"><span>Total</span><span class="num">' + eur(orderTotal(o)) + '</span></div></div>' +
+
+      '<div><p class="block-title">Client</p>' +
+      '<div style="font-size:13px">' + o.who + '</div>' +
+      '<div style="font-size:12.5px;color:var(--text-sub)">' + o.who.split(' ')[0].toLowerCase() + '@exemple.fr</div></div>' +
+
+      '<div><p class="block-title">Suivi</p><div class="timeline">' +
+      steps.map(function (s) {
+        return '<div class="step"><span class="step-dot' + (s.on ? '' : ' pale') + '"></span>' +
+          '<span><span class="step-text">' + s.t + '</span><br><span class="step-when num">' + s.w + '</span></span></div>';
+      }).join('') + '</div></div>';
+
+    drawer.hidden = false;
+    requestAnimationFrame(function () {
+      drawer.classList.add('is-on');
+      scrim.classList.add('is-on');
+    });
+    document.getElementById('drawerClose').focus();
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove('is-on');
+    scrim.classList.remove('is-on');
+    setTimeout(function () { drawer.hidden = true; }, 220);
+    if (lastFocus) lastFocus.focus();
+  }
+
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  scrim.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !drawer.hidden) closeDrawer();
+  });
+
+  // ---- interactions liste
+  document.getElementById('orderTabs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tab]');
+    if (!b) return;
+    oTab = b.dataset.tab; oPage = 0;
+    renderTabs(); renderOrderList();
+  });
+
+  document.getElementById('orderRows').addEventListener('click', function (e) {
+    var tr = e.target.closest('tr[data-no]');
+    if (tr) openOrder(+tr.dataset.no);
+  });
+
+  document.querySelectorAll('thead th.sortable').forEach(function (th) {
+    th.addEventListener('click', function () {
+      var k = th.dataset.sort;
+      if (oSort === k) oDir = -oDir; else { oSort = k; oDir = -1; }
+      renderOrderList();
+    });
+  });
+
+  var searchTimer = null;
+  document.getElementById('orderSearch').addEventListener('input', function (e) {
+    clearTimeout(searchTimer);
+    var v = e.target.value;
+    searchTimer = setTimeout(function () { oQuery = v; oPage = 0; renderOrderList(); }, 140);
+  });
+
+  document.getElementById('prevPage').addEventListener('click', function () { if (oPage > 0) { oPage--; renderOrderList(); } });
+  document.getElementById('nextPage').addEventListener('click', function () { oPage++; renderOrderList(); });
+
+  document.getElementById('exportBtn').addEventListener('click', function () {
+    var list = filtered();
+    var rows = [['Commande', 'Date', 'Client', 'Paiement', 'Traitement', 'Total']].concat(
+      list.map(function (o) {
+        return ['#' + o.no, o.date.toISOString().slice(0, 16).replace('T', ' '), o.who, o.pay, o.ful, orderTotal(o).toFixed(2)];
+      })
+    );
+    var csv = rows.map(function (r) { return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(';'); }).join('\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'commandes.csv';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  // ================================================================ ROUTAGE
+  var VIEWS = { analyses: 'view-analyses', commandes: 'view-commandes' };
+  var TITLES = { accueil: 'Accueil', produits: 'Produits', plus: 'Plus' };
+
+  function go(route, push) {
+    if (!VIEWS[route] && !TITLES[route]) route = 'analyses';
+
+    document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('is-on'); });
+    var stub = document.getElementById('view-stub');
+
+    if (VIEWS[route]) {
+      document.getElementById(VIEWS[route]).classList.add('is-on');
+      if (stub) stub.remove();
+    } else {
+      if (!stub) {
+        stub = document.createElement('div');
+        stub.className = 'view';
+        stub.id = 'view-stub';
+        document.querySelector('.main').appendChild(stub);
+      }
+      stub.innerHTML = '<h1>' + TITLES[route] + '</h1>' +
+        '<div class="sheet"><div class="empty">' +
+        '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--text-dis)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>' +
+        '<p class="empty-title">Écran non encore construit</p>' +
+        '<p style="margin:0;font-size:13px">Seuls « Analyses » et « Commandes » sont disponibles pour l\'instant.</p>' +
+        '</div></div>';
+      stub.classList.add('is-on');
+    }
+
+    document.querySelectorAll('[data-route]').forEach(function (el) {
+      var on = el.dataset.route === route;
+      el.classList.toggle('is-on', on && el.classList.contains('tabbar-item'));
+      if (el.classList.contains('nav-item')) {
+        el.classList.toggle('is-active', on);
+        if (on) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current');
+      }
+    });
+
+    if (!drawer.hidden) closeDrawer();
+    if (push && location.hash !== '#/' + route) location.hash = '#/' + route;
+    window.scrollTo(0, 0);
+  }
+
+  document.querySelectorAll('[data-route]').forEach(function (el) {
+    el.addEventListener('click', function () { go(el.dataset.route, true); });
+  });
+  window.addEventListener('hashchange', function () {
+    go((location.hash || '').replace('#/', '') || 'analyses', false);
+  });
+
   // ---------------------------------------------------------------- départ
   markMenu();
   setEditing(false);
+  renderTabs();
+  renderOrderList();
+  go((location.hash || '').replace('#/', '') || 'analyses', false);
   skeleton(620);
 })();
 </script>
