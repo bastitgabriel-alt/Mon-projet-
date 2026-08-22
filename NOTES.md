@@ -360,6 +360,51 @@ regardées ; seuls leurs prompts de génération étaient accessibles.
 
 ---
 
+## Étapes 7 et 8 — Avis clientes et réassurance ✅
+
+### La boutique n'a aucun avis
+
+Vérification faite avant de coder : trois commandes seulement, toutes du
+22 août, toutes des tests. Aucun avis client n'existe et aucun n'a été
+collecté.
+
+**L'état vide consiste donc à ne rien afficher côté visiteur.** Une section
+d'avis qui annonce n'en avoir aucun est une contre-preuve sociale, pas une
+preuve. Dans l'éditeur de thème, un repère en pointillés explique en revanche
+pourquoi la section est masquée — sinon elle passerait pour cassée.
+
+### Aucun balisage Review ni AggregateRating
+
+Délibéré. Ces témoignages sont saisis par le marchand, pas collectés auprès
+d'acheteurs vérifiés. Les publier en données structurées reviendrait à
+revendiquer une notation systématique qui n'existe pas — Google le pénalise,
+et la mention « avis vérifiés » est contrôlée en France.
+
+Le schema porte un avertissement explicite : publier de faux témoignages est
+une pratique commerciale trompeuse, sanctionnée pénalement.
+
+Le §11 interdisant les apps, la collecte réelle d'avis vérifiés supposera un
+service dédié le moment venu. C'est le seul point du §6 qu'aucun code ne peut
+résoudre à lui seul.
+
+### Réassurance
+
+Quatre colonnes en bas de page : livraison, retours, paiement, contact.
+Le §6 la veut « discrète, jamais en bandeau clignotant » — d'où aucune
+animation, aucune icône, aucun fond coloré. Un filet supérieur et du texte en
+petites capitales.
+
+Les délais proviennent tous de la fiche produit. Un commentaire dans le
+fichier rappelle qu'ils doivent être corrigés aux deux endroits en cas de
+changement : une réassurance qui contredit la fiche détruit exactement la
+confiance qu'elle cherche à établir.
+
+Le lien « Une question ? » pointe vers `/pages/contact` plutôt que vers
+l'adresse iCloud personnelle enregistrée comme contact de la boutique — elle
+n'a rien à faire en clair sur une vitrine.
+
+---
+
 ## À vérifier au premier rendu
 
 Sans accès réseau à la boutique, ces points ne sont pas confirmés :
@@ -407,8 +452,8 @@ body change. Il ne l'est pas si la silhouette a été affinée.
 - [x] Bloc matière
 - [x] Guide des tailles en tiroir
 - [x] FAQ + JSON-LD `FAQPage`
-- [ ] Avis clients
-- [ ] Réassurance
+- [x] Avis clients
+- [x] Réassurance
 - [ ] Remplacer les visuels marketplace (allégations d'amincissement, contraires aux §5 et §10)
 - [ ] Passer le français en langue par défaut de la boutique
 - [ ] Remplacer « My Store 5 » dans l'en-tête

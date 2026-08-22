@@ -1,0 +1,213 @@
+{%- comment -%}
+  ÉPURE — Réassurance.
+
+  Le §6 la veut « discrète, en bas, jamais en bandeau clignotant ». D'où :
+  aucune animation, aucune icône, aucun fond coloré — un simple filet
+  supérieur et quatre colonnes de texte en petites capitales.
+
+  Les délais et conditions repris ici proviennent de la fiche produit du
+  marchand. S'ils changent, ils doivent être corrigés aux deux endroits :
+  une réassurance qui contredit la fiche produit détruit exactement la
+  confiance qu'elle cherche à établir.
+{%- endcomment -%}
+
+{%- liquid
+  assign remplis = ''
+  for i in (1..4)
+    assign cle = 'b' | append: i | append: '_titre'
+    if section.settings[cle] != blank
+      assign remplis = remplis | append: i | append: ','
+    endif
+  endfor
+  assign indices = remplis | split: ','
+-%}
+
+{%- if indices.size > 0 -%}
+  <aside class="epure-rassur" aria-label="Informations pratiques">
+    <ul class="epure-rassur__liste" role="list">
+      {%- for i in indices -%}
+        {%- liquid
+          assign cle_t = 'b' | append: i | append: '_titre'
+          assign cle_d = 'b' | append: i | append: '_texte'
+          assign cle_l = 'b' | append: i | append: '_lien'
+          assign lien = section.settings[cle_l]
+        -%}
+        <li class="epure-rassur__item">
+          <p class="epure-rassur__titre">
+            {%- if lien != blank -%}
+              <a class="epure-rassur__lien" href="{{ lien }}">{{ section.settings[cle_t] }}</a>
+            {%- else -%}
+              {{ section.settings[cle_t] }}
+            {%- endif -%}
+          </p>
+          {%- if section.settings[cle_d] != blank -%}
+            <p class="epure-rassur__texte">{{ section.settings[cle_d] }}</p>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </aside>
+{%- endif -%}
+
+{% stylesheet %}
+  .epure-rassur {
+    padding-block: var(--e-esp-7);
+    padding-inline: var(--e-gouttiere);
+    max-width: var(--page-width, 100%);
+    margin-inline: auto;
+    border-top: var(--e-trait) solid var(--e-ligne);
+  }
+
+  .epure-rassur__liste {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--e-esp-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .epure-rassur__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-esp-2);
+  }
+
+  .epure-rassur__titre {
+    margin: 0;
+    font-size: var(--e-t6-corps);
+    font-weight: var(--e-t6-graisse);
+    letter-spacing: var(--e-t6-lettre);
+    text-transform: uppercase;
+    color: var(--e-encre);
+  }
+
+  .epure-rassur__lien {
+    color: inherit;
+    text-decoration: none;
+    box-shadow: inset 0 -1px 0 var(--e-ligne-forte);
+    transition: color var(--e-duree-court) var(--e-courbe);
+  }
+
+  .epure-rassur__lien:hover {
+    color: var(--e-accent);
+  }
+
+  .epure-rassur__texte {
+    margin: 0;
+    font-size: var(--e-t5-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre-2);
+    max-width: 34ch;
+  }
+
+  @media screen and (min-width: 750px) {
+    .epure-rassur__liste {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--e-esp-6);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Réassurance Épure",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Bandeau discret, à placer en bas de page. Chaque bloc disparaît si son titre est vide."
+    },
+    {
+      "type": "header",
+      "content": "Bloc 1"
+    },
+    {
+      "type": "text",
+      "id": "b1_titre",
+      "label": "Titre",
+      "default": "Livraison offerte"
+    },
+    {
+      "type": "text",
+      "id": "b1_texte",
+      "label": "Texte",
+      "default": "Expédition depuis notre entrepôt partenaire, sous 10 à 20 jours ouvrés."
+    },
+    {
+      "type": "url",
+      "id": "b1_lien",
+      "label": "Lien (facultatif)"
+    },
+    {
+      "type": "header",
+      "content": "Bloc 2"
+    },
+    {
+      "type": "text",
+      "id": "b2_titre",
+      "label": "Titre",
+      "default": "Retours"
+    },
+    {
+      "type": "text",
+      "id": "b2_texte",
+      "label": "Texte",
+      "default": "Acceptés sous 14 jours à réception."
+    },
+    {
+      "type": "url",
+      "id": "b2_lien",
+      "label": "Lien (facultatif)"
+    },
+    {
+      "type": "header",
+      "content": "Bloc 3"
+    },
+    {
+      "type": "text",
+      "id": "b3_titre",
+      "label": "Titre",
+      "default": "Paiement sécurisé"
+    },
+    {
+      "type": "text",
+      "id": "b3_texte",
+      "label": "Texte",
+      "default": "Transaction chiffrée. Aucune donnée bancaire n’est conservée par la boutique."
+    },
+    {
+      "type": "url",
+      "id": "b3_lien",
+      "label": "Lien (facultatif)"
+    },
+    {
+      "type": "header",
+      "content": "Bloc 4"
+    },
+    {
+      "type": "text",
+      "id": "b4_titre",
+      "label": "Titre",
+      "default": "Une question ?"
+    },
+    {
+      "type": "text",
+      "id": "b4_texte",
+      "label": "Texte",
+      "default": "Écrivez-nous, on répond sous 48 h ouvrées."
+    },
+    {
+      "type": "url",
+      "id": "b4_lien",
+      "label": "Lien (facultatif)"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Réassurance Épure",
+      "category": "Épure"
+    }
+  ]
+}
+{% endschema %}
