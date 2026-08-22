@@ -1905,18 +1905,27 @@
   }
 
   (function wireInline() {
-    var timer = null, moved = false;
+    var timer = null, x0 = 0, y0 = 0;
     var home = document.getElementById('view-accueil');
+    var SLOP = 12;   // un doigt tremble toujours : on tolère 12 px avant d'annuler
+
+    function cancel() { clearTimeout(timer); timer = null; }
 
     home.addEventListener('pointerdown', function (e) {
       var el = e.target.closest('.ip');
       if (!el || ipActive) return;
-      moved = false;
-      timer = setTimeout(function () { if (!moved) startInline(el); }, 550);
+      x0 = e.clientX; y0 = e.clientY;
+      cancel();
+      timer = setTimeout(function () { startInline(el); }, 450);
     });
-    home.addEventListener('pointermove', function () { moved = true; clearTimeout(timer); });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) {
-      home.addEventListener(ev, function () { clearTimeout(timer); });
+
+    home.addEventListener('pointermove', function (e) {
+      if (!timer) return;
+      if (Math.abs(e.clientX - x0) > SLOP || Math.abs(e.clientY - y0) > SLOP) cancel();
+    });
+
+    ['pointerup', 'pointercancel'].forEach(function (ev) {
+      home.addEventListener(ev, cancel);
     });
     home.addEventListener('dblclick', function (e) {
       var el = e.target.closest('.ip');
