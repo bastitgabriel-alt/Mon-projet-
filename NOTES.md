@@ -500,7 +500,77 @@ body change. Il ne l'est pas si la silhouette a été affinée.
 - [x] Livraison estimée calculée en Liquid
 - [~] `alt` des visuels — 3 écrits (variantes de couleur), 12 hors de portée sans voir les images
 - [ ] Retirer de la galerie produit les 6 `epure-0X.png` qui doublonnent les fonds de section
-- [ ] Publier « Épure — chantier » après relecture en aperçu
+- [x] Publier « Épure — chantier » — fait côté marchand
+- [ ] Publier « Épure — atelier » (bandeau défilant au-dessus du menu)
+- [ ] Supprimer les thèmes devenus inutiles : « Épure — test », et « Épure — chantier » une fois « atelier » publié
+
+---
+
+## Bandeau défilant au-dessus du menu — 23 août
+
+### Le thème l'interdisait
+
+La bande avait été ajoutée en haut de la page d'accueil. Elle s'affichait donc
+**sous** l'en-tête, puisque l'accueil est le corps de la page. La déplacer dans
+`sections/header-group.json` échoue : le schema de `sections/marquee.liquid`
+porte
+
+```json
+"disabled_on": { "groups": ["header", "footer"] }
+```
+
+La seule section que Helio autorise au-dessus du menu est
+`header-announcements`, qui **ne défile pas** — elle enchaîne des fondus, avec
+des flèches.
+
+### Décidé
+
+Une section `epure-bandeau` qui rend exactement le même `<marquee-component>`,
+avec les mêmes classes, le même `marquee.js` et les mêmes réglages que la
+section native. Elle lève une seule chose : la restriction de groupe.
+
+Aucun JavaScript ajouté. Le CSS est repris dans la section plutôt que laissé au
+groupement du thème : quelques centaines d'octets contre la certitude que le
+bandeau garde sa mise en forme même si la section native n'est rendue nulle
+part sur la page. Les déclarations étant identiques, la coexistence des deux
+sections ne produit aucun conflit.
+
+L'animation reste conditionnée à `prefers-reduced-motion: no-preference`,
+comme dans la section d'origine.
+
+### Écarté
+
+- **La barre d'annonce native.** Zéro ligne de code, autorisée au-dessus du
+  menu — mais elle ne défile pas. Ce n'est pas ce qui était demandé.
+- **Laisser la bande en haut de l'accueil.** Elle n'aurait été visible que sur
+  l'accueil, et sous le menu.
+
+### Contenu repris
+
+La bande portait le texte de démonstration de Shopify : *« Nous fabriquons des
+articles plus performants et plus durables. »* Deux problèmes — c'est du
+contenu de démo laissé en ligne (§11), et Épure ne fabrique rien : le body
+vient d'un fournisseur. Remplacé par quatre mentions vraies, tirées de la fiche
+du marchand : livraison offerte, retours sous 14 jours, du S au 3XL, maille
+tricotée sans couture.
+
+Le fond était `#d8e8d5`, un vert d'eau hors palette et codé en dur (§10).
+Basculé sur le sable (`color2`) : encre sur sable tient 11,24, soit AAA.
+Hauteur ramenée de 24 px à 10 px et corps de 1 rem à 0,8125 rem en petites
+capitales — un bandeau de service se lit, il ne s'impose pas.
+
+### Nettoyage §10 au passage
+
+Trois `#2a2523` traînaient dans les réglages d'en-tête transparent
+(`text_color_transparent_home`, `_product`, `_collection`). Renvoyés vers
+`foreground`.
+
+### Attention au circuit
+
+Le thème publié ne peut plus être écrit par l'API. Publier le brouillon oblige
+donc à en dupliquer un nouveau à chaque fois, et les thèmes s'accumulent.
+Le circuit sain : garder **un** brouillon de travail permanent, et publier une
+copie plutôt que le brouillon lui-même.
 
 ---
 

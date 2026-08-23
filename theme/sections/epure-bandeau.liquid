@@ -1,0 +1,213 @@
+{%- comment -%}
+  ÉPURE — Bandeau défilant, au-dessus du menu.
+
+  Pourquoi ce fichier existe. Helio expose déjà une bande défilante
+  (`sections/marquee.liquid`), mais son schema porte
+  `"disabled_on": { "groups": ["header", "footer"] }` : elle ne peut pas
+  vivre au-dessus du menu. La seule section autorisée dans le groupe
+  d'en-tête est la barre d'annonce, qui enchaîne des fondus au lieu de
+  défiler.
+
+  Cette section ne réécrit rien : elle rend exactement le même
+  `<marquee-component>`, avec les mêmes classes, le même `marquee.js` et les
+  mêmes réglages que la section native. Elle lève une seule chose — la
+  restriction de groupe.
+
+  Le CSS est repris ici plutôt que laissé au groupement du thème. Les règles
+  sont identiques à celles de `sections/marquee.liquid` : si les deux
+  sections coexistent sur une page, les déclarations sont les mêmes et se
+  neutralisent. C'est quelques centaines d'octets contre la certitude que le
+  bandeau garde sa mise en forme même si la section native n'est rendue nulle
+  part sur la page.
+
+  L'animation est déjà conditionnée à `prefers-reduced-motion: no-preference`
+  côté thème ; la règle est reprise telle quelle (§3).
+{%- endcomment -%}
+
+<script
+  src="{{ 'marquee.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+{% liquid
+  assign gap_between_elements = section.settings.gap_between_elements
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
+  endif
+%}
+
+<div
+  class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+></div>
+<marquee-component
+  class="section spacing-style gap-style{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="
+    {%- render 'spacing-style', settings: section.settings %};
+    {% render 'gap-style', value: gap_between_elements, name: 'marquee-gap' %}
+    --marquee-direction: {{ section.settings.movement_direction }};
+  "
+  data-speed-factor="25"
+  data-movement-direction="{{ section.settings.movement_direction }}"
+>
+  <div
+    class="marquee__wrapper"
+    ref="wrapper"
+  >
+    <div
+      class="marquee__content"
+      ref="content"
+    >
+      <div
+        class="marquee__repeated-items"
+        ref="marqueeItems[]"
+      >
+        {% content_for 'blocks' %}
+      </div>
+    </div>
+  </div>
+</marquee-component>
+
+{% stylesheet %}
+  marquee-component {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .marquee__wrapper {
+    display: flex;
+    gap: var(--marquee-gap);
+    width: fit-content;
+    white-space: nowrap;
+  }
+
+  .marquee__content {
+    min-width: max-content;
+    display: flex;
+    gap: var(--marquee-gap);
+  }
+
+  .marquee__content :is(p, h1, h2, h3, h4, h5, h6) {
+    white-space: nowrap;
+  }
+
+  .marquee__content .marquee__repeated-items * {
+    max-width: none;
+  }
+
+  .marquee__repeated-items {
+    min-width: max-content;
+    display: flex;
+    gap: var(--marquee-gap);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .marquee__repeated-items > * {
+    align-content: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    marquee-component:not([data-disabled]) .marquee__wrapper {
+      animation: marquee-motion var(--marquee-speed) linear infinite var(--marquee-direction);
+    }
+  }
+
+  @keyframes marquee-motion {
+    to {
+      transform: translate3d(calc(-50% - (var(--marquee-gap) / 2)), 0, 0);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Bandeau défilant Épure",
+  "enabled_on": {
+    "groups": ["header"]
+  },
+  "blocks": [
+    {
+      "type": "text"
+    },
+    {
+      "type": "icon"
+    },
+    {
+      "type": "logo"
+    },
+    {
+      "type": "_divider"
+    }
+  ],
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Identique à la bande défilante du thème, mais utilisable au-dessus du menu. Le défilement s'arrête si le visiteur a demandé moins de mouvement."
+    },
+    {
+      "type": "select",
+      "id": "movement_direction",
+      "label": "Sens du défilement",
+      "options": [
+        {
+          "value": "reverse",
+          "label": "Vers la droite"
+        },
+        {
+          "value": "normal",
+          "label": "Vers la gauche"
+        }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "info": "Laissez vide pour suivre le fond du thème."
+    },
+    {
+      "type": "header",
+      "content": "Espacements"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Haut",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bas",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "gap_between_elements",
+      "label": "Écart entre les mentions",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bandeau défilant Épure",
+      "category": "Épure"
+    }
+  ]
+}
+{% endschema %}
