@@ -495,6 +495,12 @@ body change. Il ne l'est pas si la silhouette a été affinée.
 - [ ] Remplacer les visuels marketplace (allégations d'amincissement, contraires aux §5 et §10)
 - [x] Passer le français en langue par défaut de la boutique — fait côté marchand
 - [x] Remplacer « My Store 5 » dans l'en-tête — la boutique s'appelle « Epure »
+- [x] Correspondance tailles FR
+- [x] Bloc morphologie (effet selon la tenue portée)
+- [x] Livraison estimée calculée en Liquid
+- [~] `alt` des visuels — 3 écrits (variantes de couleur), 12 hors de portée sans voir les images
+- [ ] Retirer de la galerie produit les 6 `epure-0X.png` qui doublonnent les fonds de section
+- [ ] Publier « Épure — chantier » après relecture en aperçu
 
 ---
 
@@ -559,12 +565,123 @@ des réglages, réversibles depuis le personnalisateur.
 
 | §  | Attendu | État |
 |---|---|---|
-| 6 | Correspondance tailles FR dans le guide | absente — 3 colonnes, pas de 4ᵉ |
-| 6 | Bloc morphologie (effet selon la tenue portée) | inexistant ; `epure-07-morphologies.png` dort dans la médiathèque |
-| 6 | Livraison estimée calculée en Liquid depuis la date du jour | texte statique « 10 à 20 jours ouvrés » |
-| 8 | `alt` descriptif sur toutes les images | 10 des 15 visuels produit ont un `alt` vide |
 | 5 | Comparateur en place | composant livré, hors page — pas de vraie paire de photos |
 | 8 | Seuils Lighthouse, captures à l'appui | non mesurable ici (voir Limites) |
+
+---
+
+## Reprise des quatre écarts — 23 août
+
+### §6 — Correspondance tailles FR
+
+Le guide gagne une quatrième colonne, facultative : elle n'apparaît que si au
+moins une correspondance est saisie, et ne reçoit jamais l'unité — une taille
+française n'est pas une mesure en centimètres.
+
+La correspondance est **dérivée, pas devinée**. Méthode : pour chaque taille
+fournisseur, on retient les tailles FR dont les mesures de référence
+(NF G03-001, valeurs usuelles du prêt-à-porter femme) tombent à l'intérieur de
+la fourchette annoncée, sur les trois mesures.
+
+| Taille | Poitrine | Taille | Hanches | → FR retenu |
+|---|---|---|---|---|
+| S | 38 | 36-38 | 36-38 | **36-38** |
+| M | 40 | 38-40 | 40 | **38-40** |
+| L | 42-44 | 42 | 42 | **42-44** |
+| XL | 44-46 | 44 | 44-46 | **44-46** |
+| 2XL | 48 | 46-48 | 46-48 | **46-48** |
+| 3XL | 50 | 48-50 | 50 | **48-50** |
+
+Les trois mesures ne concordent pas toujours — la poitrine tire vers le haut,
+la taille vers le bas. C'est le propre des grilles de marketplace. On publie
+donc l'union des trois plutôt qu'une taille unique, et la note sous le tableau
+tranche explicitement : « la correspondance FR est indicative — en cas
+d'écart, fiez-vous aux centimètres ». Une fourchette honnête vaut mieux qu'un
+chiffre faussement précis.
+
+### §6 — Effet selon la tenue portée
+
+Nouvelle section `epure-morphologie`, placée juste après l'image pleine
+largeur du body porté : on montre, puis on explique.
+
+L'objection visée est « il va se voir ». Elle ne se règle pas par une promesse
+générale mais tenue par tenue, parce que c'est ainsi qu'elle se pose — devant
+une penderie, pas devant une fiche technique. Quatre entrées par défaut : robe
+fluide, jean taille haute, maille fine, chemise ajustée.
+
+**Cette section utilise de vrais blocs Shopify**, contrairement aux sections
+Épure précédentes qui reposent sur des emplacements numérotés en dur. Le §3
+demande des sections « réordonnables, supprimables » : seuls de vrais blocs le
+permettent. Les emplacements fixes de `epure-faq`, `epure-avis` et
+`epure-reassurance` restent un compromis à reprendre.
+
+### §6 — Livraison estimée calculée en Liquid
+
+Nouveau bloc `epure-livraison`, qui remplace la ligne statique « Livraison
+offerte — Retours sous 14 jours » : elle disait la même chose en moins précis,
+et deux lignes qui se recouvrent valent moins qu'une seule.
+
+Compter en jours ouvrés impose de sauter les week-ends. Liquid n'a pas de
+boucle conditionnelle, mais le problème se résout en arithmétique entière :
+
+```
+semaines pleines = n / 5   →  chacune vaut 7 jours calendaires
+reste            = n % 5   →  jours ouvrés restants dans la semaine
+si (jour de départ + reste) dépasse le vendredi, ajouter 2 jours
+```
+
+Le départ est d'abord repoussé au lundi si la commande tombe un samedi ou un
+dimanche. **Vérifié contre un comptage naïf jour par jour sur 2 597 cas**
+(371 dates de départ × 7 durées) : zéro écart.
+
+Les jours fériés ne sont pas exclus — les intégrer supposerait une table à
+maintenir chaque année, pour un écart d'un jour sur une fenêtre qui en compte
+déjà dix. La mention dit « estimation », jamais un engagement.
+
+Calcul côté serveur, sans JavaScript : pas de saut de mise en page, pas de
+dépendance au fuseau du visiteur. Les noms de mois sont posés dans le fichier
+plutôt que laissés à `%B`, dont la locale n'est pas garantie française.
+
+### §8 — Textes alternatifs : fait pour trois, impossible pour douze
+
+Le CDN Shopify **et** celui de Higgsfield sont refusés par le proxy de la
+session. J'ai essayé les deux, ainsi que l'historique de génération Higgsfield :
+les prompts sont de l'image-à-image générique (« genere moi cette image en plus
+professionel pour ma boutique e commerce »), ils ne décrivent pas le contenu.
+
+**Je ne vois aucune de ces quinze images.** Écrire un `alt` sur une image non
+vue produirait une description confiante et fausse — pour un lecteur d'écran,
+c'est pire qu'un `alt` vide.
+
+Une piste s'est révélée vérifiable : Shopify rattache trois visuels à une
+variante de couleur. Cette information vient de la boutique, pas d'une
+supposition. Les trois `alt` sont donc écrits :
+
+| Média | Variante | `alt` |
+|---|---|---|
+| 71349735227716 | Nude | Body sculptant sans couture Épure porté, coloris Nude |
+| 71349735457092 | Marron | …coloris Marron |
+| 71349735489860 | Noir | …coloris Noir |
+
+Restent douze visuels sans `alt` exploitable. Deux observations pour la suite :
+
+- **six sont des doublons.** Les `epure-0X.png` de la galerie produit servent
+  déjà de fonds de section pleine largeur sur la même page. Le client les voit
+  deux fois. Le correctif n'est pas d'écrire leur `alt`, c'est de les retirer
+  de la galerie — décision du marchand, sur une boutique en ligne.
+- **côté thème, le §8 est tenu.** Les images de fond de section sont
+  décoratives, le sens étant porté par le texte adjacent : un `alt` vide est la
+  bonne réponse, et c'est ce qui est en place. L'écart est entièrement dans les
+  données produit.
+
+### À vérifier au premier rendu (ajouts du jour)
+
+1. **Fenêtre de livraison.** L'arithmétique est prouvée, le rendu ne l'est pas :
+   confirmer que les dates s'affichent en français et que la ligne tient sur une
+   seule ligne en 390 px.
+2. **Quatrième colonne du guide.** Cinq colonnes dans un tiroir de 30 rem :
+   vérifier que le tableau ne déborde pas sur mobile.
+3. **Section morphologie.** Confirmer le passage à une colonne sous 750 px.
 
 ### Vérifié conforme
 

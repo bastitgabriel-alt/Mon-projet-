@@ -28,6 +28,19 @@
     endfor
   endfor
 
+  comment
+    La colonne de correspondance FR est facultative et se gère seule : elle
+    n'apparaît que si au moins une valeur est saisie. Elle ne reçoit jamais
+    l'unité — une taille française n'est pas une mesure en centimètres.
+  endcomment
+  assign a_fr = false
+  for i in (1..6)
+    assign cle = 'l' | append: i | append: '_d'
+    if block.settings[cle] != blank
+      assign a_fr = true
+    endif
+  endfor
+
   assign id_titre = 'guide-titre-' | append: block.id
 -%}
 
@@ -50,35 +63,40 @@
 
     <div class="epure-taille__corps">
       {%- if a_tableau -%}
-        <table class="epure-taille__tableau">
-          <thead>
-            <tr>
-              <th scope="col">Taille</th>
-              <th scope="col">{{ block.settings.entete_a }}</th>
-              <th scope="col">{{ block.settings.entete_b }}</th>
-              <th scope="col">{{ block.settings.entete_c }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {%- for i in (1..6) -%}
-              {%- liquid
-                assign cle_nom = 'l' | append: i | append: '_nom'
-                assign cle_a = 'l' | append: i | append: '_a'
-                assign cle_b = 'l' | append: i | append: '_b'
-                assign cle_c = 'l' | append: i | append: '_c'
-                assign nom = block.settings[cle_nom]
-              -%}
-              {%- if nom != blank -%}
-                <tr>
-                  <th scope="row">{{ nom }}</th>
-                  <td>{{ block.settings[cle_a] }}{% if block.settings[cle_a] != blank %} {{ block.settings.unite }}{% endif %}</td>
-                  <td>{{ block.settings[cle_b] }}{% if block.settings[cle_b] != blank %} {{ block.settings.unite }}{% endif %}</td>
-                  <td>{{ block.settings[cle_c] }}{% if block.settings[cle_c] != blank %} {{ block.settings.unite }}{% endif %}</td>
-                </tr>
-              {%- endif -%}
-            {%- endfor -%}
-          </tbody>
-        </table>
+        <div class="epure-taille__cadre-tableau">
+          <table class="epure-taille__tableau">
+            <thead>
+              <tr>
+                <th scope="col">Taille</th>
+                {%- if a_fr -%}<th scope="col">{{ block.settings.entete_d }}</th>{%- endif -%}
+                <th scope="col">{{ block.settings.entete_a }}{% if block.settings.unite != blank %} <span class="epure-taille__unite">({{ block.settings.unite }})</span>{% endif %}</th>
+                <th scope="col">{{ block.settings.entete_b }}{% if block.settings.unite != blank %} <span class="epure-taille__unite">({{ block.settings.unite }})</span>{% endif %}</th>
+                <th scope="col">{{ block.settings.entete_c }}{% if block.settings.unite != blank %} <span class="epure-taille__unite">({{ block.settings.unite }})</span>{% endif %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- for i in (1..6) -%}
+                {%- liquid
+                  assign cle_nom = 'l' | append: i | append: '_nom'
+                  assign cle_a = 'l' | append: i | append: '_a'
+                  assign cle_b = 'l' | append: i | append: '_b'
+                  assign cle_c = 'l' | append: i | append: '_c'
+                  assign cle_d = 'l' | append: i | append: '_d'
+                  assign nom = block.settings[cle_nom]
+                -%}
+                {%- if nom != blank -%}
+                  <tr>
+                    <th scope="row">{{ nom }}</th>
+                    {%- if a_fr -%}<td class="epure-taille__fr">{{ block.settings[cle_d] }}</td>{%- endif -%}
+                    <td>{{ block.settings[cle_a] }}</td>
+                    <td>{{ block.settings[cle_b] }}</td>
+                    <td>{{ block.settings[cle_c] }}</td>
+                  </tr>
+                {%- endif -%}
+              {%- endfor -%}
+            </tbody>
+          </table>
+        </div>
 
         {%- if block.settings.note != blank -%}
           <p class="epure-taille__note">{{ block.settings.note }}</p>
@@ -182,10 +200,24 @@
     gap: var(--e-esp-6);
   }
 
+  .epure-taille__cadre-tableau {
+    overflow-x: auto;
+  }
+
   .epure-taille__tableau {
     width: 100%;
     border-collapse: collapse;
     font-size: var(--e-t5-corps);
+  }
+
+  .epure-taille__tableau td {
+    white-space: nowrap;
+  }
+
+  /* L'unite dans l'en-tete : presente une fois, jamais dans les 18 cellules. */
+  .epure-taille__unite {
+    text-transform: none;
+    letter-spacing: normal;
   }
 
   .epure-taille__tableau th,
@@ -207,6 +239,14 @@
 
   .epure-taille__tableau tbody th {
     font-weight: var(--e-t6-graisse);
+  }
+
+  /* La correspondance FR est ce que la cliente française cherche en premier :
+     elle se lit comme une taille, pas comme une mesure. */
+  .epure-taille__fr {
+    font-weight: var(--e-t6-graisse);
+    color: var(--e-encre);
+    white-space: nowrap;
   }
 
   .epure-taille__note {
@@ -316,9 +356,17 @@
     },
     {
       "type": "text",
+      "id": "entete_d",
+      "label": "Colonne correspondance",
+      "default": "Taille FR",
+      "info": "Colonne facultative. Elle n'apparaît que si au moins une correspondance est saisie, et ne reçoit jamais l'unité."
+    },
+    {
+      "type": "text",
       "id": "unite",
       "label": "Unité",
-      "default": "cm"
+      "default": "cm",
+      "info": "Affichée une fois dans l'en-tête de chaque colonne de mesure, jamais dans les cellules."
     },
     {
       "type": "header",
@@ -346,6 +394,11 @@
       "label": "Hanches"
     },
     {
+      "type": "text",
+      "id": "l1_d",
+      "label": "Taille FR"
+    },
+    {
       "type": "header",
       "content": "Taille M"
     },
@@ -369,6 +422,11 @@
       "type": "text",
       "id": "l2_c",
       "label": "Hanches"
+    },
+    {
+      "type": "text",
+      "id": "l2_d",
+      "label": "Taille FR"
     },
     {
       "type": "header",
@@ -396,6 +454,11 @@
       "label": "Hanches"
     },
     {
+      "type": "text",
+      "id": "l3_d",
+      "label": "Taille FR"
+    },
+    {
       "type": "header",
       "content": "Taille XL"
     },
@@ -419,6 +482,11 @@
       "type": "text",
       "id": "l4_c",
       "label": "Hanches"
+    },
+    {
+      "type": "text",
+      "id": "l4_d",
+      "label": "Taille FR"
     },
     {
       "type": "header",
@@ -446,6 +514,11 @@
       "label": "Hanches"
     },
     {
+      "type": "text",
+      "id": "l5_d",
+      "label": "Taille FR"
+    },
+    {
       "type": "header",
       "content": "Taille 3XL"
     },
@@ -469,6 +542,11 @@
       "type": "text",
       "id": "l6_c",
       "label": "Hanches"
+    },
+    {
+      "type": "text",
+      "id": "l6_d",
+      "label": "Taille FR"
     },
     {
       "type": "header",

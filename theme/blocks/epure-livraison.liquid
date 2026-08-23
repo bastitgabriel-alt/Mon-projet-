@@ -1,0 +1,187 @@
+{%- comment -%}
+  ÉPURE — Fenêtre de livraison estimée, calculée à la date du jour (§6).
+
+  Le calcul est fait en Liquid, côté serveur : pas de JavaScript, donc pas de
+  saut de mise en page ni de dépendance au fuseau du visiteur. La date de
+  référence est celle du serveur Shopify.
+
+  Compter en jours ouvrés impose de sauter les week-ends. Liquid n'a pas de
+  boucle conditionnelle, mais le problème se résout en arithmétique entière :
+
+    semaines pleines = n / 5     →  chacune vaut 7 jours calendaires
+    reste            = n % 5     →  jours ouvrés restants dans la semaine
+    si (jour de départ + reste) dépasse le vendredi, ajouter 2 jours
+
+  Le départ est d'abord repoussé au lundi s'il tombe un samedi ou un dimanche :
+  une commande passée le week-end n'est pas préparée le jour même.
+
+  Les samedis et dimanches sont écartés, mais pas les jours fériés : les
+  intégrer supposerait une table à maintenir chaque année, pour un écart d'un
+  jour sur une fenêtre qui en compte déjà dix. La formulation reste une
+  estimation, jamais un engagement.
+{%- endcomment -%}
+
+{%- liquid
+  assign min_ouvres = block.settings.delai_min
+  assign max_ouvres = block.settings.delai_max
+  if max_ouvres < min_ouvres
+    assign max_ouvres = min_ouvres
+  endif
+
+  assign jour_en_secondes = 86400
+  assign maintenant = 'now' | date: '%s' | plus: 0
+
+  comment
+    %w : 0 = dimanche … 6 = samedi. On ramène le départ au lundi suivant si la
+    commande tombe un week-end.
+  endcomment
+  assign jour_depart = 'now' | date: '%w' | plus: 0
+  assign decalage_depart = 0
+  if jour_depart == 6
+    assign decalage_depart = 2
+    assign jour_depart = 1
+  elsif jour_depart == 0
+    assign decalage_depart = 1
+    assign jour_depart = 1
+  endif
+  assign base = decalage_depart | times: jour_en_secondes | plus: maintenant
+-%}
+
+{%- liquid
+  assign semaines = min_ouvres | divided_by: 5
+  assign reste = min_ouvres | modulo: 5
+  assign jours_min = semaines | times: 7 | plus: reste
+  assign arrivee = jour_depart | plus: reste
+  if arrivee > 5
+    assign jours_min = jours_min | plus: 2
+  endif
+
+  assign semaines = max_ouvres | divided_by: 5
+  assign reste = max_ouvres | modulo: 5
+  assign jours_max = semaines | times: 7 | plus: reste
+  assign arrivee = jour_depart | plus: reste
+  if arrivee > 5
+    assign jours_max = jours_max | plus: 2
+  endif
+
+  assign horodatage_min = jours_min | times: jour_en_secondes | plus: base
+  assign horodatage_max = jours_max | times: jour_en_secondes | plus: base
+-%}
+
+{%- liquid
+  comment
+    Les noms de mois sont posés ici plutôt que laissés au filtre date : %B suit
+    la locale du serveur, qui n'est pas garantie française.
+  endcomment
+  assign mois = 'janvier,février,mars,avril,mai,juin,juillet,août,septembre,octobre,novembre,décembre' | split: ','
+
+  assign index_min = horodatage_min | date: '%m' | plus: 0 | minus: 1
+  assign index_max = horodatage_max | date: '%m' | plus: 0 | minus: 1
+  assign jour_min = horodatage_min | date: '%-d'
+  assign jour_max = horodatage_max | date: '%-d'
+
+  assign texte_min = jour_min | append: ' ' | append: mois[index_min]
+  assign texte_max = jour_max | append: ' ' | append: mois[index_max]
+
+  comment
+    Même mois : « entre le 3 et le 12 septembre » se lit mieux que la répétition.
+  endcomment
+  if index_min == index_max
+    assign texte_min = jour_min
+  endif
+-%}
+
+<p class="epure-livraison" {{ block.shopify_attributes }}>
+  <span class="epure-livraison__etiquette">{{ block.settings.etiquette }}</span>
+  <time datetime="{{ horodatage_min | date: '%Y-%m-%d' }}">{{ texte_min }}</time>
+  <span class="epure-livraison__liaison">{{ block.settings.liaison }}</span>
+  <time datetime="{{ horodatage_max | date: '%Y-%m-%d' }}">{{ texte_max }}</time>
+</p>
+
+{%- if block.settings.mention != blank -%}
+  <p class="epure-livraison__mention">{{ block.settings.mention }}</p>
+{%- endif -%}
+
+{% stylesheet %}
+  .epure-livraison {
+    margin: 0;
+    font-size: var(--e-t5-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre);
+  }
+
+  .epure-livraison__etiquette {
+    color: var(--e-encre-2);
+  }
+
+  .epure-livraison time {
+    font-weight: var(--e-t6-graisse);
+    white-space: nowrap;
+  }
+
+  .epure-livraison__mention {
+    margin: var(--e-esp-2) 0 0;
+    font-size: var(--e-t6-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre-2);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Livraison estimée Épure",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "La fenêtre est recalculée à chaque affichage à partir de la date du jour. Les week-ends sont exclus du décompte ; les jours fériés ne le sont pas."
+    },
+    {
+      "type": "range",
+      "id": "delai_min",
+      "label": "Délai le plus court",
+      "unit": "j",
+      "min": 1,
+      "max": 40,
+      "step": 1,
+      "default": 10,
+      "info": "En jours ouvrés."
+    },
+    {
+      "type": "range",
+      "id": "delai_max",
+      "label": "Délai le plus long",
+      "unit": "j",
+      "min": 1,
+      "max": 60,
+      "step": 1,
+      "default": 20,
+      "info": "En jours ouvrés."
+    },
+    {
+      "type": "text",
+      "id": "etiquette",
+      "label": "Texte d'introduction",
+      "default": "Livraison estimée entre le"
+    },
+    {
+      "type": "text",
+      "id": "liaison",
+      "label": "Mot de liaison",
+      "default": "et le"
+    },
+    {
+      "type": "text",
+      "id": "mention",
+      "label": "Mention sous la date",
+      "default": "Estimation, hors jours fériés. Livraison offerte."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Livraison estimée Épure",
+      "category": "Épure"
+    }
+  ]
+}
+{% endschema %}

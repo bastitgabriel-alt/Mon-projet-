@@ -1,0 +1,301 @@
+{%- comment -%}
+  ÉPURE — Effet selon la tenue portée par-dessus (§6).
+
+  L'objection visée est précise : « il va se voir ». Elle ne se règle pas par
+  une promesse générale mais tenue par tenue, parce que c'est ainsi que la
+  cliente se la pose — devant sa penderie, pas devant une fiche technique.
+
+  Contrairement aux sections Épure précédentes, celle-ci utilise de vrais
+  blocs Shopify plutôt que des emplacements numérotés en dur. Le §3 demande
+  des sections « réordonnables, supprimables, sans casser le rendu si un block
+  est vide » : seuls de vrais blocs le permettent. Les emplacements fixes des
+  autres sections restent un compromis à reprendre.
+
+  Aucune animation d'entrée : le §11 proscrit l'animation sur chaque élément
+  au scroll, et le budget des trois moments est déjà dépensé ailleurs.
+{%- endcomment -%}
+
+{%- liquid
+  assign a_contenu = false
+  for bloc in section.blocks
+    if bloc.settings.tenue != blank
+      assign a_contenu = true
+      break
+    endif
+  endfor
+-%}
+
+{%- if a_contenu -%}
+  <section
+    class="epure-morpho"
+    {% if section.settings.fond != blank %}style="--morpho-fond: {{ section.settings.fond }};"{% endif %}
+    {% if section.settings.titre != blank %}aria-labelledby="morpho-titre-{{ section.id }}"{% endif %}
+  >
+    <div class="epure-morpho__cadre">
+      {%- if section.settings.surtitre != blank or section.settings.titre != blank -%}
+        <header class="epure-morpho__entete">
+          {%- if section.settings.surtitre != blank -%}
+            <p class="epure-morpho__surtitre">{{ section.settings.surtitre }}</p>
+          {%- endif -%}
+          {%- if section.settings.titre != blank -%}
+            <h2 class="epure-morpho__titre" id="morpho-titre-{{ section.id }}">{{ section.settings.titre }}</h2>
+          {%- endif -%}
+        </header>
+      {%- endif -%}
+
+      <div class="epure-morpho__corps">
+        {%- if section.settings.image != blank -%}
+          <div class="epure-morpho__visuel">
+            {{
+              section.settings.image
+              | image_url: width: 1200
+              | image_tag:
+                loading: 'lazy',
+                sizes: '(min-width: 750px) 40vw, 100vw',
+                widths: '360, 540, 720, 900, 1200',
+                alt: section.settings.image.alt,
+                class: 'epure-morpho__image'
+            }}
+          </div>
+        {%- endif -%}
+
+        <dl class="epure-morpho__liste">
+          {%- for bloc in section.blocks -%}
+            {%- if bloc.settings.tenue != blank -%}
+              <div class="epure-morpho__ligne" {{ bloc.shopify_attributes }}>
+                <dt class="epure-morpho__tenue">{{ bloc.settings.tenue }}</dt>
+                {%- if bloc.settings.effet != blank -%}
+                  <dd class="epure-morpho__effet">{{ bloc.settings.effet }}</dd>
+                {%- else -%}
+                  <dd class="epure-morpho__effet"></dd>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        </dl>
+      </div>
+
+      {%- if section.settings.mention != blank -%}
+        <p class="epure-morpho__mention">{{ section.settings.mention }}</p>
+      {%- endif -%}
+    </div>
+  </section>
+{%- elsif request.design_mode -%}
+  <p class="epure-morpho__vide">
+    Section « Effet selon la tenue » : ajoutez au moins une tenue pour qu'elle s'affiche.
+    Tant qu'elle est vide, elle reste invisible sur la boutique.
+  </p>
+{%- endif -%}
+
+{% stylesheet %}
+  .epure-morpho {
+    background-color: var(--morpho-fond, var(--e-fond));
+    padding-block: var(--e-section-y);
+  }
+
+  .epure-morpho__cadre {
+    max-width: var(--page-width, 100%);
+    margin-inline: auto;
+    padding-inline: var(--e-gouttiere);
+  }
+
+  .epure-morpho__entete {
+    margin-bottom: var(--e-esp-7);
+  }
+
+  .epure-morpho__surtitre {
+    margin: 0 0 var(--e-esp-3);
+    font-family: var(--e-police-texte);
+    font-size: var(--e-t6-corps);
+    font-weight: var(--e-t6-graisse);
+    letter-spacing: var(--e-t6-lettre);
+    text-transform: uppercase;
+    color: var(--e-accent);
+  }
+
+  .epure-morpho__titre {
+    margin: 0;
+    font-family: var(--e-police-display);
+    font-size: var(--e-t2-corps);
+    font-weight: var(--e-t2-graisse);
+    line-height: var(--e-t2-ligne);
+    letter-spacing: var(--e-t2-lettre);
+    color: var(--e-encre);
+  }
+
+  .epure-morpho__corps {
+    display: grid;
+    gap: var(--e-esp-7);
+  }
+
+  @media (min-width: 750px) {
+    .epure-morpho__corps:has(.epure-morpho__visuel) {
+      grid-template-columns: 40% 1fr;
+      align-items: start;
+      gap: var(--e-esp-8);
+    }
+  }
+
+  .epure-morpho__image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .epure-morpho__liste {
+    margin: 0;
+  }
+
+  /* Filet entre chaque tenue, jamais au-dessus de la première :
+     le rythme vient de la séparation, pas d'un cadre. */
+  .epure-morpho__ligne {
+    display: grid;
+    gap: var(--e-esp-2);
+    padding-block: var(--e-esp-5);
+    border-top: var(--e-trait) solid var(--e-ligne);
+  }
+
+  .epure-morpho__ligne:first-child {
+    border-top: 0;
+    padding-block-start: 0;
+  }
+
+  @media (min-width: 750px) {
+    .epure-morpho__ligne {
+      grid-template-columns: 38% 1fr;
+      gap: var(--e-esp-5);
+      align-items: start;
+    }
+  }
+
+  .epure-morpho__tenue {
+    margin: 0;
+    font-family: var(--e-police-texte);
+    font-size: var(--e-t5-corps);
+    font-weight: var(--e-t6-graisse);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre);
+  }
+
+  .epure-morpho__effet {
+    margin: 0;
+    font-size: var(--e-t5-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre-2);
+  }
+
+  .epure-morpho__mention {
+    margin: var(--e-esp-6) 0 0;
+    font-size: var(--e-t6-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre-2);
+  }
+
+  .epure-morpho__vide {
+    margin: 0;
+    padding: var(--e-esp-6);
+    border: var(--e-trait) dashed var(--e-ligne-forte);
+    font-size: var(--e-t5-corps);
+    color: var(--e-encre-2);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Effet selon la tenue",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Répond à l'objection « il va se voir », tenue par tenue. La section reste invisible tant qu'aucune tenue n'est renseignée."
+    },
+    {
+      "type": "text",
+      "id": "surtitre",
+      "label": "Sur-titre",
+      "default": "Sous le vêtement"
+    },
+    {
+      "type": "text",
+      "id": "titre",
+      "label": "Titre",
+      "default": "Ce que ça donne, selon ce que vous portez."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image (facultative)",
+      "info": "Pensez au texte alternatif : il se règle dans la médiathèque, sur le fichier lui-même."
+    },
+    {
+      "type": "textarea",
+      "id": "mention",
+      "label": "Mention sous la liste",
+      "default": "L'effet est visuel et immédiat, le temps du port. Le body ne modifie pas la silhouette de façon permanente."
+    },
+    {
+      "type": "color",
+      "id": "fond",
+      "label": "Couleur de fond",
+      "info": "Laissez vide pour suivre le fond défini par les tokens."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tenue",
+      "name": "Tenue",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tenue",
+          "label": "Tenue portée par-dessus",
+          "default": "Sous une robe fluide"
+        },
+        {
+          "type": "textarea",
+          "id": "effet",
+          "label": "Ce que ça donne",
+          "default": "Le tissu tombe sans accrocher. Les bords découpés au laser ne dessinent aucune ligne à la cuisse."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Effet selon la tenue",
+      "category": "Épure",
+      "blocks": [
+        {
+          "type": "tenue",
+          "settings": {
+            "tenue": "Sous une robe fluide",
+            "effet": "Le tissu tombe sans accrocher. Les bords découpés au laser ne dessinent aucune ligne à la cuisse."
+          }
+        },
+        {
+          "type": "tenue",
+          "settings": {
+            "tenue": "Sous un jean taille haute",
+            "effet": "Le body reste en place quand vous vous asseyez. La maille ne roule pas sous la ceinture."
+          }
+        },
+        {
+          "type": "tenue",
+          "settings": {
+            "tenue": "Sous une maille fine",
+            "effet": "Aucune surépaisseur à l'épaule ni sous le sein : il n'y a ni couture d'assemblage, ni armature."
+          }
+        },
+        {
+          "type": "tenue",
+          "settings": {
+            "tenue": "Sous une chemise ajustée",
+            "effet": "Le dos reste soutenu au fil des heures. La compression se relâche vers la cage thoracique, la respiration reste libre assise."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
