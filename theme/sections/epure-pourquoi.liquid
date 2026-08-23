@@ -1,0 +1,494 @@
+{%- comment -%}
+  ÉPURE — Pourquoi nous choisir.
+
+  Deux registres dans une seule section, parce qu'ils répondent à deux
+  questions différentes :
+
+  — les arguments répondent à « pourquoi cette boutique » ;
+  — le tableau répond à « en quoi c'est différent d'un autre gainant ».
+
+  Le tableau est une comparaison au sens de l'article L.122-1 du Code de la
+  consommation. Trois précautions en découlent, et elles sont structurelles,
+  pas décoratives :
+
+  1. La colonne de référence désigne une catégorie de fabrication — « un
+     gainant à coutures » — jamais une marque. Nommer un concurrent
+     obligerait à prouver chaque ligne sur ce produit précis.
+  2. Chaque ligne compare une caractéristique de fabrication, objective et
+     vérifiable sur le vêtement lui-même. Pas de jugement de valeur, pas de
+     performance chiffrée invérifiable.
+  3. La mention sous le tableau rappelle les deux points ci-dessus. Elle est
+     dans le schema, avec une valeur par défaut, et non codée en dur.
+
+  Les deux familles de blocs sont indépendantes : la section rend ce qui est
+  rempli et tait le reste. Sans argument ni ligne, elle ne rend rien du tout.
+{%- endcomment -%}
+
+{%- liquid
+  assign arguments = section.blocks | where: 'type', 'argument'
+  assign lignes = section.blocks | where: 'type', 'ligne'
+
+  assign a_arguments = false
+  for bloc in arguments
+    if bloc.settings.titre != blank
+      assign a_arguments = true
+      break
+    endif
+  endfor
+
+  assign a_tableau = false
+  for bloc in lignes
+    if bloc.settings.critere != blank
+      assign a_tableau = true
+      break
+    endif
+  endfor
+
+  assign id_titre = 'pourquoi-titre-' | append: section.id
+-%}
+
+{%- if a_arguments or a_tableau -%}
+  <section
+    class="epure-pourquoi"
+    {% if section.settings.fond != blank %}style="--pourquoi-fond: {{ section.settings.fond }};"{% endif %}
+    {% if section.settings.titre != blank %}aria-labelledby="{{ id_titre }}"{% endif %}
+  >
+    <div class="epure-pourquoi__cadre">
+      {%- if section.settings.surtitre != blank or section.settings.titre != blank -%}
+        <header class="epure-pourquoi__entete">
+          {%- if section.settings.surtitre != blank -%}
+            <p class="epure-pourquoi__surtitre">{{ section.settings.surtitre }}</p>
+          {%- endif -%}
+          {%- if section.settings.titre != blank -%}
+            <h2 class="epure-pourquoi__titre" id="{{ id_titre }}">{{ section.settings.titre }}</h2>
+          {%- endif -%}
+        </header>
+      {%- endif -%}
+
+      {%- if a_arguments -%}
+        <ul class="epure-pourquoi__liste" role="list">
+          {%- for bloc in arguments -%}
+            {%- if bloc.settings.titre != blank -%}
+              <li class="epure-pourquoi__item" {{ bloc.shopify_attributes }}>
+                <h3 class="epure-pourquoi__item-titre">{{ bloc.settings.titre }}</h3>
+                {%- if bloc.settings.phrase_1 != blank -%}
+                  <p class="epure-pourquoi__item-texte">{{ bloc.settings.phrase_1 }}</p>
+                {%- endif -%}
+                {%- if bloc.settings.phrase_2 != blank -%}
+                  <p class="epure-pourquoi__item-texte">{{ bloc.settings.phrase_2 }}</p>
+                {%- endif -%}
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      {%- if a_tableau -%}
+        <div class="epure-pourquoi__comparatif">
+          {%- if section.settings.titre_tableau != blank -%}
+            <h3 class="epure-pourquoi__comparatif-titre">{{ section.settings.titre_tableau }}</h3>
+          {%- endif -%}
+
+          <div class="epure-pourquoi__cadre-tableau">
+            <table class="epure-pourquoi__tableau">
+              <thead>
+                <tr>
+                  <th scope="col">
+                    <span class="epure-pourquoi__masque">{{ section.settings.entete_critere }}</span>
+                  </th>
+                  <th scope="col">{{ section.settings.entete_autre }}</th>
+                  <th scope="col" class="epure-pourquoi__col-nous">{{ section.settings.entete_nous }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {%- for bloc in lignes -%}
+                  {%- if bloc.settings.critere != blank -%}
+                    <tr {{ bloc.shopify_attributes }}>
+                      <th scope="row">{{ bloc.settings.critere }}</th>
+                      <td>{{ bloc.settings.autre }}</td>
+                      <td class="epure-pourquoi__col-nous">{{ bloc.settings.nous }}</td>
+                    </tr>
+                  {%- endif -%}
+                {%- endfor -%}
+              </tbody>
+            </table>
+          </div>
+
+          {%- if section.settings.mention != blank -%}
+            <p class="epure-pourquoi__mention">{{ section.settings.mention }}</p>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </section>
+{%- elsif request.design_mode -%}
+  <p class="epure-pourquoi__vide">
+    Section « Pourquoi nous choisir » : ajoutez au moins un argument ou une ligne
+    de comparaison. Tant qu'elle est vide, elle reste invisible sur la boutique.
+  </p>
+{%- endif -%}
+
+{% stylesheet %}
+  .epure-pourquoi {
+    background-color: var(--pourquoi-fond, var(--e-fond));
+    padding-block: var(--e-section-y);
+  }
+
+  .epure-pourquoi__cadre {
+    max-width: var(--page-width, 100%);
+    margin-inline: auto;
+    padding-inline: var(--e-gouttiere);
+  }
+
+  .epure-pourquoi__entete {
+    margin-bottom: var(--e-esp-7);
+  }
+
+  .epure-pourquoi__surtitre {
+    margin: 0 0 var(--e-esp-3);
+    font-family: var(--e-police-texte);
+    font-size: var(--e-t6-corps);
+    font-weight: var(--e-t6-graisse);
+    letter-spacing: var(--e-t6-lettre);
+    text-transform: uppercase;
+    color: var(--e-accent);
+  }
+
+  .epure-pourquoi__titre {
+    margin: 0;
+    font-family: var(--e-police-display);
+    font-size: var(--e-t2-corps);
+    font-weight: var(--e-t2-graisse);
+    line-height: var(--e-t2-ligne);
+    letter-spacing: var(--e-t2-lettre);
+    color: var(--e-encre);
+  }
+
+  /* Les trois arguments : filets fins, pas de cartes ni d'ombres (§4). */
+  .epure-pourquoi__liste {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--e-esp-6);
+  }
+
+  @media (min-width: 750px) {
+    .epure-pourquoi__liste {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--e-esp-7);
+    }
+  }
+
+  .epure-pourquoi__item {
+    padding-block-start: var(--e-esp-5);
+    border-top: var(--e-trait) solid var(--e-ligne-forte);
+  }
+
+  .epure-pourquoi__item-titre {
+    margin: 0 0 var(--e-esp-3);
+    font-family: var(--e-police-texte);
+    font-size: var(--e-t6-corps);
+    font-weight: var(--e-t6-graisse);
+    letter-spacing: var(--e-t6-lettre);
+    text-transform: uppercase;
+    color: var(--e-encre);
+  }
+
+  .epure-pourquoi__item-texte {
+    margin: 0;
+    font-size: var(--e-t5-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre-2);
+  }
+
+  .epure-pourquoi__item-texte + .epure-pourquoi__item-texte {
+    margin-top: var(--e-esp-3);
+  }
+
+  .epure-pourquoi__comparatif {
+    margin-top: var(--e-esp-8);
+  }
+
+  .epure-pourquoi__comparatif-titre {
+    margin: 0 0 var(--e-esp-5);
+    font-family: var(--e-police-display);
+    font-size: var(--e-t3-corps);
+    font-weight: var(--e-t3-graisse);
+    line-height: var(--e-t3-ligne);
+    letter-spacing: var(--e-t3-lettre);
+    color: var(--e-encre);
+  }
+
+  /* Masque a l'ecran, lu par les lecteurs d'ecran. Defini ici plutot que
+     repris d'une classe utilitaire du theme, dont la presence n'est pas
+     garantie sur toutes les pages. */
+  .epure-pourquoi__masque {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .epure-pourquoi__cadre-tableau {
+    overflow-x: auto;
+  }
+
+  .epure-pourquoi__tableau {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--e-t5-corps);
+    text-align: left;
+  }
+
+  .epure-pourquoi__tableau th,
+  .epure-pourquoi__tableau td {
+    padding: var(--e-esp-4) var(--e-esp-3);
+    vertical-align: top;
+    border-bottom: var(--e-trait) solid var(--e-ligne);
+  }
+
+  .epure-pourquoi__tableau thead th {
+    font-family: var(--e-police-texte);
+    font-size: var(--e-t6-corps);
+    font-weight: var(--e-t6-graisse);
+    letter-spacing: var(--e-t6-lettre);
+    text-transform: uppercase;
+    color: var(--e-encre-2);
+    border-bottom-color: var(--e-ligne-forte);
+  }
+
+  .epure-pourquoi__tableau tbody th {
+    font-family: var(--e-police-texte);
+    font-weight: var(--e-t6-graisse);
+    color: var(--e-encre);
+    white-space: nowrap;
+  }
+
+  .epure-pourquoi__tableau td {
+    color: var(--e-encre-2);
+  }
+
+  /* La colonne Épure est la seule marquée. Un filet vertical à l'accent
+     suffit à la distinguer : pas de fond teinté, pas de coche verte. */
+  .epure-pourquoi__tableau .epure-pourquoi__col-nous {
+    color: var(--e-encre);
+    border-left: var(--e-trait) solid var(--e-accent);
+  }
+
+  .epure-pourquoi__tableau thead .epure-pourquoi__col-nous {
+    color: var(--e-accent);
+  }
+
+  .epure-pourquoi__mention {
+    margin: var(--e-esp-5) 0 0;
+    font-size: var(--e-t6-corps);
+    line-height: var(--e-t5-ligne);
+    color: var(--e-encre-2);
+  }
+
+  .epure-pourquoi__vide {
+    margin: 0;
+    padding: var(--e-esp-6);
+    border: var(--e-trait) dashed var(--e-ligne-forte);
+    font-size: var(--e-t5-corps);
+    color: var(--e-encre-2);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Pourquoi nous choisir",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Trois arguments, puis un tableau comparatif. Chaque partie s'affiche seulement si elle est remplie."
+    },
+    {
+      "type": "text",
+      "id": "surtitre",
+      "label": "Sur-titre",
+      "default": "Pourquoi nous choisir"
+    },
+    {
+      "type": "text",
+      "id": "titre",
+      "label": "Titre",
+      "default": "Ce qui change, concrètement."
+    },
+    {
+      "type": "header",
+      "content": "Tableau comparatif"
+    },
+    {
+      "type": "paragraph",
+      "content": "Comparez des caractéristiques de fabrication, vérifiables sur le vêtement. Ne nommez jamais une marque concurrente : la loi vous obligerait alors à prouver chaque ligne sur ce produit précis."
+    },
+    {
+      "type": "text",
+      "id": "titre_tableau",
+      "label": "Titre du tableau",
+      "default": "Face à un gainant à coutures"
+    },
+    {
+      "type": "text",
+      "id": "entete_critere",
+      "label": "Intitulé de la colonne des critères",
+      "default": "Critère",
+      "info": "Masqué à l'écran, lu par les lecteurs d'écran."
+    },
+    {
+      "type": "text",
+      "id": "entete_autre",
+      "label": "Colonne de référence",
+      "default": "Gainant à coutures"
+    },
+    {
+      "type": "text",
+      "id": "entete_nous",
+      "label": "Notre colonne",
+      "default": "Épure"
+    },
+    {
+      "type": "textarea",
+      "id": "mention",
+      "label": "Mention sous le tableau",
+      "default": "Comparaison portant sur des caractéristiques de fabrication, face à un gainant assemblé par couture. Elle ne vise aucune marque en particulier."
+    },
+    {
+      "type": "header",
+      "content": "Apparence"
+    },
+    {
+      "type": "color",
+      "id": "fond",
+      "label": "Couleur de fond",
+      "info": "Laissez vide pour suivre le fond défini par les tokens."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "argument",
+      "name": "Argument",
+      "settings": [
+        {
+          "type": "text",
+          "id": "titre",
+          "label": "Titre",
+          "default": "Qualité premium"
+        },
+        {
+          "type": "textarea",
+          "id": "phrase_1",
+          "label": "Première phrase"
+        },
+        {
+          "type": "textarea",
+          "id": "phrase_2",
+          "label": "Seconde phrase"
+        }
+      ]
+    },
+    {
+      "type": "ligne",
+      "name": "Ligne du tableau",
+      "settings": [
+        {
+          "type": "text",
+          "id": "critere",
+          "label": "Critère"
+        },
+        {
+          "type": "text",
+          "id": "autre",
+          "label": "Gainant à coutures"
+        },
+        {
+          "type": "text",
+          "id": "nous",
+          "label": "Épure"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 16,
+  "presets": [
+    {
+      "name": "Pourquoi nous choisir",
+      "category": "Épure",
+      "blocks": [
+        {
+          "type": "argument",
+          "settings": {
+            "titre": "Qualité premium",
+            "phrase_1": "85 % polyamide et 15 % élasthanne, tricotés d'un seul tenant : aucune couture d'assemblage, donc aucune surépaisseur.",
+            "phrase_2": "Les bords sont découpés au laser, sans ourlet ni élastique rapporté."
+          }
+        },
+        {
+          "type": "argument",
+          "settings": {
+            "titre": "Confort sur la journée",
+            "phrase_1": "La compression est ferme sur le ventre et se relâche vers les côtes : la respiration reste libre, y compris assise.",
+            "phrase_2": "Ni baleine ni armature — rien ne pique sous le sein en fin de journée."
+          }
+        },
+        {
+          "type": "argument",
+          "settings": {
+            "titre": "Livraison suivie",
+            "phrase_1": "Livraison offerte, avec un numéro de suivi transmis dès l'expédition.",
+            "phrase_2": "Comptez 10 à 20 jours ouvrés ; la fiche produit affiche la fenêtre exacte, recalculée chaque jour."
+          }
+        },
+        {
+          "type": "ligne",
+          "settings": {
+            "critere": "Construction",
+            "autre": "Panneaux assemblés par couture",
+            "nous": "Tricoté d'un seul tenant"
+          }
+        },
+        {
+          "type": "ligne",
+          "settings": {
+            "critere": "Bords",
+            "autre": "Ourlet ou élastique rapporté",
+            "nous": "Découpés au laser"
+          }
+        },
+        {
+          "type": "ligne",
+          "settings": {
+            "critere": "Maintien",
+            "autre": "Baleines et armatures",
+            "nous": "Densité de la maille"
+          }
+        },
+        {
+          "type": "ligne",
+          "settings": {
+            "critere": "Sous le vêtement",
+            "autre": "Lignes visibles aux bords",
+            "nous": "Aucune démarcation"
+          }
+        },
+        {
+          "type": "ligne",
+          "settings": {
+            "critere": "Tailles",
+            "autre": "Selon les modèles",
+            "nous": "Du S au 3XL, même coupe"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
