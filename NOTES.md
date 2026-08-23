@@ -829,3 +829,64 @@ produit. C'est un parti pris défendable, mais il vaut d'être su.
 Le thème publié est verrouillé en écriture par l'API. Plus de duplication : on
 alterne entre « atelier » et « chantier ». Pour cette section, atelier a été
 dépublié le temps de l'écriture, puis republié.
+
+
+---
+
+## Boutons de la page d'accueil — 23 août
+
+### Ce que j'ai cassé, et pourquoi
+
+Le marchand avait ajouté un bouton sur le hero. Mon envoi suivant l'a effacé.
+
+La cause n'est pas un oubli mais une **erreur de méthode**. Je comparais sa
+version à la mienne et je classais les clés en trois tas : identiques,
+modifiées, perdues. Les clés **ajoutées** de son côté, je les rangeais en bloc
+sous « valeurs par défaut réécrites par l'éditeur » — sans les regarder. Or un
+bloc bouton entier arrive précisément comme un ajout. Mon contrôle disait
+« 0 modifié, 0 perdu » et il avait raison : il ne regardait pas au bon endroit.
+
+**Règle désormais : on part du fichier du marchand, jamais de la copie locale.**
+On le récupère juste avant d'écrire, on y ajoute, on le renvoie tel quel — même
+si c'est 59 Ko au lieu de 14. Et on vérifie après coup en recomparant clé par
+clé : 2 173 attendues, 2 173 reçues, zéro écart.
+
+### Un lien mort trouvé au passage
+
+Le bouton du hero pointait vers `body-sculptant-sans-couture-epure` — le
+produit **archivé**. Tous les autres liens de la page visent
+`…-epure-1`, l'actif. Le premier appel à l'action de la page menait donc dans
+le vide. Corrigé.
+
+### Boutons en place
+
+| Section | Libellé | Style |
+|---|---|---|
+| hero | Découvrir le produit | secondaire |
+| accroche | Découvrir le body | principal |
+| respire1 | Voir la matière | secondaire |
+| matière | Voir la fiche produit | principal |
+| éditorial | Découvrir le produit | secondaire |
+| teintes | Choisir ma teinte | principal |
+| pourquoi | Découvrir le body | principal |
+| respire2 | Découvrir le body | secondaire |
+| clôture | Découvrir le body | principal |
+
+Convention retenue : **secondaire sur les photos pleine largeur**, en écho au
+choix du marchand sur le hero ; **principal sur les fonds unis**. Les libellés
+varient selon le contexte plutôt que de répéter neuf fois la même formule.
+
+Écartés volontairement : le diptyque (deux carrés jointifs, un bouton y serait
+à l'étroit) et la pause (une phrase manifeste seule au centre — un bouton la
+tuerait).
+
+La section « Pourquoi nous choisir » reçoit deux réglages, `bouton_libelle` et
+`bouton_lien` : le bouton ne se rend que si les deux sont remplis, et se place
+après le tableau, là où la décision se prend.
+
+### Réserve
+
+Neuf appels à l'action sur une page, c'est beaucoup au regard du §4, qui
+demande de la retenue. C'est une demande explicite du commanditaire, elle est
+appliquée telle quelle. À surveiller au rendu : le contraste des boutons
+secondaires sur les photos, qui n'ont pas de voile (`toggle_overlay: false`).

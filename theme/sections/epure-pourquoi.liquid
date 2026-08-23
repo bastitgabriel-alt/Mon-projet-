@@ -119,6 +119,14 @@
           {%- endif -%}
         </div>
       {%- endif -%}
+
+      {%- if section.settings.bouton_libelle != blank and section.settings.bouton_lien != blank -%}
+        <p class="epure-pourquoi__action">
+          <a class="button button-primary" href="{{ section.settings.bouton_lien }}">
+            {{- section.settings.bouton_libelle -}}
+          </a>
+        </p>
+      {%- endif -%}
     </div>
   </section>
 {%- elsif request.design_mode -%}
@@ -292,6 +300,10 @@
     color: var(--e-encre-2);
   }
 
+  .epure-pourquoi__action {
+    margin: var(--e-esp-7) 0 0;
+  }
+
   .epure-pourquoi__vide {
     margin: 0;
     padding: var(--e-esp-6);
@@ -360,6 +372,21 @@
       "id": "mention",
       "label": "Mention sous le tableau",
       "default": "Comparaison portant sur des caractéristiques de fabrication, face à un gainant assemblé par couture. Elle ne vise aucune marque en particulier."
+    },
+    {
+      "type": "header",
+      "content": "Bouton"
+    },
+    {
+      "type": "text",
+      "id": "bouton_libelle",
+      "label": "Libellé du bouton",
+      "info": "Le bouton n'apparaît que si le libellé et le lien sont tous deux renseignés."
+    },
+    {
+      "type": "url",
+      "id": "bouton_lien",
+      "label": "Lien du bouton"
     },
     {
       "type": "header",
