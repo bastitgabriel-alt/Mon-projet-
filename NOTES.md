@@ -493,5 +493,89 @@ body change. Il ne l'est pas si la silhouette a été affinée.
 - [x] Avis clients
 - [x] Réassurance
 - [ ] Remplacer les visuels marketplace (allégations d'amincissement, contraires aux §5 et §10)
-- [ ] Passer le français en langue par défaut de la boutique
-- [ ] Remplacer « My Store 5 » dans l'en-tête
+- [x] Passer le français en langue par défaut de la boutique — fait côté marchand
+- [x] Remplacer « My Store 5 » dans l'en-tête — la boutique s'appelle « Epure »
+
+---
+
+## Audit complet contre le brief — 23 août
+
+Repris section par section, contre l'état réel lu par l'API Admin.
+
+### Le thème a été publié
+
+« Épure — test » est passé en `MAIN` ; Helio est repassé en `UNPUBLISHED`.
+Conséquence directe : **l'API refuse désormais toute écriture sur ce thème.**
+La garde est saine — on n'édite pas une vitrine ouverte — mais elle impose un
+nouveau circuit : duplication en brouillon, travail sur le brouillon,
+publication par le marchand.
+
+Le brouillon de travail est **« Épure — chantier »** (`190584619332`).
+
+### §10 — critère « aucune couleur en dur » : il échouait
+
+42 valeurs hexadécimales vivaient hors du fichier de tokens :
+
+| Emplacement | Nb | Détail |
+|---|---|---|
+| `templates/index.json` | 15 | dont un `#6B625C` orphelin |
+| `templates/product.…json` | 15 | |
+| `config/settings_data.json` | 12 | badges, tiroir, popovers, champs |
+
+La cause était structurelle : la palette Shopify n'avait **pas d'emplacement**
+pour l'encre secondaire ni pour la ligne forte — les slots `color5` et `color6`
+étaient vides. Faute de slot, chaque section réécrivait la valeur à la main.
+
+Corrigé en ouvrant les deux slots :
+
+```
+color5 = #645B54   encre secondaire
+color6 = #7C7671   ligne forte (seuil 3:1)
+```
+
+Les 42 valeurs renvoient maintenant vers la palette. Zéro hex hors tokens et
+hors définition de palette.
+
+Le `#6B625C` orphelin méritait un mot : il n'appartenait à aucun système.
+Contrôle fait — 4,98 sur le fond, donc **il ne cassait pas l'AA** ; il aurait
+échoué (4,05) sur le fond sable, où il ne se trouvait pas. Normalisé sur
+`color5`, qui tient partout.
+
+### §8 — une police inutile était préchargée
+
+Les quatre sélecteurs de Helio (`type_body_font`, `type_subheading_font`,
+`type_heading_font`, `type_accent_font`) pointaient tous sur `inter_n4`.
+Or `snippets/fonts.liquid` fait un `preload_tag` sur chacun : Inter était donc
+**téléchargée à chaque page** — et jamais affichée, puisque les tokens
+imposent nos deux familles auto-hébergées. Un `preload` force la requête, il
+n'attend pas qu'un élément réclame la police.
+
+Corrigé en basculant les quatre sur `system_ui_n4`. La garde native de Helio
+(`{%- unless … .system? -%}`) saute alors le préchargement, et `font_face` ne
+rend rien pour une police système. Aucun fichier de thème modifié : ce sont
+des réglages, réversibles depuis le personnalisateur.
+
+### Écarts au brief encore ouverts
+
+| §  | Attendu | État |
+|---|---|---|
+| 6 | Correspondance tailles FR dans le guide | absente — 3 colonnes, pas de 4ᵉ |
+| 6 | Bloc morphologie (effet selon la tenue portée) | inexistant ; `epure-07-morphologies.png` dort dans la médiathèque |
+| 6 | Livraison estimée calculée en Liquid depuis la date du jour | texte statique « 10 à 20 jours ouvrés » |
+| 8 | `alt` descriptif sur toutes les images | 10 des 15 visuels produit ont un `alt` vide |
+| 5 | Comparateur en place | composant livré, hors page — pas de vraie paire de photos |
+| 8 | Seuils Lighthouse, captures à l'appui | non mesurable ici (voir Limites) |
+
+### Vérifié conforme
+
+- §5 — le comparateur porte `aria-label`, la poignée est masquée aux lecteurs
+  d'écran, `role="slider"` et `aria-valuenow` viennent de l'`<input type="range">`
+  natif, `Origine`/`Fin` et les flèches fonctionnent sans code.
+- §3 — `image_tag` avec `widths`, `loading` et `fetchpriority` sur les deux
+  images du comparateur.
+- §6 — la barre d'ajout au panier collante est native (`sticky-add-to-cart.js`),
+  activée, pilotée par `IntersectionObserver` sur le bloc d'achat, masquée au
+  pied de page, et suit les changements de variante. Reste à confirmer
+  visuellement qu'elle est bien cantonnée au mobile.
+- §3 — aucun hex en dur dans mes fichiers Liquid.
+- §11 — aucune app, aucun script tiers ajouté.
