@@ -501,8 +501,9 @@ body change. Il ne l'est pas si la silhouette a été affinée.
 - [~] `alt` des visuels — 3 écrits (variantes de couleur), 12 hors de portée sans voir les images
 - [ ] Retirer de la galerie produit les 6 `epure-0X.png` qui doublonnent les fonds de section
 - [x] Publier « Épure — chantier » — fait côté marchand
-- [ ] Publier « Épure — atelier » (bandeau défilant au-dessus du menu)
-- [ ] Supprimer les thèmes devenus inutiles : « Épure — test », et « Épure — chantier » une fois « atelier » publié
+- [x] Publier « Épure — atelier » — fait côté marchand
+- [ ] Republier « Épure — atelier » (section « Pourquoi nous choisir »)
+- [x] Ménage des thèmes — il ne reste que « atelier » et « chantier »
 
 ---
 
@@ -766,3 +767,65 @@ Restent douze visuels sans `alt` exploitable. Deux observations pour la suite :
   visuellement qu'elle est bien cantonnée au mobile.
 - §3 — aucun hex en dur dans mes fichiers Liquid.
 - §11 — aucune app, aucun script tiers ajouté.
+
+
+---
+
+## Section « Pourquoi nous choisir » — 23 août
+
+Trois arguments, puis un tableau comparatif. Deux registres dans une même
+section parce qu'ils répondent à deux questions distinctes : les arguments à
+« pourquoi cette boutique », le tableau à « en quoi c'est différent d'un autre
+gainant ».
+
+### Le choix du deuxième argument
+
+Le marchand a fixé le premier (qualité premium) et le troisième (livraison
+suivie), et m'a laissé le deuxième. Le §1 pose trois objections : est-ce que ça
+marche, est-ce confortable, puis-je faire confiance. Les deux arguments imposés
+couvrent la première et la troisième — le deuxième est donc **le confort**,
+sinon l'objection la plus fréquente restait sans réponse dans ce bloc.
+
+### Le tableau : trois précautions structurelles
+
+C'est une comparaison au sens de l'article L.122-1 du Code de la consommation.
+D'où :
+
+1. **La colonne de référence désigne une catégorie de fabrication** — « un
+   gainant à coutures » — jamais une marque. Nommer un concurrent obligerait à
+   prouver chaque ligne sur ce produit précis, ce que personne ici ne peut
+   faire.
+2. **Chaque ligne compare une caractéristique vérifiable sur le vêtement** :
+   construction, bords, maintien, rendu sous le vêtement, tailles. Aucun
+   jugement de valeur, aucune performance chiffrée invérifiable.
+3. **La mention rappelant les deux points est dans le schema**, avec une valeur
+   par défaut, et non codée en dur — elle reste donc modifiable sans toucher au
+   fichier, et ne peut pas disparaître par inadvertance.
+
+Le schema le rappelle au marchand à l'endroit où il serait tenté de saisir un
+nom de marque.
+
+### Mise en forme
+
+La colonne Épure est la seule marquée, par un filet vertical à l'accent : pas
+de fond teinté, pas de coche verte. Le tableau défile horizontalement dans son
+propre conteneur si trois colonnes ne tiennent pas.
+
+### Reprise des modifications de l'éditeur
+
+Le marchand avait, entre-temps : retiré la section produit de l'accueil, et
+repassé l'éditorial en colonne (image à 55 %, texte avant image, bouton
+secondaire « Découvrir le produit »). Vérifié réglage par réglage avant
+d'écrire — 384 identiques, 10 modifiés, 1 section supprimée — puis tout repris.
+
+Le `#221e1c` saisi à la main dans l'éditeur vaut exactement `foreground` :
+renvoyé vers la palette, rendu identique, §10 tenu.
+
+**L'accueil n'a plus de bloc d'achat direct.** Les boutons mènent à la fiche
+produit. C'est un parti pris défendable, mais il vaut d'être su.
+
+### Circuit
+
+Le thème publié est verrouillé en écriture par l'API. Plus de duplication : on
+alterne entre « atelier » et « chantier ». Pour cette section, atelier a été
+dépublié le temps de l'écriture, puis republié.
