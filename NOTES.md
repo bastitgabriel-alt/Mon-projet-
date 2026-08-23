@@ -215,7 +215,7 @@ la fiche technique à droite (56 %), filets entre chaque entrée.
 | Extensibilité | Bi-extensible, dans les deux sens | fiche produit |
 | Finition | Bords découpés au laser, sans ourlet | fiche produit |
 | Entretien | 30 °C en filet, séchage à l'air libre | fiche produit |
-| ~~Grammage~~ | *inconnu* | — |
+| ~~Grammage~~ | *abandonné — introuvable côté fournisseur* | — |
 
 C'est la première section à utiliser le **fond sable** (`color2`) : la valeur
 chaude réclamée pour éviter l'effet clinique. Elle reste unique sur la page,
@@ -249,11 +249,11 @@ encre-2 4,51 (AA), accent 7,12 (AAA). Aucune paire ne descend sous le seuil.
 
 ## Étape 5 — Guide des tailles ✅
 
-### Aucune mensuration disponible
+### Aucune mensuration disponible — puis si, finalement
 
-Même situation que le grammage : le §6 réclame des « mensurations réelles »,
-la fiche produit n'en contient aucune. Le composant est donc bâti pour que
-l'absence soit tenable :
+À la conception, le §6 réclamait des « mensurations réelles » que la fiche
+produit ne contenait pas. Le composant a donc été bâti pour que l'absence
+soit tenable :
 
 - **le conseil de coupe s'affiche toujours** — c'est la seule information
   certaine, et elle vient du marchand : « prenez votre taille habituelle,
@@ -262,8 +262,46 @@ l'absence soit tenable :
   tableau aux cellules vides serait publié en l'état ; un tableau inventé
   serait faux. Les deux sont pires que son absence.
 
-Les six intitulés de tailles (S → 3XL) sont pré-remplis car ils, eux, sont
-réels. Les 18 cellules de mesures sont vides.
+Cette dégradation gracieuse a servi : les 18 cellules sont restées vides
+jusqu'à ce que le marchand retrouve la fiche du fournisseur.
+
+### Mensurations renseignées (source : fiche fournisseur)
+
+Le SIZE CHART du fournisseur (marque *miss moly*, modèle 0047) donne les
+mesures **du corps**, en centimètres :
+
+| Taille | Poitrine | Taille | Hanches | Longueur du vêtement |
+|---|---|---|---|---|
+| S | 87-92 | 66-71 | 92-97 | 37 |
+| M | 92-97 | 71-76 | 97-102 | 38 |
+| L | 97-102 | 76-81 | 102-107 | 39 |
+| XL | 102-107 | 81-86 | 107-112 | 40 |
+| 2XL | 107-112 | 86-91 | 112-117 | 41 |
+| 3XL | 112-117 | 91-96 | 117-122 | 42 |
+
+Les 18 cellules sont remplies, le tableau s'affiche donc désormais. La
+longueur du vêtement n'entre pas dans le tableau — ce n'est pas une mesure
+de corps, on ne la compare pas à la sienne. Elle passe en note sous le
+tableau, où elle informe sans induire en erreur.
+
+**Les bornes se chevauchent** (92 termine le S et ouvre le M, etc.). C'est
+la grille du fournisseur, je ne la corrige pas : le conseil « entre deux
+tailles, prenez la plus grande » couvre exactement ce cas, et il est déjà
+affiché juste au-dessus du tableau.
+
+### Grammage : abandonné
+
+Le §6 le demandait ; il n'apparaît ni sur la fiche du marchand, ni dans le
+tableau de spécifications du fournisseur, qui ne mentionne aucun GSM.
+Le marchand a tranché : on laisse tomber. La ligne reste omise plutôt
+qu'inventée (§11).
+
+### Formulation corrigée au passage
+
+L'accordéon « Ce qu'il fait » portait « cuisses affinées ». *Affiner*
+suggère un amincissement, donc un effet durable sur le corps — ce que le
+§10 interdit d'affirmer. Remplacé par « cuisses lissées », qui décrit
+l'effet visuel porté, et rien de plus.
 
 ### `<dialog>` natif plutôt que le tiroir de Helio
 
