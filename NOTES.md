@@ -890,3 +890,53 @@ Neuf appels à l'action sur une page, c'est beaucoup au regard du §4, qui
 demande de la retenue. C'est une demande explicite du commanditaire, elle est
 appliquée telle quelle. À surveiller au rendu : le contraste des boutons
 secondaires sur les photos, qui n'ont pas de voile (`toggle_overlay: false`).
+
+---
+
+## 24 août — commande test : code promo interne
+
+### Constat préalable : la commande #1003 n'est pas une vente
+
+Repérée en vérifiant avant de créer le code. Elle ressemble à une vraie
+commande (22 août, 54,90 €, payée) mais elle n'en est pas une :
+
+| Champ | Valeur |
+|---|---|
+| `customer` | `null` |
+| `email` | `null` |
+| `shippingAddress` | `null` |
+| `shippingLines` | vide |
+| passerelle | `manual` |
+
+Comme #1001 et #1002, elle a été créée depuis l'admin et marquée payée à la
+main. **Zéro passage réel en caisse à ce jour** : les frais de port à 0 €, le
+pixel de conversion et la page de remerciement n'ont jamais été traversés.
+
+### Le code créé
+
+`discountCodeBasicCreate` — code `TEST-EPURE-9K4M2X`, 90 %, limité au produit
+actif (`gid://shopify/Product/15632004907332`).
+
+Trois garde-fous, ajoutés délibérément :
+
+- `usageLimit: 1` — une seule utilisation, tous clients confondus ;
+- `appliesOncePerCustomer: true` ;
+- `endsAt` au 31 août — expire seul si le marchand oublie de le supprimer.
+
+Ils comptent : le tunnel n'accepte pas de restreindre un code à une personne,
+donc un −90 % sur l'unique produit de la boutique est exploitable par
+quiconque le trouve. La limite à 1 usage est ce qui rend le risque nul.
+
+### Pourquoi 90 % et pas 100 %
+
+À 0 € de total, Shopify **saute entièrement l'étape de paiement**. Or c'est
+précisément l'étape à vérifier. À 90 %, il reste 5,49 € à régler : le tunnel
+est traversé en entier, la conversion remonte avec une valeur réelle, et
+l'expédition se déclenche.
+
+### Réserve non levée
+
+Impossible de vérifier depuis l'API si l'app AutoDS est réglée en commande
+automatique chez le fournisseur. Si elle l'est, la commande test partira seule
+et la carte du marchand sera débitée du prix fournisseur — comportement voulu
+ici, mais à connaître avant.
