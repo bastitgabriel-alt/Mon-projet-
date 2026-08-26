@@ -940,3 +940,75 @@ Impossible de vérifier depuis l'API si l'app AutoDS est réglée en commande
 automatique chez le fournisseur. Si elle l'est, la commande test partira seule
 et la carte du marchand sera débitée du prix fournisseur — comportement voulu
 ici, mais à connaître avant.
+
+---
+
+## 26 août — deux bugs d'affichage mobile
+
+Signalés par le marchand sur captures iPhone. Diagnostic fait en lisant le
+thème en ligne, pas en interprétant les captures.
+
+### Bug 1 — section « editorial » : image en bande
+
+`background_image_position` était réglé sur `'fit'`. Sur les quatre sections
+à image de fond de la page d'accueil, c'était **la seule** :
+
+| Section | position | hauteur |
+|---|---|---|
+| hero | `cover` | large |
+| respire1 | `cover` | large |
+| respire2 | `cover` | large |
+| **editorial** | **`fit`** | **full-screen** |
+
+`fit` = image entière visible. Une image 16:9 dans une section réglée en
+`full-screen` sur mobile se réduit donc à une bande horizontale, le texte
+débordant au-dessus et en dessous. Corrigé en `cover`.
+
+**Correction d'un diagnostic erroné de ma part** : j'avais annoncé au
+marchand que le bloc image `img`, qui porte la même image que le fond,
+ajoutait une seconde bande. C'était faux — le diff a montré
+`blocks.img.disabled = true`. Ce bloc ne rendait rien. La bande venait
+**uniquement** du réglage `fit`. Le bloc a quand même été supprimé : c'est un
+doublon inactif du fond de section, mais c'est du nettoyage, pas le correctif.
+
+### Bug 2 — diptyque : recadrage carré
+
+Les deux blocs image étaient en `image_ratio: 'square'`. `blocks/image.liquid`
+mappe les valeurs ainsi :
+
+```liquid
+when 'landscape' → 16 / 9
+when 'portrait'  → 4 / 5
+when 'adapt'     → ratio natif
+{# défaut : 1 #}
+```
+```css
+.image-block__image { object-fit: cover; aspect-ratio: var(--ratio); }
+```
+
+`object-fit: cover` dans un cadre carré recadre au centre et jette le reste —
+d'où le menton coupé sur `epure-08-profil..png`. Passés en `portrait` (4/5).
+
+**Pourquoi pas `adapt`** : les deux images n'ont pas le même ratio natif, le
+diptyque serait devenu asymétrique. `portrait` les aligne et convient à une
+silhouette debout.
+
+### Méthode d'envoi
+
+« atelier » étant le thème publié, l'API refuse l'écriture. Le marchand l'a
+dépublié le temps de l'opération — « chantier » a alors servi le site.
+
+Le fichier fait 104 Ko : l'éditeur de thème a déployé tous les réglages par
+défaut. Envoyé minifié (58 Ko), puis vérifié par diff clé par clé :
+
+- **original → en ligne** : uniquement les 4 changements voulus, plus les
+  20 clés du bloc `img` supprimé ;
+- **voulu → en ligne** : **2 212 / 2 212 clés identiques, aucun écart.**
+
+### Constat non traité
+
+`sections.editorial.blocks.t` et `.p` portent `text_color: "#221e1c"`, en dur.
+C'est une régression du §10 (toutes les couleurs par jetons) — 42 occurrences
+avaient été corrigées le 23 août. Non touché ici : sans connaître la valeur
+exacte de `color_palette.foreground`, un remplacement changerait peut-être le
+rendu. À trancher séparément.
