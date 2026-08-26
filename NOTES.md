@@ -1012,3 +1012,28 @@ C'est une régression du §10 (toutes les couleurs par jetons) — 42 occurrence
 avaient été corrigées le 23 août. Non touché ici : sans connaître la valeur
 exacte de `color_palette.foreground`, un remplacement changerait peut-être le
 rendu. À trancher séparément.
+
+### Diptyque — arbitrage confirmé par le marchand
+
+Les deux images ont des orientations opposées : `epure-03-sous-vetement`
+est en 768×1376 (verticale), `epure-08-profil` en 1376×768 (horizontale).
+Comme les panneaux se touchent (`gap: 4`), ils doivent partager le même
+cadre — aucun format ne flatte les deux.
+
+| Cadre | Photo verticale | Photo horizontale |
+|---|---|---|
+| Carré (avant) | 56 % visible | 56 % visible |
+| Portrait 4:5 (retenu) | **70 %** | **45 %** |
+
+Le marchand a confirmé que les côtés de la photo horizontale ne portent rien
+d'important. Le cadre `portrait` est donc conservé : le rognage latéral ne
+coûte que du fond, et la photo verticale y gagne 14 points.
+
+**Second diagnostic erroné à corriger** : j'avais annoncé que le cadre carré
+coupait le haut du visage. Faux — avec une source horizontale dans un cadre
+carré, `object-fit: cover` rogne **les côtés**, la hauteur reste entière. Le
+cadrage serré du visage vient de l'image source. Le réglage n'y était pour
+rien.
+
+Vrai correctif à terme : une photo verticale pour l'emplacement b, quand les
+vraies prises de vue seront disponibles.
