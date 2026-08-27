@@ -1037,3 +1037,63 @@ rien.
 
 Vrai correctif à terme : une photo verticale pour l'emplacement b, quand les
 vraies prises de vue seront disponibles.
+
+---
+
+## 26 août — dossier Meta Ads
+
+Publié comme page consultable plutôt que comme fichier : le marchand avait
+signalé le 24 août qu'il ne pouvait pas ouvrir mes fichiers locaux.
+
+→ https://claude.ai/code/artifact/cb184b3a-2ad6-46ee-8fdc-0621c8de1e55
+
+### Ce qui distingue ce dossier de celui de Google
+
+Le dossier Google du 23 août partait d'un audit de flux produit. Celui-ci
+part de la **marge réelle**, connue depuis le 25 août seulement :
+
+```
+54,90 €  encaissé
+− 1,07 €  Shopify Payments (1,5 % + 0,25 €, lu sur la transaction #Epure1005)
+−14,10 €  coût d'achat AliExpress (montant réel payé par le marchand)
+=39,73 €  marge brute — coefficient 3,9×, 72 % de marge
+```
+
+Seuils qui en découlent, et qui gouvernent tout le document :
+
+| Seuil | Valeur | Origine |
+|---|---|---|
+| Plafond absolu | 39,73 € | marge brute |
+| Équilibre réel | ~34 € | après 8 % de retours + abonnements |
+| Cible | < 20 € | ROAS 2,75 |
+
+### Recommandations structurantes
+
+- **Audience large, pas de centres d'intérêt.** À 20 €/jour, découper
+  fragmente les conversions et fait payer la phase d'apprentissage plusieurs
+  fois. La variable à tester est la créa, pas l'audience — d'où trois
+  publicités dans un ensemble unique.
+- **Pas d'Advantage+ au départ.** Un seul achat réel dans l'historique, et
+  c'est celui du marchand à 8,48 €. Rien sur quoi s'appuyer.
+- **Carrousel plutôt que vidéo** pour démarrer : l'argument est technique et
+  se démontre vignette par vignette, et ça ne demande pas de caméra.
+- **API Conversions non négociable** : sans elle, l'audience large ne
+  converge sur rien.
+
+### Deux points de conformité intégrés
+
+1. **Étiquetage IA** — obligatoire depuis le 2 août 2026 (article 50 du
+   règlement européen sur l'IA) pour toute création générée ou fortement
+   modifiée par IA. Vérifié par recherche web ce jour ; ce n'était pas dans
+   mon horizon de connaissances.
+2. **Politiques Meta sur le gainant** — trois angles distincts : image du
+   corps, attributs personnels (le « vous » qui décrit le corps du lecteur),
+   et contenu pour adultes (un cadrage serré sur une zone du corps en
+   sous-vêtement). Présentés comme la forme des règles, avec réserve
+   explicite : leur texte exact fait foi et évolue.
+
+### Bloquants nommés
+
+Mentions légales non remplies et absence de domaine — les deux empêchent
+respectivement l'approbation du compte et la vérification de domaine, donc
+l'attribution des conversions.
